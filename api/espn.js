@@ -1,17 +1,28 @@
-const ESPN_BASE = "https://site.api.espn.com/apis/site/v2";
+// Vercel Serverless Function -- proxies ESPN API requests to avoid CORS issues.
+// Deployed at /api/espn?path=<espn-path>
+//
+// Examples:
+//   /api/espn?path=sports/hockey/nhl/teams/uta
+//   /api/espn?path=sports/basketball/nba/teams/26/schedule
+//   /api/espn?path=sports/hockey/nhl/standings
+
+const ESPN_BASE_SITE = "https://site.api.espn.com/apis/site/v2";
+const ESPN_BASE_V2 = "https://site.api.espn.com/apis/v2";
 
 export default async function handler(req, res) {
-  const { path } = req.query;
+  const { path, v2 } = req.query;
 
   if (!path) {
     return res.status(400).json({ error: "Missing 'path' query parameter" });
   }
 
+  // Only allow ESPN sports API paths
   if (!path.startsWith("sports/")) {
     return res.status(400).json({ error: "Path must start with 'sports/'" });
   }
 
-  const url = `${ESPN_BASE}/${path}`;
+  const base = v2 !== undefined ? ESPN_BASE_V2 : ESPN_BASE_SITE;
+  const url = `${base}/${path}`;
 
   try {
     const espnRes = await fetch(url, {
@@ -22,11 +33,14 @@ export default async function handler(req, res) {
     });
 
     if (!espnRes.ok) {
-      return res.status(espnRes.status).json({ error: `ESPN returned ${espnRes.status}`, url });
+      return res
+        .status(espnRes.status)
+        .json({ error: `ESPN returned ${espnRes.status}`, url });
     }
 
     const data = await espnRes.json();
 
+    // Cache for 5 minutes at CDN level, 2 minutes in browser
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=120");
     res.setHeader("Access-Control-Allow-Origin", "*");
 
