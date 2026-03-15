@@ -20,10 +20,14 @@ const TEAMS_CONFIG = [
     apiTeam: "sports/hockey/nhl/teams/uta",
     apiSchedule: "sports/hockey/nhl/teams/uta/schedule",
     apiStandings: "sports/hockey/nhl/standings",
+    apiRoster: "sports/hockey/nhl/teams/uta/roster",
     teamId: "uta",
+    espnAbbr: "UTAH",
     sport: "hockey",
     isHockey: true,
     showPlayoffOdds: true,
+    hasSalary: true,
+    salaryCap: "$88M",
   },
   {
     id: "jazz",
@@ -40,10 +44,14 @@ const TEAMS_CONFIG = [
     apiTeam: "sports/basketball/nba/teams/26",
     apiSchedule: "sports/basketball/nba/teams/26/schedule",
     apiStandings: "sports/basketball/nba/standings",
+    apiRoster: "sports/basketball/nba/teams/26/roster",
     teamId: "26",
+    espnAbbr: "UTAH",
     sport: "basketball",
     isHockey: false,
     showPlayoffOdds: false,
+    hasSalary: true,
+    salaryCap: "$140.6M",
   },
   {
     id: "utes-football",
@@ -60,10 +68,14 @@ const TEAMS_CONFIG = [
     apiTeam: "sports/football/college-football/teams/254",
     apiSchedule: "sports/football/college-football/teams/254/schedule",
     apiStandings: "sports/football/college-football/standings",
+    apiRoster: "sports/football/college-football/teams/254/roster",
     teamId: "254",
+    espnAbbr: "UTAH",
     sport: "football",
     isHockey: false,
     showPlayoffOdds: false,
+    hasSalary: false,
+    salaryCap: null,
   },
   {
     id: "utes-basketball",
@@ -80,10 +92,14 @@ const TEAMS_CONFIG = [
     apiTeam: "sports/basketball/mens-college-basketball/teams/254",
     apiSchedule: "sports/basketball/mens-college-basketball/teams/254/schedule",
     apiStandings: "sports/basketball/mens-college-basketball/standings",
+    apiRoster: "sports/basketball/mens-college-basketball/teams/254/roster",
     teamId: "254",
+    espnAbbr: "UTAH",
     sport: "basketball",
     isHockey: false,
     showPlayoffOdds: false,
+    hasSalary: false,
+    salaryCap: null,
   },
   {
     id: "utes-baseball",
@@ -100,10 +116,14 @@ const TEAMS_CONFIG = [
     apiTeam: "sports/baseball/college-baseball/teams/254",
     apiSchedule: "sports/baseball/college-baseball/teams/254/schedule",
     apiStandings: "sports/baseball/college-baseball/standings",
+    apiRoster: "sports/baseball/college-baseball/teams/254/roster",
     teamId: "254",
+    espnAbbr: "UTAH",
     sport: "baseball",
     isHockey: false,
     showPlayoffOdds: false,
+    hasSalary: false,
+    salaryCap: null,
   },
 ];
 
@@ -111,9 +131,9 @@ const TEAMS_CONFIG = [
 // In development, Vite proxies /api to ESPN directly.
 // In production on Vercel, /api/espn serverless function handles the proxy.
 
-async function fetchESPN(apiPath) {
+async function fetchESPN(apiPath, useV2 = false) {
   // Vercel serverless route
-  const url = `/api/espn?path=${encodeURIComponent(apiPath)}`;
+  const url = `/api/espn?path=${encodeURIComponent(apiPath)}${useV2 ? '&v2' : ''}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`API ${res.status}`);
   return res.json();
@@ -138,7 +158,7 @@ function useTeamData(team) {
         const [teamData, schedData, standData] = await Promise.allSettled([
           fetchESPN(team.apiTeam),
           fetchESPN(team.apiSchedule),
-          fetchESPN(team.apiStandings),
+          fetchESPN(team.apiStandings, true),
         ]);
 
         if (cancelled) return;
@@ -212,7 +232,8 @@ function useTeamData(team) {
               const match = entries.find(
                 (e) =>
                   String(e.team?.id) === String(team.teamId) ||
-                  e.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase()
+                  e.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase() ||
+                  e.team?.abbreviation === team.espnAbbr
               );
               if (match) {
                 found = entries.map((e) => {
@@ -229,7 +250,8 @@ function useTeamData(team) {
                     overall: st("overall")?.displayValue ?? "",
                     isTarget:
                       String(e.team?.id) === String(team.teamId) ||
-                      e.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase(),
+                      e.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase() ||
+                      e.team?.abbreviation === team.espnAbbr,
                   };
                 });
                 break;
@@ -256,6 +278,75 @@ function useTeamData(team) {
   }, [team.id]);
 
   return { schedule, standings, record, loading, error };
+}
+
+// --- Roster Data Hook ---
+function useRosterData(team) {
+  const [roster, setRoster] = useState(null);
+  const [rosterLoading, setRosterLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setRosterLoading(true);
+      try {
+        const data = await fetchESPN(team.apiRoster);
+        if (cancelled) return;
+
+        let players = [];
+        // NBA roster is a flat array
+        if (Array.isArray(data.athletes) && data.athletes.length > 0 && data.athletes[0]?.fullName) {
+          players = data.athletes.map(p => ({
+            name: p.displayName || p.fullName,
+            jersey: p.jersey || "--",
+            position: p.position?.abbreviation || p.position?.displayName || "--",
+            age: p.age || "--",
+            experience: p.experience?.years ?? "--",
+            salary: p.contract?.salary || null,
+            yearsRemaining: p.contract?.yearsRemaining ?? null,
+            headshot: p.headshot?.href,
+            status: p.status?.name || "Active",
+          }));
+        }
+        // NHL/College roster is grouped by position
+        else if (data.athletes) {
+          for (const group of data.athletes) {
+            const items = group.items || [];
+            for (const p of items) {
+              players.push({
+                name: p.displayName || p.fullName,
+                jersey: p.jersey || "--",
+                position: p.position?.abbreviation || p.position?.displayName || "--",
+                age: p.age || "--",
+                experience: p.experience?.years ?? "--",
+                salary: p.contract?.salary || null,
+                yearsRemaining: p.contract?.yearsRemaining ?? null,
+                headshot: p.headshot?.href,
+                status: p.status?.name || "Active",
+              });
+            }
+          }
+        }
+
+        // Sort by jersey number
+        players.sort((a, b) => {
+          const na = parseInt(a.jersey) || 999;
+          const nb = parseInt(b.jersey) || 999;
+          return na - nb;
+        });
+
+        setRoster(players);
+      } catch (e) {
+        if (!cancelled) setRoster([]);
+      } finally {
+        if (!cancelled) setRosterLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [team.id]);
+
+  return { roster, rosterLoading };
 }
 
 // --- Utility helpers---
@@ -400,6 +491,65 @@ function StandingsTab({ standings, accent, team }) {
   );
 }
 
+// --- Roster Tab ---
+function RosterTab({ roster, accent, team }) {
+  if (!roster || roster.length === 0)
+    return <div style={{ color: "#777", padding: 12 }}>Roster not available</div>;
+
+  const totalSalary = roster.reduce((sum, p) => sum + (p.salary || 0), 0);
+  const hasSalaryData = roster.some(p => p.salary);
+
+  function formatSalary(val) {
+    if (!val) return "--";
+    if (val >= 1000000) return "$" + (val / 1000000).toFixed(1) + "M";
+    if (val >= 1000) return "$" + (val / 1000).toFixed(0) + "K";
+    return "$" + val;
+  }
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <div style={subheaderStyle}>{roster.length} Players</div>
+        {hasSalaryData && team.salaryCap && (
+          <div style={{ fontSize: 10, color: "#888" }}>
+            Cap: {team.salaryCap} | Payroll: {formatSalary(totalSalary)}
+          </div>
+        )}
+      </div>
+      <div style={{ maxHeight: 300, overflowY: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+          <thead>
+            <tr style={{ color: "#666", borderBottom: "1px solid #333", position: "sticky", top: 0, background: "#12121f" }}>
+              <th style={{ ...thStyle, width: 30 }}>#</th>
+              <th style={{ ...thStyle, textAlign: "left" }}>Player</th>
+              <th style={{ ...thStyle, width: 40 }}>Pos</th>
+              <th style={{ ...thStyle, width: 35 }}>Age</th>
+              {hasSalaryData && <th style={{ ...thStyle, width: 70 }}>Salary</th>}
+              {hasSalaryData && <th style={{ ...thStyle, width: 40 }}>Yrs</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {roster.map((p, i) => (
+              <tr key={i} style={{
+                background: i % 2 === 0 ? "#1a1a2e" : "transparent",
+              }}>
+                <td style={{ ...tdStyle, color: accent, fontWeight: 600, fontSize: 11 }}>{p.jersey}</td>
+                <td style={{ ...tdStyle, textAlign: "left", color: "#eee", fontWeight: 500 }}>
+                  {p.name}
+                </td>
+                <td style={{ ...tdStyle, fontSize: 10 }}>{p.position}</td>
+                <td style={tdStyle}>{p.age}</td>
+                {hasSalaryData && <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: 10, color: p.salary ? "#8BC34A" : "#555" }}>{formatSalary(p.salary)}</td>}
+                {hasSalaryData && <td style={{ ...tdStyle, color: p.yearsRemaining != null ? "#ccc" : "#555" }}>{p.yearsRemaining != null ? p.yearsRemaining : "--"}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // --- Playoff Odds Gauge (Mammoth)---
 function PlayoffOddsTab({ record, accent }) {
   // Simple estimate from win% - in a real app, you'd fetch from an odds API
@@ -472,11 +622,16 @@ function QuickLinks({ team, accent }) {
 // --- Team Widget---
 function TeamWidget({ team, isDragging, dragHandlers }) {
   const { schedule, standings, record, loading, error } = useTeamData(team);
+  const { roster, rosterLoading } = useRosterData(team);
 
   const tabs = [
     { label: "Schedule", content: <ScheduleTab schedule={schedule} accent={team.accent} /> },
     { label: "Standings", content: <StandingsTab standings={standings} accent={team.accent} team={team} /> },
   ];
+  tabs.push({ label: "Roster", content: rosterLoading ?
+    <div style={{ color: "#888", padding: 20, textAlign: "center" }}>Loading roster...</div> :
+    <RosterTab roster={roster} accent={team.accent} team={team} />
+  });
   if (team.showPlayoffOdds) {
     tabs.push({ label: "Playoff Odds", content: <PlayoffOddsTab record={record} accent={team.accent} /> });
   }
