@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-// âââ Team Configuration âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- Team Configuration ---
 // ESPN team IDs and API paths for each Utah team
 
 const TEAMS_CONFIG = [
@@ -107,7 +107,7 @@ const TEAMS_CONFIG = [
   },
 ];
 
-// âââ API Helper âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- API Helper---
 // In development, Vite proxies /api to ESPN directly.
 // In production on Vercel, /api/espn serverless function handles the proxy.
 
@@ -119,7 +119,7 @@ async function fetchESPN(apiPath) {
   return res.json();
 }
 
-// âââ ESPN Data Parser Hook ââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- ESPN Data Parser Hook---
 function useTeamData(team) {
   const [schedule, setSchedule] = useState(null);
   const [standings, setStandings] = useState(null);
@@ -143,7 +143,7 @@ function useTeamData(team) {
 
         if (cancelled) return;
 
-        // ââ Parse record ââââââââââââââââââââââââââââââââââââââââââââââ
+        // -- Parse record--
         if (teamData.status === "fulfilled") {
           const t = teamData.value?.team;
           if (t) {
@@ -154,14 +154,14 @@ function useTeamData(team) {
               const l = stats.find((s) => s.name === "losses")?.value;
               const otl = stats.find((s) => s.name === "otLosses")?.value;
               const pts = stats.find((s) => s.name === "points")?.value;
-              setRecord(w != null ? `${w}-${l}-${otl} â¢ ${pts} PTS` : rec || "â");
+              setRecord(w != null ? `${w}-${l}-${otl} | ${pts} PTS` : rec || "--");
             } else {
-              setRecord(rec || "â");
+              setRecord(rec || "--");
             }
           }
         }
 
-        // ââ Parse schedule ââââââââââââââââââââââââââââââââââââââââââââ
+        // -- Parse schedule--
         if (schedData.status === "fulfilled") {
           const raw = schedData.value;
           const events = raw?.events || raw?.requestedSeason?.events || [];
@@ -175,7 +175,7 @@ function useTeamData(team) {
             const bcast =
               comp?.broadcasts?.[0]?.names?.[0] ||
               comp?.geoBroadcasts?.[0]?.media?.shortName ||
-              "â";
+              "--";
             const statusName = comp?.status?.type?.name || ev.status?.type?.name || "";
             const isFinal = statusName.includes("FINAL") || statusName === "post";
 
@@ -198,7 +198,7 @@ function useTeamData(team) {
           setSchedule(parsed);
         }
 
-        // ââ Parse standings âââââââââââââââââââââââââââââââââââââââââââ
+        // -- Parse standings--
         if (standData.status === "fulfilled") {
           const raw = standData.value;
           const groups = raw?.children || [];
@@ -218,14 +218,14 @@ function useTeamData(team) {
                 found = entries.map((e) => {
                   const st = (name) => e.stats?.find((s) => s.name === name);
                   return {
-                    team: e.team?.shortDisplayName || e.team?.displayName || "â",
+                    team: e.team?.shortDisplayName || e.team?.displayName || "--",
                     logo: e.team?.logos?.[0]?.href,
                     wins: st("wins")?.value ?? st("wins")?.displayValue ?? 0,
                     losses: st("losses")?.value ?? st("losses")?.displayValue ?? 0,
                     otl: st("otLosses")?.value ?? st("OTLosses")?.displayValue ?? 0,
                     pts: st("points")?.value ?? st("points")?.displayValue ?? 0,
-                    pct: st("winPercent")?.displayValue ?? st("winPct")?.displayValue ?? "â",
-                    gb: st("gamesBehind")?.displayValue ?? "â",
+                    pct: st("winPercent")?.displayValue ?? st("winPct")?.displayValue ?? "--",
+                    gb: st("gamesBehind")?.displayValue ?? "--",
                     overall: st("overall")?.displayValue ?? "",
                     isTarget:
                       String(e.team?.id) === String(team.teamId) ||
@@ -258,7 +258,7 @@ function useTeamData(team) {
   return { schedule, standings, record, loading, error };
 }
 
-// âââ Utility helpers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- Utility helpers---
 function formatDate(d) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
@@ -269,7 +269,7 @@ function formatDayDate(d) {
   return new Date(d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
-// âââ Tabs âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- Tabs---
 function Tabs({ tabs, accent }) {
   const [active, setActive] = useState(0);
   return (
@@ -299,7 +299,7 @@ function Tabs({ tabs, accent }) {
   );
 }
 
-// âââ Schedule Tab âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- Schedule Tab---
 function ScheduleTab({ schedule, accent }) {
   if (!schedule || schedule.length === 0)
     return <div style={{ color: "#777", padding: 12 }}>No schedule data available</div>;
@@ -346,7 +346,7 @@ function ScheduleTab({ schedule, accent }) {
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ color: accent, fontSize: 12, fontWeight: 600 }}>{formatTime(g.date)}</div>
-                <div style={{ color: "#888", fontSize: 11 }}>ðº {g.broadcast}</div>
+                <div style={{ color: "#888", fontSize: 11 }}>TV: {g.broadcast}</div>
               </div>
             </div>
           ))}
@@ -356,7 +356,7 @@ function ScheduleTab({ schedule, accent }) {
   );
 }
 
-// âââ Standings Tab ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- Standings Tab---
 function StandingsTab({ standings, accent, team }) {
   if (!standings || standings.length === 0)
     return <div style={{ color: "#777", padding: 12 }}>Standings not available</div>;
@@ -400,16 +400,16 @@ function StandingsTab({ standings, accent, team }) {
   );
 }
 
-// âââ Playoff Odds Gauge (Mammoth) ââââââââââââââââââââââââââââââââââââââââââââ
+// --- Playoff Odds Gauge (Mammoth)---
 function PlayoffOddsTab({ record, accent }) {
-  // Simple estimate from win% â in a real app, you'd fetch from an odds API
+  // Simple estimate from win% - in a real app, you'd fetch from an odds API
   const parts = record?.match(/(\d+)-(\d+)-(\d+)/);
   let odds = 50;
   if (parts) {
     const [_, w, l, otl] = parts.map(Number);
     const gp = w + l + otl;
     const ptPct = gp > 0 ? (w * 2 + otl) / (gp * 2) : 0.5;
-    // Rough model: .550+ pts% â 95%+, .500 â 50%, below .480 drops fast
+    // Rough model: .550+ pts% ~ 95%+, .500 ~ 50%, below .480 drops fast
     odds = Math.min(99, Math.max(1, Math.round(ptPct * 180 - 40)));
   }
 
@@ -447,7 +447,7 @@ function PlayoffOddsTab({ record, accent }) {
   );
 }
 
-// âââ Quick Links ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- Quick Links---
 function QuickLinks({ team, accent }) {
   const btnBase = {
     flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
@@ -460,16 +460,16 @@ function QuickLinks({ team, accent }) {
       <a href={team.espnUrl} target="_blank" rel="noopener noreferrer" style={btnBase}
         onMouseEnter={(e) => { e.currentTarget.style.background = accent + "33"; }}
         onMouseLeave={(e) => { e.currentTarget.style.background = "#1a1a2e"; }}
-      >ðº Watch on ESPN</a>
+      ><span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg> Watch on ESPN</span></a>
       <a href={team.ticketUrl} target="_blank" rel="noopener noreferrer" style={btnBase}
         onMouseEnter={(e) => { e.currentTarget.style.background = accent + "33"; }}
         onMouseLeave={(e) => { e.currentTarget.style.background = "#1a1a2e"; }}
-      >ðï¸ Buy Tickets</a>
+      ><span style={{display:"inline-flex",alignItems:"center",gap:4}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 9a3 3 0 013-3h14a3 3 0 013 3v0a3 3 0 01-3 3v0a3 3 0 013 3v0a3 3 0 01-3 3H5a3 3 0 01-3-3v0a3 3 0 013-3v0a3 3 0 01-3-3z"/></svg> Buy Tickets</span></a>
     </div>
   );
 }
 
-// âââ Team Widget ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- Team Widget---
 function TeamWidget({ team, isDragging, dragHandlers }) {
   const { schedule, standings, record, loading, error } = useTeamData(team);
 
@@ -496,7 +496,7 @@ function TeamWidget({ team, isDragging, dragHandlers }) {
         borderBottom: `1px solid ${team.accent}33`, padding: "14px 18px",
         display: "flex", alignItems: "center", gap: 12,
       }}>
-        <div style={{ cursor: "grab", color: "#555", fontSize: 18, userSelect: "none" }}>â ¿</div>
+        <div style={{ cursor: "grab", color: "#555", fontSize: 18, userSelect: "none", lineHeight: 1 }}><svg width="18" height="18" viewBox="0 0 24 24" fill="#555"><circle cx="8" cy="4" r="2"/><circle cx="16" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="20" r="2"/><circle cx="16" cy="20" r="2"/></svg></div>
         <img src={team.logo} alt={team.name}
           style={{ width: 44, height: 44, borderRadius: 8, background: "#222", objectFit: "contain", padding: 3 }}
           onError={(e) => { e.target.style.display = "none"; }}
@@ -509,9 +509,9 @@ function TeamWidget({ team, isDragging, dragHandlers }) {
               background: team.accent + "22", color: team.accent, fontSize: 9,
               padding: "2px 6px", borderRadius: 4, fontWeight: 700,
             }}>{team.leagueTag}</span>
-            {error && <span style={{ color: "#f44336", fontSize: 10 }}>â  {error}</span>}
+            {error && <span style={{ color: "#f44336", fontSize: 10 }}>! {error}</span>}
           </div>
-          <div style={{ color: "#666", fontSize: 11, marginTop: 1 }}>ð {team.venue}</div>
+          <div style={{ color: "#666", fontSize: 11, marginTop: 1, display: "flex", alignItems: "center", gap: 3 }}><svg width="11" height="11" viewBox="0 0 24 24" fill="#666" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> {team.venue}</div>
         </div>
         <a href={team.espnUrl} target="_blank" rel="noopener noreferrer" style={{
           background: team.accent + "22", border: `1px solid ${team.accent}44`,
@@ -540,7 +540,7 @@ function TeamWidget({ team, isDragging, dragHandlers }) {
   );
 }
 
-// âââ Shared Styles ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- Shared Styles---
 const subheaderStyle = {
   fontSize: 11, color: "#888", textTransform: "uppercase",
   letterSpacing: 1, marginBottom: 6, fontWeight: 600,
@@ -553,7 +553,7 @@ const rowStyle = (i) => ({
 const thStyle = { textAlign: "center", padding: "4px 6px", fontWeight: 600 };
 const tdStyle = { padding: "6px", color: "#ccc", textAlign: "center" };
 
-// âââ Main Dashboard âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// --- Main Dashboard---
 export default function App() {
   const [order, setOrder] = useState(() => TEAMS_CONFIG.map((t) => t.id));
   const [draggedId, setDraggedId] = useState(null);
@@ -612,13 +612,13 @@ export default function App() {
         position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ fontSize: 32 }}>â°ï¸</div>
+          <div style={{ fontSize: 32, lineHeight: 1 }}><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#CC0000" strokeWidth="1.5"><path d="M8 21l4-10 4 10"/><path d="M2 21l6-14 3.5 7"/><path d="M14.5 14L18 7l4 14"/><line x1="2" y1="21" x2="22" y2="21"/></svg></div>
           <div>
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>
               Utah Sports <span style={{ color: "#CC0000" }}>HQ</span>
             </h1>
             <p style={{ margin: 0, fontSize: 11, color: "#666", letterSpacing: 0.5 }}>
-              LIVE DASHBOARD â¢ AUTO-REFRESHES EVERY 5 MIN â¢ DRAG TO REARRANGE
+              LIVE DASHBOARD | AUTO-REFRESHES EVERY 5 MIN | DRAG TO REARRANGE
             </p>
           </div>
         </div>
@@ -631,7 +631,7 @@ export default function App() {
                 padding: "8px 12px 8px 32px", color: "#ccc", fontSize: 13, outline: "none", width: 180,
               }}
             />
-            <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#555" }}>ð</span>
+            <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#555", display: "flex" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 10, color: "#555" }}>Auto-refresh</div>
@@ -688,7 +688,7 @@ export default function App() {
       </main>
 
       <footer style={{ textAlign: "center", padding: "20px 28px", borderTop: "1px solid #1a1a2e", color: "#444", fontSize: 11 }}>
-        Utah Sports HQ â¢ Live data from ESPN API via serverless proxy â¢ Auto-refreshes every 5 minutes
+        Utah Sports HQ | Live data from ESPN API via serverless proxy | Auto-refreshes every 5 minutes
       </footer>
     </div>
   );
