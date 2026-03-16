@@ -3517,7 +3517,7 @@ export default function App() {
               <span className="mm-banner-emoji">🏀</span>
               <div style={{ textAlign: "left" }}>
                 <div className="mm-banner-title">March Madness 2026 — <span style={{ color: "#22c55e" }}>$75 Prize</span></div>
-                <div className="mm-banner-sub">Your brackets are live — best score wins $75 cash</div>
+                <div className="mm-banner-sub">Your brackets are live — best score wins $75 cash • Deadline: Thu Mar 19, 12:15 PM ET</div>
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -3567,7 +3567,7 @@ export default function App() {
               <span className="mm-banner-emoji">🏀</span>
               <div style={{ textAlign: "left" }}>
                 <div className="mm-banner-title">March Madness 2026 — <span style={{ color: "#22c55e" }}>Win $75</span></div>
-                <div className="mm-banner-sub">Free to enter — fill out your bracket, best score wins $75 cash</div>
+                <div className="mm-banner-sub">Free to enter — best score wins $75 cash • Deadline: Thu Mar 19, 12:15 PM ET</div>
               </div>
             </div>
             <div className="mm-banner-cta">
