@@ -908,6 +908,36 @@ export default function App() {
         @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
         @keyframes liveBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         @keyframes bannerShimmer { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .mm-banner {
+          width: 100%;
+          background: linear-gradient(135deg, #FF6B35 0%, #CC0000 40%, #8B0000 70%, #FF6B35 100%);
+          background-size: 200% 200%;
+          animation: bannerShimmer 4s ease infinite;
+          border: none; border-radius: 14px;
+          padding: 16px 24px;
+          cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+          display: flex; align-items: center; justify-content: space-between;
+          box-shadow: 0 4px 20px #CC000044;
+        }
+        .mm-banner-content { display: flex; align-items: center; gap: 14px; }
+        .mm-banner-emoji { font-size: 32px; }
+        .mm-banner-title { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: -0.5px; text-shadow: 0 2px 8px #00000066; }
+        .mm-banner-sub { font-size: 12px; color: #ffffffcc; font-weight: 500; margin-top: 2px; }
+        .mm-banner-cta {
+          background: #ffffff22; backdrop-filter: blur(4px);
+          border-radius: 8px; padding: 8px 18px;
+          color: #fff; font-size: 13px; font-weight: 700;
+          border: 1px solid #ffffff33; white-space: nowrap;
+          display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+        }
+        @media (max-width: 600px) {
+          .mm-banner { flex-direction: column; gap: 12px; padding: 14px 16px; align-items: stretch; }
+          .mm-banner-content { gap: 10px; }
+          .mm-banner-emoji { font-size: 24px; }
+          .mm-banner-title { font-size: 15px; }
+          .mm-banner-sub { font-size: 11px; }
+          .mm-banner-cta { justify-content: center; padding: 10px 16px; }
+        }
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0a0a16; }
@@ -985,42 +1015,26 @@ export default function App() {
       {/* March Madness Banner */}
       <div style={{ padding: "14px 28px 0" }}>
         <button
+          className="mm-banner"
           onClick={() => {
             if (!user) { login(); return; }
             setShowBracket(true);
           }}
-          style={{
-            width: "100%",
-            background: "linear-gradient(135deg, #FF6B35 0%, #CC0000 40%, #8B0000 70%, #FF6B35 100%)",
-            backgroundSize: "200% 200%",
-            animation: "bannerShimmer 4s ease infinite",
-            border: "none", borderRadius: 14,
-            padding: "16px 24px",
-            cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            boxShadow: "0 4px 20px #CC000044",
-          }}
           onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.01)"; e.currentTarget.style.boxShadow = "0 6px 30px #CC000066"; }}
           onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 20px #CC000044"; }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <span style={{ fontSize: 32 }}>🏀</span>
+          <div className="mm-banner-content">
+            <span className="mm-banner-emoji">🏀</span>
             <div style={{ textAlign: "left" }}>
-              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: -0.5, textShadow: "0 2px 8px #00000066" }}>
+              <div className="mm-banner-title">
                 March Madness 2026 Bracket Challenge
               </div>
-              <div style={{ fontSize: 12, color: "#ffffffcc", fontWeight: 500, marginTop: 2 }}>
+              <div className="mm-banner-sub">
                 Make your picks, compete on the leaderboard, and prove you know college hoops
               </div>
             </div>
           </div>
-          <div style={{
-            background: "#ffffff22", backdropFilter: "blur(4px)",
-            borderRadius: 8, padding: "8px 18px",
-            color: "#fff", fontSize: 13, fontWeight: 700,
-            border: "1px solid #ffffff33", whiteSpace: "nowrap",
-            display: "flex", alignItems: "center", gap: 6,
-          }}>
+          <div className="mm-banner-cta">
             {user ? "Fill Out Bracket" : "Sign In & Play"}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
