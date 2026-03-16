@@ -440,13 +440,95 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled }) {
   );
 }
 
+function useIsMobile(breakpoint = 700) {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= breakpoint : false
+  );
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= breakpoint);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [breakpoint]);
+  return isMobile;
+}
+
+function MobileRegionView({ region, picks, onPick }) {
+  const rounds = [1, 2, 3, 4];
+  const matchupsPerRound = [8, 4, 2, 1];
+  const [activeRound, setActiveRound] = useState(1);
+
+  return (
+    <div style={{
+      background: "#0a0a16", borderRadius: 12, border: "1px solid #2a2a3e",
+      padding: 12, marginBottom: 12,
+    }}>
+      {/* Region Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <div style={{ width: 4, height: 20, borderRadius: 2, background: region.color }} />
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
+          {region.name}
+        </div>
+        {(() => {
+          const winner = getRegionWinner(region.id, picks);
+          return winner ? (
+            <div style={{
+              background: region.color + "20", border: `1px solid ${region.color}66`,
+              borderRadius: 6, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: region.color,
+            }}>
+              {winner.seed} {winner.name}
+            </div>
+          ) : null;
+        })()}
+      </div>
+
+      {/* Round Tabs */}
+      <div style={{ display: "flex", gap: 2, marginBottom: 12, overflowX: "auto" }}>
+        {rounds.map((round) => {
+          const active = activeRound === round;
+          return (
+            <button key={round} onClick={() => setActiveRound(round)} style={{
+              flex: 1, background: active ? region.color + "22" : "#12121f",
+              border: active ? `1px solid ${region.color}66` : "1px solid #2a2a3e",
+              borderRadius: 6, padding: "6px 4px", cursor: "pointer",
+              color: active ? region.color : "#666", fontSize: 9, fontWeight: 700,
+              textTransform: "uppercase", letterSpacing: 0.3, whiteSpace: "nowrap",
+              transition: "all 0.15s",
+            }}>
+              {round === 1 ? "R64" : round === 2 ? "R32" : round === 3 ? "S16" : "E8"}
+              <div style={{ fontSize: 7, color: active ? region.color : "#444", marginTop: 1 }}>
+                {SCORING[round]}pt
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Active Round Matchups */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        {Array.from({ length: matchupsPerRound[activeRound - 1] }, (_, gameIdx) => {
+          const [t1, t2] = getGameTeams(region.id, activeRound, gameIdx, picks);
+          const gameKey = `${region.id}_${activeRound}_${gameIdx}`;
+          return (
+            <MatchupBox
+              key={gameKey}
+              team1={t1}
+              team2={t2}
+              picked={picks[gameKey]}
+              onPick={(teamId) => onPick(gameKey, teamId)}
+              gameKey={gameKey}
+              disabled={!t1 || !t2}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function RegionalBracketView({ region, picks, onPick }) {
   const rounds = [1, 2, 3, 4];
   const matchupsPerRound = [8, 4, 2, 1];
-
-  // Spacing multipliers for vertical alignment
   const spacingMultipliers = [1, 2, 4, 8];
-
   const MATCHUP_HEIGHT = 64;
   const VERTICAL_GAP = 8;
 
@@ -728,7 +810,7 @@ function FinalFourView({ picks, onPick }) {
 }
 
 
-function Leaderboard({ entries, currentUid }) {
+function Leaderboard({ entries, currentUid, isMobile }) {
   // Sort by number of picks for now (score will be 0 until games are played)
   const sorted = [...entries].sort((a, b) => {
     const aPicks = countPicks(a.picks);
@@ -736,14 +818,16 @@ function Leaderboard({ entries, currentUid }) {
     return bPicks - aPicks;
   });
 
+  const gridCols = isMobile ? "28px 1fr 50px 50px" : "40px 1fr 80px 80px";
+
   return (
     <div>
       <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>Leaderboard</div>
+        <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: "#fff" }}>Leaderboard</div>
         <div style={{ fontSize: 12, color: "#888" }}>
           {sorted.length} bracket{sorted.length !== 1 ? "s" : ""} submitted
         </div>
-        <div style={{ fontSize: 11, color: "#555", marginTop: 4 }}>
+        <div style={{ fontSize: isMobile ? 10 : 11, color: "#555", marginTop: 4 }}>
           Scoring starts when games begin March 19. Points: R64=1, R32=2, S16=4, E8=8, FF=16, Champ=32
         </div>
       </div>
@@ -756,9 +840,9 @@ function Leaderboard({ entries, currentUid }) {
         <div style={{ background: "#12121f", borderRadius: 12, overflow: "hidden", border: "1px solid #2a2a3e" }}>
           {/* Header */}
           <div style={{
-            display: "grid", gridTemplateColumns: "40px 1fr 80px 80px",
-            padding: "10px 16px", borderBottom: "1px solid #2a2a3e",
-            fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5,
+            display: "grid", gridTemplateColumns: gridCols,
+            padding: isMobile ? "8px 10px" : "10px 16px", borderBottom: "1px solid #2a2a3e",
+            fontSize: isMobile ? 9 : 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5,
           }}>
             <div>#</div>
             <div>Player</div>
@@ -772,33 +856,38 @@ function Leaderboard({ entries, currentUid }) {
             const champion = entry.picks["champ"] ? TEAM_MAP[entry.picks["champ"]]?.name : "—";
             return (
               <div key={entry.uid} style={{
-                display: "grid", gridTemplateColumns: "40px 1fr 80px 80px",
-                padding: "12px 16px", borderBottom: "1px solid #1a1a2e",
+                display: "grid", gridTemplateColumns: gridCols,
+                padding: isMobile ? "8px 10px" : "12px 16px", borderBottom: "1px solid #1a1a2e",
                 background: isMe ? "#CC000012" : i % 2 === 0 ? "#0f0f1e" : "transparent",
                 borderLeft: isMe ? "3px solid #CC0000" : "3px solid transparent",
               }}>
-                <div style={{ color: i < 3 ? "#FFD700" : "#888", fontWeight: 700, fontSize: 14 }}>
+                <div style={{ color: i < 3 ? "#FFD700" : "#888", fontWeight: 700, fontSize: isMobile ? 12 : 14, alignSelf: "center" }}>
                   {i + 1}
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {entry.photoURL && (
+                <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, minWidth: 0 }}>
+                  {entry.photoURL && !isMobile && (
                     <img src={entry.photoURL} alt="" referrerPolicy="no-referrer"
-                      style={{ width: 24, height: 24, borderRadius: "50%", border: isMe ? "2px solid #CC0000" : "1px solid #333" }}
+                      style={{ width: 24, height: 24, borderRadius: "50%", border: isMe ? "2px solid #CC0000" : "1px solid #333", flexShrink: 0 }}
                     />
                   )}
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: isMe ? 700 : 500, color: isMe ? "#fff" : "#ccc" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{
+                      fontSize: isMobile ? 11 : 13, fontWeight: isMe ? 700 : 500, color: isMe ? "#fff" : "#ccc",
+                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    }}>
                       {entry.entryName || entry.displayName} {isMe && <span style={{ fontSize: 9, color: "#CC0000" }}>(you)</span>}
                     </div>
-                    <div style={{ fontSize: 10, color: "#555" }}>
-                      Champion: {champion}
-                    </div>
+                    {!isMobile && (
+                      <div style={{ fontSize: 10, color: "#555" }}>
+                        Champion: {champion}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div style={{ textAlign: "center", color: "#888", fontSize: 13, alignSelf: "center" }}>
+                <div style={{ textAlign: "center", color: "#888", fontSize: isMobile ? 11 : 13, alignSelf: "center" }}>
                   {numPicks}/67
                 </div>
-                <div style={{ textAlign: "center", color: "#FFD700", fontSize: 15, fontWeight: 700, alignSelf: "center" }}>
+                <div style={{ textAlign: "center", color: "#FFD700", fontSize: isMobile ? 13 : 15, fontWeight: 700, alignSelf: "center" }}>
                   0
                 </div>
               </div>
@@ -818,9 +907,10 @@ const sectionHeader = {
 };
 
 // ===== MAIN COMPONENT =====
-export default function BracketChallenge({ user, onBack, initialEntry }) {
+export default function BracketChallenge({ user, onBack, initialEntry, initialTab }) {
+  const isMobile = useIsMobile();
   const [picks, setPicks] = useState({});
-  const [tab, setTab] = useState("bracket");
+  const [tab, setTab] = useState(initialTab || "bracket");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -903,92 +993,105 @@ export default function BracketChallenge({ user, onBack, initialEntry }) {
       {/* Header */}
       <header style={{
         background: "linear-gradient(135deg, #12121f 0%, #1a1a30 100%)",
-        borderBottom: "1px solid #2a2a3e", padding: "14px 20px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+        borderBottom: "1px solid #2a2a3e",
+        padding: isMobile ? "10px 12px" : "14px 20px",
         position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <button onClick={onBack} style={{
-            background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
-            padding: "6px 12px", color: "#888", fontSize: 12, cursor: "pointer",
-            display: "flex", alignItems: "center", gap: 4,
-          }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            Back
-          </button>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: -0.5 }}>
-              🏀 March Madness <span style={{ color: "#CC0000" }}>2026</span>
-            </h1>
-            <p style={{ margin: 0, fontSize: 10, color: "#666" }}>BRACKET CHALLENGE</p>
-          </div>
-        </div>
-
-        {/* Entry Switcher */}
-        {user && (
-          <div style={{ display: "flex", gap: 4, background: "#0a0a16", borderRadius: 8, padding: 3 }}>
-            {[1, 2].map((num) => {
-              const active = entryNum === num;
-              const exists = entryExists[num - 1];
-              return (
-                <button key={num} onClick={() => switchEntry(num)} style={{
-                  background: active ? "#CC000033" : "transparent",
-                  border: active ? "1px solid #CC000066" : "1px solid transparent",
-                  borderRadius: 6, padding: "5px 12px",
-                  color: active ? "#fff" : exists ? "#888" : "#444",
-                  fontSize: 11, fontWeight: active ? 700 : 500,
-                  cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap",
-                }}>
-                  Entry {num} {exists && !active ? "✓" : ""}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 11, color: "#888" }}>{totalPicks}/67 picks</div>
-            <div style={{
-              width: 80, height: 4, background: "#1a1a2e", borderRadius: 2, marginTop: 2,
+        {/* Top row: Back, title, entry switcher */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          marginBottom: isMobile ? 8 : 0,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 8 : 12 }}>
+            <button onClick={onBack} style={{
+              background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
+              padding: isMobile ? "4px 8px" : "6px 12px", color: "#888", fontSize: 12, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 4,
             }}>
-              <div style={{
-                width: `${(totalPicks / 67) * 100}%`, height: "100%",
-                background: totalPicks === 67 ? "#4CAF50" : "#CC0000",
-                borderRadius: 2, transition: "width 0.3s",
-              }} />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              {!isMobile && "Back"}
+            </button>
+            <div>
+              <h1 style={{ margin: 0, fontSize: isMobile ? 14 : 18, fontWeight: 800, letterSpacing: -0.5 }}>
+                🏀 March Madness <span style={{ color: "#CC0000" }}>2026</span>
+              </h1>
+              {!isMobile && <p style={{ margin: 0, fontSize: 10, color: "#666" }}>BRACKET CHALLENGE</p>}
             </div>
           </div>
 
-          {user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input
-                type="text"
-                value={entryName}
-                onChange={(e) => { setEntryName(e.target.value); setSaved(false); }}
-                placeholder={user.displayName || "Entry name"}
-                style={{
-                  background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
-                  padding: "8px 12px", color: "#ccc", fontSize: 12, width: 140,
-                  outline: "none",
-                }}
-              />
-              <button onClick={handleSave} disabled={saving} style={{
-                background: saved ? "#4CAF5022" : "#CC000022",
-                border: `1px solid ${saved ? "#4CAF5066" : "#CC000066"}`,
-                borderRadius: 8, padding: "8px 16px",
-                color: saved ? "#4CAF50" : "#CC0000",
-                fontSize: 12, fontWeight: 700, cursor: saving ? "wait" : "pointer",
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* Entry Switcher */}
+            {user && (
+              <div style={{ display: "flex", gap: 3, background: "#0a0a16", borderRadius: 8, padding: 2 }}>
+                {[1, 2].map((num) => {
+                  const active = entryNum === num;
+                  const exists = entryExists[num - 1];
+                  return (
+                    <button key={num} onClick={() => switchEntry(num)} style={{
+                      background: active ? "#CC000033" : "transparent",
+                      border: active ? "1px solid #CC000066" : "1px solid transparent",
+                      borderRadius: 6, padding: isMobile ? "4px 8px" : "5px 12px",
+                      color: active ? "#fff" : exists ? "#888" : "#444",
+                      fontSize: isMobile ? 10 : 11, fontWeight: active ? 700 : 500,
+                      cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap",
+                    }}>
+                      {isMobile ? `#${num}` : `Entry ${num}`} {exists && !active ? "✓" : ""}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Progress */}
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: isMobile ? 10 : 11, color: "#888" }}>{totalPicks}/67</div>
+              <div style={{
+                width: isMobile ? 50 : 80, height: 4, background: "#1a1a2e", borderRadius: 2, marginTop: 2,
               }}>
-                {saving ? "Saving..." : saved ? "✓ Saved" : "Save Bracket"}
-              </button>
+                <div style={{
+                  width: `${(totalPicks / 67) * 100}%`, height: "100%",
+                  background: totalPicks === 67 ? "#4CAF50" : "#CC0000",
+                  borderRadius: 2, transition: "width 0.3s",
+                }} />
+              </div>
             </div>
-          ) : (
-            <div style={{ fontSize: 11, color: "#666" }}>Sign in to save</div>
-          )}
+          </div>
         </div>
+
+        {/* Bottom row (mobile: full width): entry name + save */}
+        {user ? (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8,
+            ...(isMobile ? { marginTop: 4 } : {}),
+          }}>
+            <input
+              type="text"
+              value={entryName}
+              onChange={(e) => { setEntryName(e.target.value); setSaved(false); }}
+              placeholder={user.displayName || "Entry name"}
+              style={{
+                background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
+                padding: isMobile ? "6px 10px" : "8px 12px", color: "#ccc",
+                fontSize: isMobile ? 11 : 12, flex: 1, minWidth: 0,
+                outline: "none",
+              }}
+            />
+            <button onClick={handleSave} disabled={saving} style={{
+              background: saved ? "#4CAF5022" : "#CC000022",
+              border: `1px solid ${saved ? "#4CAF5066" : "#CC000066"}`,
+              borderRadius: 8, padding: isMobile ? "6px 12px" : "8px 16px",
+              color: saved ? "#4CAF50" : "#CC0000",
+              fontSize: isMobile ? 11 : 12, fontWeight: 700, cursor: saving ? "wait" : "pointer",
+              whiteSpace: "nowrap", flexShrink: 0,
+            }}>
+              {saving ? "..." : saved ? "✓ Saved" : "Save"}
+            </button>
+          </div>
+        ) : (
+          !isMobile && <div style={{ fontSize: 11, color: "#666" }}>Sign in to save</div>
+        )}
       </header>
 
       {/* Tab Navigation */}
@@ -1018,21 +1121,26 @@ export default function BracketChallenge({ user, onBack, initialEntry }) {
       </div>
 
       {/* Content */}
-      <main style={{ padding: "20px" }}>
+      <main style={{ padding: isMobile ? "12px 8px" : "20px" }}>
         {!loaded ? (
           <div style={{ textAlign: "center", padding: 60, color: "#555" }}>Loading bracket...</div>
         ) : (
           <>
             {tab === "bracket" && (
               <div>
-                {REGIONS.map((r) => (
-                  <RegionalBracketView key={r.id} region={r} picks={picks} onPick={handlePick} />
-                ))}
+                {isMobile
+                  ? REGIONS.map((r) => (
+                      <MobileRegionView key={r.id} region={r} picks={picks} onPick={handlePick} />
+                    ))
+                  : REGIONS.map((r) => (
+                      <RegionalBracketView key={r.id} region={r} picks={picks} onPick={handlePick} />
+                    ))
+                }
               </div>
             )}
             {tab === "first4" && <FirstFourView picks={picks} onPick={handlePick} />}
             {tab === "ff" && <FinalFourView picks={picks} onPick={handlePick} />}
-            {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} />}
+            {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} />}
           </>
         )}
       </main>

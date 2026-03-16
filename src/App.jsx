@@ -955,7 +955,7 @@ export default function App() {
   const [order, setOrder] = useState(() => TEAMS_CONFIG.map((t) => t.id));
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
   // Load user bracket entries for banner display
@@ -988,14 +988,9 @@ export default function App() {
   }, [draggedId]);
   const handleDragEnd = useCallback(() => { setDraggedId(null); setDragOverId(null); }, []);
 
-  const filteredOrder = order.filter((id) => {
-    if (!searchQuery) return true;
-    return TEAMS_CONFIG.find((t) => t.id === id)?.name.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
   // Show Bracket Challenge if active
   if (showBracket) {
-    return <BracketChallenge user={user} onBack={() => setShowBracket(false)} initialEntry={bracketEntry} />;
+    return <BracketChallenge user={user} onBack={() => { setShowBracket(false); setShowLeaderboard(false); }} initialEntry={bracketEntry} initialTab={showLeaderboard ? "lb" : "bracket"} />;
   }
 
   const hasAnyBracket = userEntries.some((e) => e && Object.keys(e.picks || {}).length > 0);
@@ -1055,7 +1050,7 @@ export default function App() {
         @media (max-width: 600px) {
           .ush-header { flex-direction: column !important; gap: 10px !important; padding: 12px 14px !important; align-items: flex-start !important; }
           .ush-header-right { width: 100% !important; flex-direction: row !important; justify-content: space-between !important; }
-          .ush-header-right input { width: 140px !important; }
+          .ush-leaderboard-btn { padding: 6px 10px !important; font-size: 11px !important; }
           .ush-subtitle { display: none !important; }
           .ush-pills { padding: 10px 14px 0 !important; gap: 6px !important; }
           .ush-pills button { padding: 5px 10px !important; font-size: 11px !important; }
@@ -1082,16 +1077,20 @@ export default function App() {
           </div>
         </div>
         <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ position: "relative" }}>
-            <input type="text" placeholder="Filter teams..." value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
-                padding: "8px 12px 8px 32px", color: "#ccc", fontSize: 13, outline: "none", width: 180,
-              }}
-            />
-            <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#555", display: "flex" }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-          </div>
+          <button onClick={() => { setBracketEntry(1); setShowBracket(true); setShowLeaderboard(true); }}
+            className="ush-leaderboard-btn"
+            style={{
+              background: "#FFD70015", border: "1px solid #FFD70044", borderRadius: 8,
+              padding: "8px 14px", color: "#FFD700", fontSize: 12, fontWeight: 600,
+              cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#FFD70033")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#FFD70015")}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+            Live Leaderboard
+          </button>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 10, color: "#555" }}>Auto-refresh</div>
             <div style={{ fontSize: 12, color: "#888", fontFamily: "monospace" }}>{lastRefresh.toLocaleTimeString()}</div>
@@ -1216,7 +1215,7 @@ export default function App() {
         gridTemplateColumns: "repeat(auto-fill, minmax(440px, 1fr))",
         gap: 20, maxWidth: 1400, margin: "0 auto",
       }}>
-        {filteredOrder.map((id, index) => {
+        {order.map((id, index) => {
           const team = TEAMS_CONFIG.find((t) => t.id === id);
           if (!team) return null;
           return (
