@@ -103,6 +103,12 @@ function useAuth() {
       await registerUser(u, { username, displayName: username, photoURL });
       const p = await loadUserProfile(u.uid);
       setProfile(p);
+      // Send welcome email (fire-and-forget)
+      fetch("/api/welcome-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, username }),
+      }).catch(() => {});
       return { success: true };
     } catch (e) {
       console.error("Signup error:", e);
@@ -599,6 +605,14 @@ function UsernameSetupModal({ user, onDone }) {
         displayName: username.trim(),
         photoURL,
       }, { merge: true });
+      // Send welcome email for Google users (fire-and-forget)
+      if (user.email) {
+        fetch("/api/welcome-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: user.email, username: username.trim() }),
+        }).catch(() => {});
+      }
       onDone();
     } catch (e) {
       setError("Failed to save: " + e.message);
