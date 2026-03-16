@@ -38,8 +38,8 @@ export default async function handler(req, res) {
 
     <!-- Welcome Card -->
     <div style="background:linear-gradient(135deg,#1a1a2e 0%,#12121f 100%);border:1px solid #2a2a3e;border-radius:16px;padding:32px 28px;margin-bottom:20px;">
-      <h2 style="color:#ffffff;margin:0 0 12px;font-size:22px;">Welcome, ${displayName}! 🎉</h2>
-      <p style="color:#aaa;font-size:14px;line-height:1.6;margin:0;">
+      <h2 style="color:#ffffff;margin:0 0 12px;font-size:22px;"><span style="color:#ffffff !important;">Welcome, ${displayName}!</span> 🎉</h2>
+      <p style="color:#cccccc;font-size:14px;line-height:1.6;margin:0;">
         You're officially part of the Salt City Sports community. Stay up to date with your favorite Utah teams — all in one place.
       </p>
     </div>
