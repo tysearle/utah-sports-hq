@@ -1174,6 +1174,7 @@ function useTeamData(team) {
             const isHome = us?.homeAway === "home";
             const bcast =
               comp?.broadcasts?.[0]?.names?.[0] ||
+              comp?.broadcasts?.[0]?.media?.shortName ||
               comp?.geoBroadcasts?.[0]?.media?.shortName ||
               "--";
             const statusName = comp?.status?.type?.name || ev.status?.type?.name || "";
