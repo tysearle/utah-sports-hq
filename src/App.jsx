@@ -2698,7 +2698,8 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
     }} onClick={(e) => { if (!isFirstTime && e.target === e.currentTarget) onClose(); }}>
       <div style={{
         background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 16,
-        padding: "28px 24px", maxWidth: 520, width: "100%", maxHeight: "90vh", overflowY: "auto",
+        padding: "28px 24px", maxWidth: 560, width: "100%", maxHeight: "90vh",
+        display: "flex", flexDirection: "column", overflow: "hidden",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ color: "#fff", margin: "0 0 6px", fontSize: 20, fontWeight: 700 }}>
@@ -2713,11 +2714,11 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
             </button>
           )}
         </div>
-        <p style={{ color: "#888", fontSize: 13, margin: "0 0 20px" }}>
+        <p style={{ color: "#888", fontSize: 13, margin: "0 0 14px" }}>
           Select up to {MAX_TEAMS} teams to follow. {picked.length}/{MAX_TEAMS} selected.
         </p>
 
-        <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap", flexShrink: 0 }}>
           {PICKER_TABS.map((tab) => (
             <button key={tab.key} onClick={() => { setActiveTab(tab.key); setSearch(""); setConfFilter("All"); }} style={{
               padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer",
@@ -2757,38 +2758,40 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
           </select>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {filteredTeams.map((team) => {
-            const isSelected = picked.includes(team.id);
-            const isDisabled = !isSelected && picked.length >= MAX_TEAMS;
-            return (
-              <div key={team.id} onClick={() => !isDisabled && toggle(team.id)} style={{
-                display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
-                borderRadius: 10, cursor: isDisabled ? "not-allowed" : "pointer",
-                border: isSelected ? `2px solid ${team.accent}` : "2px solid #2a2a3e",
-                background: isSelected ? team.accent + "15" : "#1a1a2e",
-                opacity: isDisabled ? 0.4 : 1, transition: "all 0.2s",
-              }}>
-                <img src={team.logo} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: "contain", background: "#fff", padding: 2 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: isSelected ? team.accent : "#ccc", fontSize: 13, fontWeight: 600 }}>{team.shortName}</div>
-                  <div style={{ color: "#666", fontSize: 10 }}>{team.league} • {team.venue || team.conference}</div>
-                </div>
-                <div style={{
-                  width: 22, height: 22, borderRadius: 6,
-                  border: isSelected ? `2px solid ${team.accent}` : "2px solid #444",
-                  background: isSelected ? team.accent : "transparent",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  flexShrink: 0,
+        <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {filteredTeams.map((team) => {
+              const isSelected = picked.includes(team.id);
+              const isDisabled = !isSelected && picked.length >= MAX_TEAMS;
+              return (
+                <div key={team.id} onClick={() => !isDisabled && toggle(team.id)} style={{
+                  display: "flex", alignItems: "center", gap: 8, padding: "7px 10px",
+                  borderRadius: 10, cursor: isDisabled ? "not-allowed" : "pointer",
+                  border: isSelected ? `2px solid ${team.accent}` : "2px solid #2a2a3e",
+                  background: isSelected ? team.accent + "15" : "#1a1a2e",
+                  opacity: isDisabled ? 0.4 : 1, transition: "all 0.2s",
                 }}>
-                  {isSelected && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+                  <img src={team.logo} alt="" style={{ width: 30, height: 30, borderRadius: 5, objectFit: "contain", background: "#fff", padding: 2, flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: isSelected ? team.accent : "#ccc", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{team.shortName}</div>
+                    <div style={{ color: "#666", fontSize: 9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{team.league} • {team.venue || team.conference}</div>
+                  </div>
+                  <div style={{
+                    width: 20, height: 20, borderRadius: 5,
+                    border: isSelected ? `2px solid ${team.accent}` : "2px solid #444",
+                    background: isSelected ? team.accent : "transparent",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}>
+                    {isSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", gap: 10, marginTop: 16, justifyContent: "flex-end", flexShrink: 0 }}>
           {!isFirstTime && (
             <button onClick={onClose} style={{
               background: "none", border: "1px solid #444", borderRadius: 8,
