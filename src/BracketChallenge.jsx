@@ -250,11 +250,12 @@ function clearDownstream(picks, key, newPick) {
 }
 
 // ===== FIRESTORE =====
-async function saveBracket(user, picks) {
+async function saveBracket(user, picks, entryName) {
   if (!user) return;
   try {
     await setDoc(doc(db, "brackets", user.uid), {
       picks,
+      entryName: entryName || "",
       displayName: user.displayName || "Anonymous",
       photoURL: user.photoURL || null,
       email: user.email || null,
@@ -270,11 +271,14 @@ async function saveBracket(user, picks) {
 async function loadBracket(uid) {
   try {
     const snap = await getDoc(doc(db, "brackets", uid));
-    if (snap.exists()) return snap.data().picks || {};
-    return {};
+    if (snap.exists()) {
+      const data = snap.data();
+      return { picks: data.picks || {}, entryName: data.entryName || "" };
+    }
+    return { picks: {}, entryName: "" };
   } catch (e) {
     console.error("Load failed:", e);
-    return {};
+    return { picks: {}, entryName: "" };
   }
 }
 
@@ -286,6 +290,7 @@ async function loadLeaderboard() {
       const data = d.data();
       entries.push({
         uid: d.id,
+        entryName: data.entryName || "",
         displayName: data.displayName || "Anonymous",
         photoURL: data.photoURL,
         picks: data.picks || {},
@@ -368,7 +373,7 @@ function MatchupCard({ team1, team2, picked, onPick, color, gameKey, roundPoints
       <TeamRow
         team={team1} isSelected={picked === team1?.id}
         isPicked={!!picked} onPick={onPick} color={color}
-        disabled={!team1 || !team2}
+        disabled={!team1}
         winPct={prob?.pct1} isFav={prob?.fav === team1?.id}
       />
       {/* Probability bar */}
@@ -390,7 +395,7 @@ function MatchupCard({ team1, team2, picked, onPick, color, gameKey, roundPoints
       <TeamRow
         team={team2} isSelected={picked === team2?.id}
         isPicked={!!picked} onPick={onPick} color={color}
-        disabled={!team1 || !team2}
+        disabled={!team2}
         winPct={prob?.pct2} isFav={prob?.fav === team2?.id}
       />
       {roundPoints && (
@@ -642,7 +647,7 @@ function Leaderboard({ entries, currentUid }) {
                   )}
                   <div>
                     <div style={{ fontSize: 13, fontWeight: isMe ? 700 : 500, color: isMe ? "#fff" : "#ccc" }}>
-                      {entry.displayName} {isMe && <span style={{ fontSize: 9, color: "#CC0000" }}>(you)</span>}
+                      {entry.entryName || entry.displayName} {isMe && <span style={{ fontSize: 9, color: "#CC0000" }}>(you)</span>}
                     </div>
                     <div style={{ fontSize: 10, color: "#555" }}>
                       Champion: {champion}
@@ -679,12 +684,14 @@ export default function BracketChallenge({ user, onBack }) {
   const [saved, setSaved] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loaded, setLoaded] = useState(false);
+  const [entryName, setEntryName] = useState("");
 
   // Load user's bracket and leaderboard on mount
   useEffect(() => {
     if (user) {
-      loadBracket(user.uid).then((p) => {
+      loadBracket(user.uid).then(({ picks: p, entryName: en }) => {
         if (p && Object.keys(p).length > 0) setPicks(p);
+        if (en) setEntryName(en);
         setLoaded(true);
       });
     } else {
@@ -709,7 +716,7 @@ export default function BracketChallenge({ user, onBack }) {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const ok = await saveBracket(user, picks);
+    const ok = await saveBracket(user, picks, entryName);
     setSaving(false);
     if (ok) {
       setSaved(true);
@@ -775,15 +782,28 @@ export default function BracketChallenge({ user, onBack }) {
           </div>
 
           {user ? (
-            <button onClick={handleSave} disabled={saving} style={{
-              background: saved ? "#4CAF5022" : "#CC000022",
-              border: `1px solid ${saved ? "#4CAF5066" : "#CC000066"}`,
-              borderRadius: 8, padding: "8px 16px",
-              color: saved ? "#4CAF50" : "#CC0000",
-              fontSize: 12, fontWeight: 700, cursor: saving ? "wait" : "pointer",
-            }}>
-              {saving ? "Saving..." : saved ? "✓ Saved" : "Save Bracket"}
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="text"
+                value={entryName}
+                onChange={(e) => { setEntryName(e.target.value); setSaved(false); }}
+                placeholder={user.displayName || "Entry name"}
+                style={{
+                  background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
+                  padding: "8px 12px", color: "#ccc", fontSize: 12, width: 140,
+                  outline: "none",
+                }}
+              />
+              <button onClick={handleSave} disabled={saving} style={{
+                background: saved ? "#4CAF5022" : "#CC000022",
+                border: `1px solid ${saved ? "#4CAF5066" : "#CC000066"}`,
+                borderRadius: 8, padding: "8px 16px",
+                color: saved ? "#4CAF50" : "#CC0000",
+                fontSize: 12, fontWeight: 700, cursor: saving ? "wait" : "pointer",
+              }}>
+                {saving ? "Saving..." : saved ? "✓ Saved" : "Save Bracket"}
+              </button>
+            </div>
           ) : (
             <div style={{ fontSize: 11, color: "#666" }}>Sign in to save</div>
           )}
