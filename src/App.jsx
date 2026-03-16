@@ -8,11 +8,37 @@ import {
 } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc, getDoc, deleteDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+// Firebase Storage removed — profile pics stored as base64 in Firestore (Spark plan compatible)
 import BracketChallenge, { loadUserEntries } from "./BracketChallenge";
 
 // --- Admin Config ---
 const ADMIN_EMAILS = ["t.m.searle@gmail.com"];
+
+// --- Compress image to base64 data URL (stored in Firestore, no Firebase Storage needed) ---
+function compressImageToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const size = 200;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        const min = Math.min(img.width, img.height);
+        const sx = (img.width - min) / 2;
+        const sy = (img.height - min) / 2;
+        ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+        resolve(canvas.toDataURL("image/jpeg", 0.7));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 // --- Register/update user in Firestore ---
 async function registerUser(u, extra = {}) {
@@ -96,9 +122,7 @@ function useAuth() {
       const u = result.user;
       let photoURL = null;
       if (profilePicFile) {
-        const storageRef = ref(storage, `profilePics/${u.uid}`);
-        await uploadBytes(storageRef, profilePicFile);
-        photoURL = await getDownloadURL(storageRef);
+        photoURL = await compressImageToDataURL(profilePicFile);
       }
       await registerUser(u, { username, displayName: username, photoURL });
       const p = await loadUserProfile(u.uid);
@@ -405,9 +429,7 @@ function ProfileSettingsModal({ user, profile, onClose, onProfileUpdated }) {
     if (!newPic) return;
     setLoading(true); setError(""); setPicSuccess("");
     try {
-      const storageRef = ref(storage, `profilePics/${user.uid}`);
-      await uploadBytes(storageRef, newPic);
-      const photoURL = await getDownloadURL(storageRef);
+      const photoURL = await compressImageToDataURL(newPic);
       await setDoc(doc(db, "users", user.uid), { photoURL }, { merge: true });
       setPicSuccess("Profile picture updated!");
       setNewPic(null);
@@ -597,9 +619,7 @@ function UsernameSetupModal({ user, onDone }) {
     try {
       let photoURL = user.photoURL || null;
       if (profilePic) {
-        const storageRef = ref(storage, `profilePics/${user.uid}`);
-        await uploadBytes(storageRef, profilePic);
-        photoURL = await getDownloadURL(storageRef);
+        photoURL = await compressImageToDataURL(profilePic);
       }
       await setDoc(doc(db, "users", user.uid), {
         username: username.trim(),
