@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     <!-- Header -->
     <div style="text-align:center;margin-bottom:28px;">
       <h1 style="color:#ffffff;font-size:28px;margin:0;font-weight:800;letter-spacing:-0.5px;">
-        Utah Sports HQ
+        Salt City Sports
       </h1>
       <div style="color:#CC0000;font-size:12px;font-weight:700;letter-spacing:2px;margin-top:4px;">YOUR HOME FOR UTAH SPORTS</div>
     </div>
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     <div style="background:linear-gradient(135deg,#1a1a2e 0%,#12121f 100%);border:1px solid #2a2a3e;border-radius:16px;padding:32px 28px;margin-bottom:20px;">
       <h2 style="color:#ffffff;margin:0 0 12px;font-size:22px;">Welcome, ${displayName}! 🎉</h2>
       <p style="color:#aaa;font-size:14px;line-height:1.6;margin:0;">
-        You're officially part of the Utah Sports HQ community. Stay up to date with your favorite Utah teams — all in one place.
+        You're officially part of the Salt City Sports community. Stay up to date with your favorite Utah teams — all in one place.
       </p>
     </div>
 
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
 
     <!-- Features -->
     <div style="background:#1a1a2e;border:1px solid #2a2a3e;border-radius:16px;padding:24px 28px;margin-bottom:20px;">
-      <h3 style="color:#fff;margin:0 0 16px;font-size:15px;">What you can do on Utah Sports HQ:</h3>
+      <h3 style="color:#fff;margin:0 0 16px;font-size:15px;">What you can do on Salt City Sports:</h3>
       <div style="color:#aaa;font-size:13px;line-height:2;">
         📊 Live scores, schedules &amp; standings for Utah teams<br>
         🏀 March Madness Bracket Challenge<br>
@@ -71,7 +71,7 @@ export default async function handler(req, res) {
     <!-- Footer -->
     <div style="text-align:center;padding-top:12px;">
       <p style="color:#555;font-size:11px;margin:0;">
-        Utah Sports HQ · Built for Utah fans, by Utah fans
+        Salt City Sports · Built for Utah fans, by Utah fans
       </p>
     </div>
 
@@ -87,9 +87,9 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Utah Sports HQ <onboarding@resend.dev>",
+        from: "Salt City Sports <onboarding@resend.dev>",
         to: [email],
-        subject: `Welcome to Utah Sports HQ, ${displayName}! 🏀`,
+        subject: `Welcome to Salt City Sports, ${displayName}! 🏀`,
         html: htmlContent,
       }),
     });

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <clipPath id="circle-clip">
+      <circle cx="100" cy="100" r="96"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="98" fill="#0a0a1a" stroke="#CC0000" stroke-width="4"/>
+
+  <!-- Mountains -->
+  <g clip-path="url(#circle-clip)">
+    <!-- Back mountain range - lighter -->
+    <polygon points="10,145 50,85 75,110 100,70 130,105 155,80 195,145" fill="#1a2a4a" opacity="0.7"/>
+    <!-- Front mountain range -->
+    <polygon points="0,150 40,95 65,120 95,75 125,115 150,88 200,150" fill="#1a1a3e"/>
+    <!-- Snow caps -->
+    <polygon points="95,75 105,90 85,90" fill="#ffffff" opacity="0.3"/>
+    <polygon points="150,88 158,100 142,100" fill="#ffffff" opacity="0.3"/>
+
+    <!-- Mammoth silhouette -->
+    <g transform="translate(55, 95) scale(0.45)">
+      <!-- Body -->
+      <ellipse cx="100" cy="75" rx="55" ry="40" fill="#111"/>
+      <!-- Head -->
+      <ellipse cx="155" cy="55" rx="30" ry="28" fill="#111"/>
+      <!-- Trunk -->
+      <path d="M175,65 Q190,80 185,100 Q183,108 178,105 Q180,90 170,75" fill="#111"/>
+      <!-- Tusks -->
+      <path d="M165,60 Q185,55 180,75" stroke="#ddd" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- Legs -->
+      <rect x="65" y="100" width="14" height="35" rx="5" fill="#111"/>
+      <rect x="85" y="100" width="14" height="38" rx="5" fill="#111"/>
+      <rect x="115" y="100" width="14" height="38" rx="5" fill="#111"/>
+      <rect x="135" y="100" width="14" height="35" rx="5" fill="#111"/>
+      <!-- Hump/shoulder -->
+      <ellipse cx="85" cy="50" rx="25" ry="20" fill="#111"/>
+      <!-- Ear -->
+      <ellipse cx="145" cy="45" rx="12" ry="15" fill="#1a1a1a"/>
+    </g>
+
+    <!-- "U" shape -->
+    <text x="100" y="68" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="32" fill="#CC0000" opacity="0.8">U</text>
+  </g>
+
+  <!-- Top text arc - SALT CITY -->
+  <path id="topArc" d="M 30,100 A 70,70 0 0,1 170,100" fill="none"/>
+  <text font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="16" fill="#5ba3d9" letter-spacing="3">
+    <textPath href="#topArc" startOffset="50%" text-anchor="middle">SALT CITY</textPath>
+  </text>
+
+  <!-- Bottom text arc - SPORTS -->
+  <path id="bottomArc" d="M 35,115 A 70,70 0 0,0 165,115" fill="none"/>
+  <text font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="16" fill="#CC0000" letter-spacing="4">
+    <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">SPORTS</textPath>
+  </text>
+</svg>

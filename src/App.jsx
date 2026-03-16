@@ -2224,13 +2224,13 @@ export default function App() {
         position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ fontSize: 32, lineHeight: 1 }}><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#CC0000" strokeWidth="1.5"><path d="M8 21l4-10 4 10"/><path d="M2 21l6-14 3.5 7"/><path d="M14.5 14L18 7l4 14"/><line x1="2" y1="21" x2="22" y2="21"/></svg></div>
+          <img src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} />
           <div>
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>
-              Utah Sports <span style={{ color: "#CC0000" }}>HQ</span>
+              Salt City <span style={{ color: "#CC0000" }}>Sports</span>
             </h1>
             <p className="ush-subtitle" style={{ margin: 0, fontSize: 11, color: "#666", letterSpacing: 0.5 }}>
-              LIVE DASHBOARD | AUTO-REFRESHES EVERY 5 MIN | DRAG TO REARRANGE
+              YOUR UTAH SPORTS HUB | LIVE DATA | AUTO-REFRESHES
             </p>
           </div>
         </div>
@@ -2423,7 +2423,13 @@ export default function App() {
       </main>
 
       <footer style={{ textAlign: "center", padding: "20px 28px", borderTop: "1px solid #1a1a2e", color: "#444", fontSize: 11 }}>
-        Utah Sports HQ | Live data from ESPN API via serverless proxy | Auto-refreshes every 5 minutes
+        <div style={{ marginBottom: 8 }}>Salt City Sports | Live data from ESPN API via serverless proxy | Auto-refreshes every 5 minutes</div>
+        <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+          <a href="https://x.com/saltcitysportut" target="_blank" rel="noopener noreferrer" style={{ color: "#666", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.602l-5.165-6.748L2.881 21.75H-1.265l7.732-8.835L-1.993 2.25h6.736l4.793 6.341 5.982-6.341zM16.905 19.5h1.829L5.327 4.132H3.457l13.448 15.368z"/></svg>
+            X
+          </a>
+        </div>
       </footer>
 
       {/* Auth Modal */}
