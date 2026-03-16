@@ -1134,6 +1134,16 @@ export default function App() {
               background: "#CC000015", border: "1px solid #CC000044", borderRadius: 8,
               padding: "6px 12px", color: "#CC0000", fontSize: 11, cursor: "pointer",
             }}>Clear Chat</button>
+            <button onClick={async () => {
+              if (!window.confirm("Delete ALL bracket entries? This cannot be undone.")) return;
+              const snap = await getDocs(collection(db, "brackets"));
+              for (const d of snap.docs) await deleteDoc(doc(db, "brackets", d.id));
+              alert(`Deleted ${snap.size} bracket entries.`);
+              loadAdminUsers();
+            }} style={{
+              background: "#CC000015", border: "1px solid #CC000044", borderRadius: 8,
+              padding: "6px 12px", color: "#CC0000", fontSize: 11, cursor: "pointer",
+            }}>Clear Brackets</button>
             <button onClick={loadAdminUsers} style={{
               background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
               padding: "6px 12px", color: "#888", fontSize: 11, cursor: "pointer",
