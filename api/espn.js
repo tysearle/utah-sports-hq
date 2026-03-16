@@ -12,7 +12,7 @@ const ESPN_BASE_WEB = "https://site.web.api.espn.com/apis/v2";
 const ESPN_BASE_CORE = "https://sports.core.api.espn.com/v2";
 
 export default async function handler(req, res) {
-  const { path, v2, web, ...extra } = req.query;
+  const { path, v2, web, core, ...extra } = req.query;
 
   if (!path) {
     return res.status(400).json({ error: "Missing 'path' query parameter" });
@@ -23,7 +23,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Path must start with 'sports/'" });
   }
 
-  const { core } = req.query;
   const base = core !== undefined ? ESPN_BASE_CORE : web !== undefined ? ESPN_BASE_WEB : v2 !== undefined ? ESPN_BASE_V2 : ESPN_BASE_SITE;
   // Forward extra query params (season, seasontype, etc.)
   const params = new URLSearchParams(extra);

@@ -1379,10 +1379,13 @@ function StatsTab({ team, accent }) {
   useEffect(() => {
     (async () => {
       try {
-        // 1. Fetch roster to get player IDs
+        // 1. Fetch roster to get player IDs (NHL = grouped by position, NBA = flat)
         const rosterRes = await fetch(`/api/espn?path=${team.apiRoster}`);
         const rosterData = await rosterRes.json();
-        const rosterPlayers = rosterData?.athletes || [];
+        const rawAthletes = rosterData?.athletes || [];
+        const rosterPlayers = rawAthletes[0]?.items
+          ? rawAthletes.flatMap((g) => g.items || [])
+          : rawAthletes;
 
         // 2. Fetch each player's stats in parallel (batches of 10)
         const results = [];
