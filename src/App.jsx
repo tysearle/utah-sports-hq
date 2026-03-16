@@ -2758,7 +2758,7 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
           </select>
         )}
 
-        <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
+        <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minHeight: 0 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             {filteredTeams.map((team) => {
               const isSelected = picked.includes(team.id);
