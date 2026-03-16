@@ -919,9 +919,10 @@ const TEAMS_CONFIG = [
 // In development, Vite proxies /api to ESPN directly.
 // In production on Vercel, /api/espn serverless function handles the proxy.
 
-async function fetchESPN(apiPath, useV2 = false) {
+async function fetchESPN(apiPath, useV2 = false, extraParams = {}) {
   // Vercel serverless route
-  const url = `/api/espn?path=${encodeURIComponent(apiPath)}${useV2 ? '&v2' : ''}`;
+  const extra = Object.entries(extraParams).map(([k, v]) => `&${k}=${v}`).join("");
+  const url = `/api/espn?path=${encodeURIComponent(apiPath)}${useV2 ? '&v2' : ''}${extra}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`API ${res.status}`);
   return res.json();
@@ -946,11 +947,13 @@ function useTeamData(team) {
       try {
         // Derive scoreboard path from apiSchedule (e.g. "sports/basketball/nba/teams/26/schedule" -> "sports/basketball/nba/scoreboard")
         const scoreboardPath = team.apiSchedule.replace(/\/teams\/.*$/, "/scoreboard");
-        const [teamData, schedData, standData, scoreboardData] = await Promise.allSettled([
+        // Also fetch postseason schedule for NCAA tournament games
+        const [teamData, schedData, standData, scoreboardData, postData] = await Promise.allSettled([
           fetchESPN(team.apiTeam),
           fetchESPN(team.apiSchedule),
           fetchESPN(team.apiStandings, true),
           fetchESPN(scoreboardPath),
+          team.league === "NCAA" ? fetchESPN(team.apiSchedule, false, { seasontype: 3 }) : Promise.resolve(null),
         ]);
 
         if (cancelled) return;
@@ -998,7 +1001,16 @@ function useTeamData(team) {
         // -- Parse schedule--
         if (schedData.status === "fulfilled") {
           const raw = schedData.value;
-          const allEvents = raw?.events || raw?.requestedSeason?.events || [];
+          let allEvents = raw?.events || raw?.requestedSeason?.events || [];
+          // Merge postseason events (NCAA tournament) if available
+          if (postData?.status === "fulfilled" && postData.value) {
+            const postEvents = postData.value?.events || postData.value?.requestedSeason?.events || [];
+            if (postEvents.length > 0) {
+              const existingIds = new Set(allEvents.map(e => e.id));
+              const newEvents = postEvents.filter(e => !existingIds.has(e.id));
+              allEvents = [...allEvents, ...newEvents].sort((a, b) => new Date(a.date) - new Date(b.date));
+            }
+          }
           // Find games around today: last 5 completed + next 5 upcoming
           const now = new Date();
           const completed = [];
