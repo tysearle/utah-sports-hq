@@ -2742,20 +2742,26 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
         />
 
         {conferences.length > 2 && (
-          <select
-            value={confFilter}
-            onChange={(e) => setConfFilter(e.target.value)}
-            style={{
-              width: "100%", padding: "10px 12px", marginBottom: 12, borderRadius: 8,
-              border: "1px solid #2a2a3e", background: "#1a1a2e", color: "#ccc",
-              fontSize: 13, outline: "none", boxSizing: "border-box",
-              appearance: "auto", cursor: "pointer", height: 40,
-            }}
-          >
-            {conferences.map((c) => (
-              <option key={c} value={c}>{c === "All" ? "All Conferences" : c}</option>
-            ))}
-          </select>
+          <div style={{ position: "relative", marginBottom: 8 }}>
+            <select
+              value={confFilter}
+              onChange={(e) => setConfFilter(e.target.value)}
+              style={{
+                width: "100%", padding: "10px 36px 10px 12px", borderRadius: 8,
+                border: "1px solid #2a2a3e", background: "#1a1a2e", color: "#ccc",
+                fontSize: 13, outline: "none", boxSizing: "border-box",
+                cursor: "pointer", height: 42, lineHeight: "20px",
+                WebkitAppearance: "none", MozAppearance: "none", appearance: "none",
+              }}
+            >
+              {conferences.map((c) => (
+                <option key={c} value={c}>{c === "All" ? "All Conferences" : c}</option>
+              ))}
+            </select>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2.5" strokeLinecap="round" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
         )}
 
         <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minHeight: 0 }}>
