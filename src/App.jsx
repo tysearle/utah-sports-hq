@@ -978,22 +978,29 @@ function useTeamData(team) {
               if (match) {
                 found = entries.map((e) => {
                   const st = (name) => e.stats?.find((s) => s.name === name);
+                  // Derive losses from "overall" (e.g. "11-2") when losses stat is missing (college football)
+                  const overallStr = st("overall")?.displayValue ?? "";
+                  const overallParts = overallStr.split("-");
+                  const derivedLosses = overallParts.length >= 2 ? parseInt(overallParts[1]) : 0;
                   return {
                     team: e.team?.shortDisplayName || e.team?.displayName || "--",
                     logo: e.team?.logos?.[0]?.href,
                     wins: st("wins")?.value ?? st("wins")?.displayValue ?? 0,
-                    losses: st("losses")?.value ?? st("losses")?.displayValue ?? 0,
+                    losses: st("losses")?.value ?? st("losses")?.displayValue ?? derivedLosses,
                     otl: st("otLosses")?.value ?? st("OTLosses")?.displayValue ?? 0,
                     pts: st("points")?.value ?? st("points")?.displayValue ?? 0,
                     pct: st("winPercent")?.displayValue ?? st("winPct")?.displayValue ?? "--",
                     gb: st("gamesBehind")?.displayValue ?? "--",
-                    overall: st("overall")?.displayValue ?? "",
+                    overall: overallStr,
+                    seed: st("playoffSeed")?.value ?? 999,
                     isTarget:
                       String(e.team?.id) === String(team.teamId) ||
                       e.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase() ||
                       e.team?.abbreviation === team.espnAbbr,
                   };
                 });
+                // Sort by playoffSeed ascending (ESPN sometimes returns worst-to-best)
+                found.sort((a, b) => Number(a.seed) - Number(b.seed));
                 break;
               }
             }
