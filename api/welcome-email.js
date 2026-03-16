@@ -52,7 +52,7 @@ export default async function handler(req, res) {
         Fill out your bracket and compete against other fans!
         Entries are due <strong>Tuesday, March 17th at 11:30 AM MDT</strong> — don't miss it!
       </p>
-      <a href="https://utah-sports-hq.vercel.app" style="display:inline-block;background:#ffffff;color:#CC0000;font-size:14px;font-weight:800;padding:12px 32px;border-radius:10px;text-decoration:none;">
+      <a href="https://saltcitysportsutah.com" style="display:inline-block;background:#ffffff;color:#CC0000;font-size:14px;font-weight:800;padding:12px 32px;border-radius:10px;text-decoration:none;">
         Fill Out Your Bracket →
       </a>
     </div>
@@ -87,7 +87,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Salt City Sports <onboarding@resend.dev>",
+        from: "Salt City Sports <hello@saltcitysportsutah.com>",
         to: [email],
         subject: `Welcome to Salt City Sports, ${displayName}! 🏀`,
         html: htmlContent,

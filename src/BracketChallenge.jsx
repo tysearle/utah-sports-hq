@@ -1931,7 +1931,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
         textAlign: "center", padding: "16px 20px", borderTop: "1px solid #1a1a2e",
         color: "#444", fontSize: 10,
       }}>
-        Utah Sports HQ — March Madness 2026 Bracket Challenge | Max possible: 192 pts
+        Salt City Sports — March Madness 2026 Bracket Challenge | Max possible: 192 pts
       </footer>
     </div>
   );
