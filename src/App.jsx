@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { auth, googleProvider, signInWithPopup, signOut } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import BracketChallenge from "./BracketChallenge";
@@ -181,6 +181,7 @@ function useTeamData(team) {
   const [record, setRecord] = useState("Loading...");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const hasLiveRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -244,23 +245,35 @@ function useTeamData(team) {
               "--";
             const statusName = comp?.status?.type?.name || ev.status?.type?.name || "";
             const isFinal = statusName.includes("FINAL") || statusName === "post";
+            const isLive = statusName.includes("IN_PROGRESS") || statusName === "STATUS_IN_PROGRESS" || statusName === "in";
+            const statusDetail = comp?.status?.type?.shortDetail || comp?.status?.shortDetail || ev.status?.type?.shortDetail || "";
 
             let result = "";
-            if (isFinal && us && them) {
+            let liveScore = null;
+            if ((isFinal || isLive) && us && them) {
               const usS = parseInt(us.score?.displayValue || us.score || "0");
               const thS = parseInt(them.score?.displayValue || them.score || "0");
-              result = usS > thS ? `W ${usS}-${thS}` : usS < thS ? `L ${usS}-${thS}` : `T ${usS}-${thS}`;
+              if (isFinal) {
+                result = usS > thS ? `W ${usS}-${thS}` : usS < thS ? `L ${usS}-${thS}` : `T ${usS}-${thS}`;
+              }
+              if (isLive) {
+                liveScore = { us: usS, them: thS, detail: statusDetail };
+              }
             }
 
             return {
               date: ev.date || comp?.date,
               opponent: them?.team?.displayName || them?.team?.shortDisplayName || "TBD",
+              opponentAbbr: them?.team?.abbreviation || "",
+              opponentLogo: them?.team?.logos?.[0]?.href || them?.team?.logo || null,
               home: isHome,
               result,
-              status: isFinal ? "post" : "pre",
+              status: isLive ? "live" : isFinal ? "post" : "pre",
               broadcast: bcast,
+              liveScore,
             };
           });
+          hasLiveRef.current = parsed.some((g) => g.status === "live");
           setSchedule(parsed);
         }
 
@@ -315,11 +328,18 @@ function useTeamData(team) {
     }
 
     load();
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(load, 5 * 60 * 1000);
+    // Dynamic refresh: 30s when live game detected, 5min otherwise
+    let timerId = null;
+    function tick() {
+      const delay = hasLiveRef.current ? 30 * 1000 : 5 * 60 * 1000;
+      timerId = setTimeout(() => {
+        load().then(() => { if (!cancelled) tick(); });
+      }, delay);
+    }
+    tick();
     return () => {
       cancelled = true;
-      clearInterval(interval);
+      if (timerId) clearTimeout(timerId);
     };
   }, [team.id]);
 
@@ -440,11 +460,54 @@ function Tabs({ tabs, accent }) {
 function ScheduleTab({ schedule, accent }) {
   if (!schedule || schedule.length === 0)
     return <div style={{ color: "#777", padding: 12 }}>No schedule data available</div>;
+  const live = schedule.filter((g) => g.status === "live");
   const recent = schedule.filter((g) => g.status === "post");
   const upcoming = schedule.filter((g) => g.status === "pre");
 
   return (
     <div>
+      {/* LIVE GAMES */}
+      {live.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          {live.map((g, i) => (
+            <div key={`live-${i}`} style={{
+              background: "linear-gradient(135deg, #CC000018, #ff440018)",
+              border: "1px solid #CC000044",
+              borderRadius: 10, padding: "12px 14px", marginBottom: 8,
+              animation: "livePulse 2s ease-in-out infinite",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{
+                    background: "#CC0000", color: "#fff", fontSize: 9, fontWeight: 800,
+                    padding: "2px 8px", borderRadius: 4, letterSpacing: 1,
+                    animation: "liveBlink 1.5s ease-in-out infinite",
+                  }}>LIVE</span>
+                  <span style={{ color: "#888", fontSize: 11 }}>{g.home ? "vs" : "@"} {g.opponent}</span>
+                </div>
+                <span style={{ color: "#888", fontSize: 10 }}>{g.broadcast}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ color: accent, fontSize: 28, fontWeight: 900, fontFamily: "monospace" }}>
+                    {g.liveScore?.us ?? 0}
+                  </div>
+                </div>
+                <div style={{ color: "#555", fontSize: 12, textAlign: "center" }}>
+                  <div style={{ fontWeight: 700, color: "#CC0000", fontSize: 10 }}>
+                    {g.liveScore?.detail || "In Progress"}
+                  </div>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ color: "#999", fontSize: 28, fontWeight: 900, fontFamily: "monospace" }}>
+                    {g.liveScore?.them ?? 0}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {recent.length > 0 && (
         <div style={{ marginBottom: 14 }}>
           <div style={subheaderStyle}>Recent Results</div>
@@ -710,6 +773,13 @@ function TeamWidget({ team, isDragging, dragHandlers }) {
               background: team.accent + "22", color: team.accent, fontSize: 9,
               padding: "2px 6px", borderRadius: 4, fontWeight: 700,
             }}>{team.leagueTag}</span>
+            {schedule.some((g) => g.status === "live") && (
+              <span style={{
+                background: "#CC0000", color: "#fff", fontSize: 9, fontWeight: 800,
+                padding: "2px 6px", borderRadius: 4, letterSpacing: 0.5,
+                animation: "liveBlink 1.5s ease-in-out infinite",
+              }}>LIVE</span>
+            )}
             {error && <span style={{ color: "#f44336", fontSize: 10 }}>! {error}</span>}
           </div>
           <div style={{ color: "#666", fontSize: 11, marginTop: 1, display: "flex", alignItems: "center", gap: 3 }}><svg width="11" height="11" viewBox="0 0 24 24" fill="#666" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> {team.venue}</div>
@@ -805,6 +875,8 @@ export default function App() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
+        @keyframes liveBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0a0a16; }
