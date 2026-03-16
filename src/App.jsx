@@ -141,6 +141,7 @@ function AuthModal({ onClose, onLoginGoogle, onSignupEmail, onLoginEmail }) {
   const [mode, setMode] = useState("login"); // "login" | "signup" | "forgot"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [profilePic, setProfilePic] = useState(null);
   const [profilePicPreview, setProfilePicPreview] = useState(null);
@@ -269,11 +270,25 @@ function AuthModal({ onClose, onLoginGoogle, onSignupEmail, onLoginEmail }) {
           {mode !== "forgot" && (
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontSize: 10, color: "#888", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4, display: "block" }}>Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === "signup" ? "Min 6 characters" : "Your password"} required style={inputStyle}
-                onFocus={(e) => (e.target.style.borderColor = "#CC000066")}
-                onBlur={(e) => (e.target.style.borderColor = "#2a2a3e")}
-              />
+              <div style={{ position: "relative" }}>
+                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === "signup" ? "Min 6 characters" : "Your password"} required
+                  style={{ ...inputStyle, paddingRight: 44 }}
+                  onFocus={(e) => (e.target.style.borderColor = "#CC000066")}
+                  onBlur={(e) => (e.target.style.borderColor = "#2a2a3e")}
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                    background: "none", border: "none", color: "#888", fontSize: 11,
+                    cursor: "pointer", padding: "4px 6px", borderRadius: 4,
+                  }}
+                  onMouseEnter={(e) => (e.target.style.color = "#ccc")}
+                  onMouseLeave={(e) => (e.target.style.color = "#888")}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
           )}
 
