@@ -2077,8 +2077,18 @@ const tdStyle = { padding: "6px", color: "#ccc", textAlign: "center" };
 // --- Team Picker Modal ---
 const MAX_TEAMS = 8;
 
+const PICKER_TABS = [
+  { key: "all", label: "All" },
+  { key: "MLB", label: "MLB" },
+  { key: "NBA", label: "NBA" },
+  { key: "NCAAF", label: "NCAA FB" },
+  { key: "NCAAM", label: "NCAA MB" },
+  { key: "NHL", label: "NHL" },
+];
+
 function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
   const [picked, setPicked] = useState(selectedTeams || []);
+  const [activeTab, setActiveTab] = useState("all");
 
   const toggle = (id) => {
     setPicked((prev) => {
@@ -2089,6 +2099,9 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
   };
 
   const canSave = picked.length >= 1 && picked.length <= MAX_TEAMS;
+  const filteredTeams = activeTab === "all"
+    ? TEAMS_CONFIG
+    : TEAMS_CONFIG.filter((t) => t.leagueTag === activeTab);
 
   return (
     <div style={{
@@ -2106,8 +2119,19 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
           Select up to {MAX_TEAMS} teams to follow. {picked.length}/{MAX_TEAMS} selected.
         </p>
 
+        <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+          {PICKER_TABS.map((tab) => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
+              padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer",
+              fontSize: 12, fontWeight: 600, transition: "all 0.2s",
+              background: activeTab === tab.key ? "#fff" : "#2a2a3e",
+              color: activeTab === tab.key ? "#12121f" : "#999",
+            }}>{tab.label}</button>
+          ))}
+        </div>
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {TEAMS_CONFIG.map((team) => {
+          {filteredTeams.map((team) => {
             const isSelected = picked.includes(team.id);
             const isDisabled = !isSelected && picked.length >= MAX_TEAMS;
             return (
