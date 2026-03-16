@@ -2774,7 +2774,7 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
                   <img src={team.logo} alt="" style={{ width: 30, height: 30, borderRadius: 5, objectFit: "contain", background: "#fff", padding: 2, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ color: isSelected ? team.accent : "#ccc", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{team.shortName}</div>
-                    <div style={{ color: "#666", fontSize: 9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{team.league}{team.conference ? ` • ${team.conference}` : ""}</div>
+                    <div style={{ color: "#666", fontSize: 9, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{team.conference || team.league}</div>
                   </div>
                   <div style={{
                     width: 20, height: 20, borderRadius: 5,
