@@ -1038,7 +1038,7 @@ function useTeamData(team) {
             if (done) completed.push(ev);
             else upcoming.push(ev);
           }
-          const events = [...completed.slice(-5), ...upcoming.slice(0, 5)];
+          const events = [...completed, ...upcoming];
           const parsed = events.map((ev) => {
             const comp = ev.competitions?.[0];
             const us = comp?.competitors?.find(
@@ -1277,6 +1277,19 @@ function Tabs({ tabs, accent }) {
 
 // --- Schedule Tab---
 function ScheduleTab({ schedule, accent }) {
+  const scrollRef = React.useRef(null);
+  const dividerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    // Auto-scroll so the divider between recent & upcoming is visible near top
+    if (dividerRef.current && scrollRef.current) {
+      const container = scrollRef.current;
+      const divider = dividerRef.current;
+      const offset = divider.offsetTop - container.offsetTop - 8;
+      container.scrollTop = Math.max(0, offset - 40);
+    }
+  }, [schedule]);
+
   if (!schedule || schedule.length === 0)
     return <div style={{ color: "#777", padding: 12 }}>No schedule data available</div>;
   const live = schedule.filter((g) => g.status === "live");
@@ -1284,7 +1297,7 @@ function ScheduleTab({ schedule, accent }) {
   const upcoming = schedule.filter((g) => g.status === "pre");
 
   return (
-    <div>
+    <div ref={scrollRef} style={{ maxHeight: 320, overflowY: "auto" }}>
       {/* LIVE GAMES */}
       {live.length > 0 && (
         <div style={{ marginBottom: 14 }}>
@@ -1330,7 +1343,7 @@ function ScheduleTab({ schedule, accent }) {
       {recent.length > 0 && (
         <div style={{ marginBottom: 14 }}>
           <div style={subheaderStyle}>Recent Results</div>
-          {recent.slice(-5).reverse().map((g, i) => (
+          {[...recent].reverse().map((g, i) => (
             <div key={i} style={rowStyle(i)}>
               <div style={{ flex: 1 }}>
                 <span style={{ color: "#999", fontSize: 11 }}>{formatDate(g.date)}</span>
@@ -1351,10 +1364,11 @@ function ScheduleTab({ schedule, accent }) {
           ))}
         </div>
       )}
+      <div ref={dividerRef} />
       {upcoming.length > 0 && (
         <div>
           <div style={subheaderStyle}>Upcoming Games</div>
-          {upcoming.slice(0, 5).map((g, i) => (
+          {upcoming.map((g, i) => (
             <div key={i} style={rowStyle(i)}>
               <div style={{ flex: 1 }}>
                 <div style={{ color: "#999", fontSize: 11 }}>{formatDayDate(g.date)}</div>
