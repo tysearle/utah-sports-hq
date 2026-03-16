@@ -2217,6 +2217,7 @@ export default function App() {
         .ush-title { font-size: 22px; }
         @media (max-width: 768px) {
           .ush-header { flex-wrap: wrap !important; gap: 8px !important; padding: 10px 12px !important; align-items: center !important; justify-content: space-between !important; }
+          .ush-header-left { order: 1 !important; }
           .ush-header-right { order: 2 !important; flex-direction: row !important; gap: 6px !important; align-items: center !important; }
           .ush-header-nav { order: 3 !important; width: 100% !important; gap: 6px !important; justify-content: center !important; }
           .ush-leaderboard-btn, .ush-chat-btn { padding: 5px 10px !important; font-size: 11px !important; display: inline-flex !important; flex: 1 !important; justify-content: center !important; }
@@ -2250,7 +2251,42 @@ export default function App() {
             </p>
           </div>
         </div>
-        {/* Auth - direct child of header for mobile layout */}
+        {/* Nav buttons - between logo and auth on desktop, own row on mobile */}
+        <div className="ush-header-nav" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {user && (
+            <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
+              className="ush-leaderboard-btn"
+              style={{
+                background: "#FFD70015", border: "1px solid #FFD70044", borderRadius: 8,
+                padding: "8px 14px", color: "#FFD700", fontSize: 12, fontWeight: 600,
+                cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
+                whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#FFD70033")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#FFD70015")}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+              Live Leaderboard
+            </button>
+          )}
+          {user && (
+            <button onClick={() => { setBracketEntry(1); setBracketInitialTab("chat"); setShowBracket(true); }}
+              className="ush-chat-btn"
+              style={{
+                background: "#4CAF5015", border: "1px solid #4CAF5044", borderRadius: 8,
+                padding: "8px 14px", color: "#4CAF50", fontSize: 12, fontWeight: 600,
+                cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
+                whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#4CAF5033")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#4CAF5015")}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              View Chat
+            </button>
+          )}
+        </div>
+        {/* Auth section */}
         <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div className="ush-auto-refresh" style={{ textAlign: "right" }}>
             <div style={{ fontSize: 10, color: "#555" }}>Auto-refresh</div>
@@ -2303,41 +2339,6 @@ export default function App() {
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
               Sign in
-            </button>
-          )}
-        </div>
-        {/* Nav buttons - separate row on mobile */}
-        <div className="ush-header-nav" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {user && (
-            <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
-              className="ush-leaderboard-btn"
-              style={{
-                background: "#FFD70015", border: "1px solid #FFD70044", borderRadius: 8,
-                padding: "8px 14px", color: "#FFD700", fontSize: 12, fontWeight: 600,
-                cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
-                whiteSpace: "nowrap",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#FFD70033")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#FFD70015")}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-              Live Leaderboard
-            </button>
-          )}
-          {user && (
-            <button onClick={() => { setBracketEntry(1); setBracketInitialTab("chat"); setShowBracket(true); }}
-              className="ush-chat-btn"
-              style={{
-                background: "#4CAF5015", border: "1px solid #4CAF5044", borderRadius: 8,
-                padding: "8px 14px", color: "#4CAF50", fontSize: 12, fontWeight: 600,
-                cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
-                whiteSpace: "nowrap",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#4CAF5033")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#4CAF5015")}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-              View Chat
             </button>
           )}
         </div>
