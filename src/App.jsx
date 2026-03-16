@@ -979,7 +979,7 @@ export default function App() {
   const [order, setOrder] = useState(() => TEAMS_CONFIG.map((t) => t.id));
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [bracketInitialTab, setBracketInitialTab] = useState("bracket");
   const [showAdmin, setShowAdmin] = useState(false);
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminLoading, setAdminLoading] = useState(false);
@@ -1083,7 +1083,7 @@ export default function App() {
 
   // Show Bracket Challenge if active
   if (showBracket) {
-    return <BracketChallenge user={user} onBack={() => { setShowBracket(false); setShowLeaderboard(false); }} initialEntry={bracketEntry} initialTab={showLeaderboard ? "lb" : "bracket"} />;
+    return <BracketChallenge user={user} onBack={() => { setShowBracket(false); setBracketInitialTab("bracket"); }} initialEntry={bracketEntry} initialTab={bracketInitialTab} />;
   }
 
   // Show Admin Panel
@@ -1350,7 +1350,7 @@ export default function App() {
         @media (max-width: 600px) {
           .ush-header { flex-direction: column !important; gap: 10px !important; padding: 12px 14px !important; align-items: flex-start !important; }
           .ush-header-right { width: 100% !important; flex-direction: row !important; justify-content: space-between !important; }
-          .ush-leaderboard-btn { padding: 6px 10px !important; font-size: 11px !important; }
+          .ush-leaderboard-btn, .ush-chat-btn { padding: 6px 10px !important; font-size: 11px !important; }
           .ush-subtitle { display: none !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
         }
@@ -1375,7 +1375,7 @@ export default function App() {
           </div>
         </div>
         <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <button onClick={() => { setBracketEntry(1); setShowBracket(true); setShowLeaderboard(true); }}
+          <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
             className="ush-leaderboard-btn"
             style={{
               background: "#FFD70015", border: "1px solid #FFD70044", borderRadius: 8,
@@ -1388,6 +1388,20 @@ export default function App() {
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
             Live Leaderboard
+          </button>
+          <button onClick={() => { setBracketEntry(1); setBracketInitialTab("chat"); setShowBracket(true); }}
+            className="ush-chat-btn"
+            style={{
+              background: "#4CAF5015", border: "1px solid #4CAF5044", borderRadius: 8,
+              padding: "8px 14px", color: "#4CAF50", fontSize: 12, fontWeight: 600,
+              cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#4CAF5033")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#4CAF5015")}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            View Chat
           </button>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 10, color: "#555" }}>Auto-refresh</div>
