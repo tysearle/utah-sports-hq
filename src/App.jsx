@@ -3336,8 +3336,9 @@ export default function App() {
           .ush-teams-label { display: none !important; }
           .ush-customize-teams { padding: 6px !important; border: none !important; }
           .ush-customize-teams svg { display: inline-block !important; }
-          .ush-logo { width: 28px !important; height: 28px !important; }
-          .ush-title { font-size: 14px !important; }
+          .ush-logo { width: 32px !important; height: 32px !important; }
+          .ush-title { display: none !important; }
+          .ush-header-left { margin-right: 8px !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
         }
       `}</style>
@@ -3354,7 +3355,7 @@ export default function App() {
           <div className="ush-header-left" style={{ display: "flex", alignItems: "center", gap: 10, marginRight: 28 }}>
             <img className="ush-logo" src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} />
             <h1 className="ush-title" style={{ margin: 0, fontWeight: 800, fontSize: 18, letterSpacing: -0.5 }}>
-              <span style={{ color: "#fff" }}>SCS</span>
+              <span style={{ color: "#fff" }}>Salt City </span><span style={{ color: "#CC0000" }}>Sports</span>
             </h1>
           </div>
 
