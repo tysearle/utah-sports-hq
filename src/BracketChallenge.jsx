@@ -1,15 +1,18 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { auth } from "./firebase";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { auth, db } from "./firebase";
 import {
-  getFirestore,
   doc,
   setDoc,
   getDoc,
   collection,
   getDocs,
+  addDoc,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+  serverTimestamp,
 } from "firebase/firestore";
-
-const db = getFirestore();
 
 // ===== BRACKET DATA =====
 const T = (seed, name, id) => ({ seed, name, id });
@@ -899,6 +902,196 @@ function Leaderboard({ entries, currentUid, isMobile }) {
   );
 }
 
+// ===== CHAT =====
+function BracketChat({ user, isMobile }) {
+  const [messages, setMessages] = useState([]);
+  const [newMsg, setNewMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef(null);
+  const chatRef = useRef(null);
+
+  // Real-time listener for chat messages
+  useEffect(() => {
+    const q = query(
+      collection(db, "bracketChat"),
+      orderBy("createdAt", "asc"),
+      limit(200)
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setMessages(msgs);
+    });
+    return unsub;
+  }, []);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!user || !newMsg.trim() || sending) return;
+    setSending(true);
+    try {
+      await addDoc(collection(db, "bracketChat"), {
+        text: newMsg.trim(),
+        uid: user.uid,
+        displayName: user.displayName || "Anonymous",
+        photoURL: user.photoURL || null,
+        createdAt: serverTimestamp(),
+      });
+      setNewMsg("");
+    } catch (err) {
+      console.error("Send failed:", err);
+    }
+    setSending(false);
+  };
+
+  // Group consecutive messages from same user
+  const grouped = [];
+  messages.forEach((msg, i) => {
+    const prev = i > 0 ? messages[i - 1] : null;
+    const sameUser = prev && prev.uid === msg.uid;
+    const closeInTime = prev?.createdAt?.seconds && msg.createdAt?.seconds
+      && (msg.createdAt.seconds - prev.createdAt.seconds) < 120;
+    msg._showHeader = !sameUser || !closeInTime;
+    grouped.push(msg);
+  });
+
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column",
+      height: isMobile ? "calc(100vh - 180px)" : "calc(100vh - 200px)",
+      background: "#0a0a16", borderRadius: 12, border: "1px solid #2a2a3e",
+      overflow: "hidden",
+    }}>
+      {/* Chat Header */}
+      <div style={{
+        padding: "12px 16px", borderBottom: "1px solid #2a2a3e",
+        background: "#12121f",
+      }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Bracket Talk</div>
+        <div style={{ fontSize: 11, color: "#888" }}>
+          Chat with other bracket challengers — trash talk encouraged
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div ref={chatRef} style={{
+        flex: 1, overflowY: "auto", padding: "12px 16px",
+        display: "flex", flexDirection: "column", gap: 2,
+      }}>
+        {messages.length === 0 ? (
+          <div style={{ textAlign: "center", padding: 40, color: "#444" }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>🏀</div>
+            <div style={{ fontSize: 13, color: "#555" }}>No messages yet. Start the conversation!</div>
+          </div>
+        ) : (
+          grouped.map((msg) => {
+            const isMe = msg.uid === user?.uid;
+            return (
+              <div key={msg.id} style={{
+                marginTop: msg._showHeader ? 12 : 1,
+              }}>
+                {msg._showHeader && (
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    marginBottom: 4,
+                  }}>
+                    {msg.photoURL ? (
+                      <img src={msg.photoURL} alt="" referrerPolicy="no-referrer"
+                        style={{
+                          width: 22, height: 22, borderRadius: "50%",
+                          border: isMe ? "2px solid #CC0000" : "1px solid #333",
+                          flexShrink: 0,
+                        }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: 22, height: 22, borderRadius: "50%", background: "#2a2a3e",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 10, color: "#888", fontWeight: 700, flexShrink: 0,
+                      }}>
+                        {(msg.displayName || "?")[0].toUpperCase()}
+                      </div>
+                    )}
+                    <span style={{
+                      fontSize: 11, fontWeight: 700,
+                      color: isMe ? "#CC0000" : "#ccc",
+                    }}>
+                      {msg.displayName}
+                    </span>
+                    <span style={{ fontSize: 9, color: "#444" }}>
+                      {msg.createdAt?.seconds
+                        ? new Date(msg.createdAt.seconds * 1000).toLocaleTimeString("en-US", {
+                            hour: "numeric", minute: "2-digit",
+                          })
+                        : "..."
+                      }
+                    </span>
+                  </div>
+                )}
+                <div style={{
+                  marginLeft: 30,
+                  padding: "6px 12px",
+                  background: isMe ? "#CC000012" : "#ffffff06",
+                  borderRadius: 8,
+                  borderLeft: isMe ? "2px solid #CC000044" : "2px solid transparent",
+                  fontSize: 13, color: "#ddd", lineHeight: 1.5,
+                  wordBreak: "break-word",
+                }}>
+                  {msg.text}
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      {user ? (
+        <form onSubmit={sendMessage} style={{
+          display: "flex", gap: 8, padding: "10px 12px",
+          borderTop: "1px solid #2a2a3e", background: "#12121f",
+        }}>
+          <input
+            type="text"
+            value={newMsg}
+            onChange={(e) => setNewMsg(e.target.value)}
+            placeholder="Type a message..."
+            maxLength={500}
+            style={{
+              flex: 1, background: "#0a0a16", border: "1px solid #2a2a3e",
+              borderRadius: 8, padding: "10px 14px", color: "#ccc",
+              fontSize: 13, outline: "none",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#CC000066")}
+            onBlur={(e) => (e.target.style.borderColor = "#2a2a3e")}
+          />
+          <button type="submit" disabled={!newMsg.trim() || sending} style={{
+            background: newMsg.trim() ? "#CC0000" : "#1a1a2e",
+            border: "none", borderRadius: 8, padding: "10px 18px",
+            color: newMsg.trim() ? "#fff" : "#444",
+            fontSize: 13, fontWeight: 700, cursor: newMsg.trim() ? "pointer" : "default",
+            transition: "all 0.2s", flexShrink: 0,
+          }}>
+            {sending ? "..." : "Send"}
+          </button>
+        </form>
+      ) : (
+        <div style={{
+          padding: "14px 16px", borderTop: "1px solid #2a2a3e",
+          textAlign: "center", color: "#555", fontSize: 12, background: "#12121f",
+        }}>
+          Sign in to join the conversation
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ===== STYLES =====
 const sectionHeader = {
   fontSize: 12, fontWeight: 700, textTransform: "uppercase",
@@ -981,6 +1174,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
     { id: "first4", label: "First Four" },
     { id: "ff", label: "Final Four" },
     { id: "lb", label: "Leaderboard" },
+    { id: "chat", label: "Chat" },
   ];
 
   return (
@@ -1102,7 +1296,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
       }}>
         {viewTabs.map((t) => {
           const isActive = tab === t.id;
-          const color = t.id === "ff" ? "#CC0000" : t.id === "lb" ? "#FFD700" : "#4A90D9";
+          const color = t.id === "ff" ? "#CC0000" : t.id === "lb" ? "#FFD700" : t.id === "chat" ? "#4CAF50" : "#4A90D9";
           return (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               background: isActive ? color + "15" : "transparent",
@@ -1141,6 +1335,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
             {tab === "first4" && <FirstFourView picks={picks} onPick={handlePick} />}
             {tab === "ff" && <FinalFourView picks={picks} onPick={handlePick} />}
             {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} />}
+            {tab === "chat" && <BracketChat user={user} isMobile={isMobile} />}
           </>
         )}
       </main>
