@@ -913,6 +913,37 @@ const TEAMS_CONFIG = [
     salaryCap: null,
     logoBgLight: true,
   },
+  // --- MLB Teams ---
+  { id: "mlb-ari", name: "Arizona Diamondbacks", shortName: "D-backs", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/ari.png", accent: "#A71930", league: "MLB", leagueTag: "MLB", conference: "NL West", espnUrl: "https://www.espn.com/mlb/team/_/name/ari/arizona-diamondbacks", ticketUrl: "https://www.mlb.com/diamondbacks/tickets", venue: "Chase Field", apiTeam: "sports/baseball/mlb/teams/29", apiSchedule: "sports/baseball/mlb/teams/29/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/29/roster", teamId: "29", espnAbbr: "ARI", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-ath", name: "Athletics", shortName: "Athletics", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/ath.png", accent: "#003831", league: "MLB", leagueTag: "MLB", conference: "AL West", espnUrl: "https://www.espn.com/mlb/team/_/name/ath/athletics", ticketUrl: "https://www.mlb.com/athletics/tickets", venue: "Sutter Health Park", apiTeam: "sports/baseball/mlb/teams/11", apiSchedule: "sports/baseball/mlb/teams/11/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/11/roster", teamId: "11", espnAbbr: "ATH", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-atl", name: "Atlanta Braves", shortName: "Braves", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/atl.png", accent: "#CE1141", league: "MLB", leagueTag: "MLB", conference: "NL East", espnUrl: "https://www.espn.com/mlb/team/_/name/atl/atlanta-braves", ticketUrl: "https://www.mlb.com/braves/tickets", venue: "Truist Park", apiTeam: "sports/baseball/mlb/teams/15", apiSchedule: "sports/baseball/mlb/teams/15/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/15/roster", teamId: "15", espnAbbr: "ATL", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-bal", name: "Baltimore Orioles", shortName: "Orioles", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/bal.png", accent: "#DF4601", league: "MLB", leagueTag: "MLB", conference: "AL East", espnUrl: "https://www.espn.com/mlb/team/_/name/bal/baltimore-orioles", ticketUrl: "https://www.mlb.com/orioles/tickets", venue: "Oriole Park at Camden Yards", apiTeam: "sports/baseball/mlb/teams/1", apiSchedule: "sports/baseball/mlb/teams/1/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/1/roster", teamId: "1", espnAbbr: "BAL", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-bos", name: "Boston Red Sox", shortName: "Red Sox", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/bos.png", accent: "#BD3039", league: "MLB", leagueTag: "MLB", conference: "AL East", espnUrl: "https://www.espn.com/mlb/team/_/name/bos/boston-red-sox", ticketUrl: "https://www.mlb.com/redsox/tickets", venue: "Fenway Park", apiTeam: "sports/baseball/mlb/teams/2", apiSchedule: "sports/baseball/mlb/teams/2/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/2/roster", teamId: "2", espnAbbr: "BOS", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-chc", name: "Chicago Cubs", shortName: "Cubs", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/chc.png", accent: "#0E3386", league: "MLB", leagueTag: "MLB", conference: "NL Central", espnUrl: "https://www.espn.com/mlb/team/_/name/chc/chicago-cubs", ticketUrl: "https://www.mlb.com/cubs/tickets", venue: "Wrigley Field", apiTeam: "sports/baseball/mlb/teams/16", apiSchedule: "sports/baseball/mlb/teams/16/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/16/roster", teamId: "16", espnAbbr: "CHC", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-chw", name: "Chicago White Sox", shortName: "White Sox", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/chw.png", accent: "#27251F", league: "MLB", leagueTag: "MLB", conference: "AL Central", espnUrl: "https://www.espn.com/mlb/team/_/name/chw/chicago-white-sox", ticketUrl: "https://www.mlb.com/whitesox/tickets", venue: "Guaranteed Rate Field", apiTeam: "sports/baseball/mlb/teams/4", apiSchedule: "sports/baseball/mlb/teams/4/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/4/roster", teamId: "4", espnAbbr: "CHW", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-cin", name: "Cincinnati Reds", shortName: "Reds", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/cin.png", accent: "#C6011F", league: "MLB", leagueTag: "MLB", conference: "NL Central", espnUrl: "https://www.espn.com/mlb/team/_/name/cin/cincinnati-reds", ticketUrl: "https://www.mlb.com/reds/tickets", venue: "Great American Ball Park", apiTeam: "sports/baseball/mlb/teams/17", apiSchedule: "sports/baseball/mlb/teams/17/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/17/roster", teamId: "17", espnAbbr: "CIN", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-cle", name: "Cleveland Guardians", shortName: "Guardians", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/cle.png", accent: "#002B5C", league: "MLB", leagueTag: "MLB", conference: "AL Central", espnUrl: "https://www.espn.com/mlb/team/_/name/cle/cleveland-guardians", ticketUrl: "https://www.mlb.com/guardians/tickets", venue: "Progressive Field", apiTeam: "sports/baseball/mlb/teams/5", apiSchedule: "sports/baseball/mlb/teams/5/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/5/roster", teamId: "5", espnAbbr: "CLE", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-col", name: "Colorado Rockies", shortName: "Rockies", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/col.png", accent: "#33006F", league: "MLB", leagueTag: "MLB", conference: "NL West", espnUrl: "https://www.espn.com/mlb/team/_/name/col/colorado-rockies", ticketUrl: "https://www.mlb.com/rockies/tickets", venue: "Coors Field", apiTeam: "sports/baseball/mlb/teams/27", apiSchedule: "sports/baseball/mlb/teams/27/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/27/roster", teamId: "27", espnAbbr: "COL", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-det", name: "Detroit Tigers", shortName: "Tigers", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/det.png", accent: "#0C2340", league: "MLB", leagueTag: "MLB", conference: "AL Central", espnUrl: "https://www.espn.com/mlb/team/_/name/det/detroit-tigers", ticketUrl: "https://www.mlb.com/tigers/tickets", venue: "Comerica Park", apiTeam: "sports/baseball/mlb/teams/6", apiSchedule: "sports/baseball/mlb/teams/6/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/6/roster", teamId: "6", espnAbbr: "DET", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-hou", name: "Houston Astros", shortName: "Astros", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/hou.png", accent: "#EB6E1F", league: "MLB", leagueTag: "MLB", conference: "AL West", espnUrl: "https://www.espn.com/mlb/team/_/name/hou/houston-astros", ticketUrl: "https://www.mlb.com/astros/tickets", venue: "Minute Maid Park", apiTeam: "sports/baseball/mlb/teams/18", apiSchedule: "sports/baseball/mlb/teams/18/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/18/roster", teamId: "18", espnAbbr: "HOU", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-kc", name: "Kansas City Royals", shortName: "Royals", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/kc.png", accent: "#004687", league: "MLB", leagueTag: "MLB", conference: "AL Central", espnUrl: "https://www.espn.com/mlb/team/_/name/kc/kansas-city-royals", ticketUrl: "https://www.mlb.com/royals/tickets", venue: "Kauffman Stadium", apiTeam: "sports/baseball/mlb/teams/7", apiSchedule: "sports/baseball/mlb/teams/7/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/7/roster", teamId: "7", espnAbbr: "KC", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-laa", name: "Los Angeles Angels", shortName: "Angels", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/laa.png", accent: "#BA0021", league: "MLB", leagueTag: "MLB", conference: "AL West", espnUrl: "https://www.espn.com/mlb/team/_/name/laa/los-angeles-angels", ticketUrl: "https://www.mlb.com/angels/tickets", venue: "Angel Stadium", apiTeam: "sports/baseball/mlb/teams/3", apiSchedule: "sports/baseball/mlb/teams/3/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/3/roster", teamId: "3", espnAbbr: "LAA", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-lad", name: "Los Angeles Dodgers", shortName: "Dodgers", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/lad.png", accent: "#005A9C", league: "MLB", leagueTag: "MLB", conference: "NL West", espnUrl: "https://www.espn.com/mlb/team/_/name/lad/los-angeles-dodgers", ticketUrl: "https://www.mlb.com/dodgers/tickets", venue: "Dodger Stadium", apiTeam: "sports/baseball/mlb/teams/19", apiSchedule: "sports/baseball/mlb/teams/19/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/19/roster", teamId: "19", espnAbbr: "LAD", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-mia", name: "Miami Marlins", shortName: "Marlins", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/mia.png", accent: "#00A3E0", league: "MLB", leagueTag: "MLB", conference: "NL East", espnUrl: "https://www.espn.com/mlb/team/_/name/mia/miami-marlins", ticketUrl: "https://www.mlb.com/marlins/tickets", venue: "LoanDepot Park", apiTeam: "sports/baseball/mlb/teams/28", apiSchedule: "sports/baseball/mlb/teams/28/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/28/roster", teamId: "28", espnAbbr: "MIA", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-mil", name: "Milwaukee Brewers", shortName: "Brewers", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/mil.png", accent: "#13294B", league: "MLB", leagueTag: "MLB", conference: "NL Central", espnUrl: "https://www.espn.com/mlb/team/_/name/mil/milwaukee-brewers", ticketUrl: "https://www.mlb.com/brewers/tickets", venue: "American Family Field", apiTeam: "sports/baseball/mlb/teams/8", apiSchedule: "sports/baseball/mlb/teams/8/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/8/roster", teamId: "8", espnAbbr: "MIL", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-min", name: "Minnesota Twins", shortName: "Twins", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/min.png", accent: "#002B5C", league: "MLB", leagueTag: "MLB", conference: "AL Central", espnUrl: "https://www.espn.com/mlb/team/_/name/min/minnesota-twins", ticketUrl: "https://www.mlb.com/twins/tickets", venue: "Target Field", apiTeam: "sports/baseball/mlb/teams/9", apiSchedule: "sports/baseball/mlb/teams/9/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/9/roster", teamId: "9", espnAbbr: "MIN", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-nym", name: "New York Mets", shortName: "Mets", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/nym.png", accent: "#002D72", league: "MLB", leagueTag: "MLB", conference: "NL East", espnUrl: "https://www.espn.com/mlb/team/_/name/nym/new-york-mets", ticketUrl: "https://www.mlb.com/mets/tickets", venue: "Citi Field", apiTeam: "sports/baseball/mlb/teams/21", apiSchedule: "sports/baseball/mlb/teams/21/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/21/roster", teamId: "21", espnAbbr: "NYM", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-nyy", name: "New York Yankees", shortName: "Yankees", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/nyy.png", accent: "#003087", league: "MLB", leagueTag: "MLB", conference: "AL East", espnUrl: "https://www.espn.com/mlb/team/_/name/nyy/new-york-yankees", ticketUrl: "https://www.mlb.com/yankees/tickets", venue: "Yankee Stadium", apiTeam: "sports/baseball/mlb/teams/10", apiSchedule: "sports/baseball/mlb/teams/10/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/10/roster", teamId: "10", espnAbbr: "NYY", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-phi", name: "Philadelphia Phillies", shortName: "Phillies", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/phi.png", accent: "#E81828", league: "MLB", leagueTag: "MLB", conference: "NL East", espnUrl: "https://www.espn.com/mlb/team/_/name/phi/philadelphia-phillies", ticketUrl: "https://www.mlb.com/phillies/tickets", venue: "Citizens Bank Park", apiTeam: "sports/baseball/mlb/teams/22", apiSchedule: "sports/baseball/mlb/teams/22/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/22/roster", teamId: "22", espnAbbr: "PHI", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-pit", name: "Pittsburgh Pirates", shortName: "Pirates", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/pit.png", accent: "#FDB827", league: "MLB", leagueTag: "MLB", conference: "NL Central", espnUrl: "https://www.espn.com/mlb/team/_/name/pit/pittsburgh-pirates", ticketUrl: "https://www.mlb.com/pirates/tickets", venue: "PNC Park", apiTeam: "sports/baseball/mlb/teams/23", apiSchedule: "sports/baseball/mlb/teams/23/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/23/roster", teamId: "23", espnAbbr: "PIT", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-sd", name: "San Diego Padres", shortName: "Padres", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/sd.png", accent: "#2F241D", league: "MLB", leagueTag: "MLB", conference: "NL West", espnUrl: "https://www.espn.com/mlb/team/_/name/sd/san-diego-padres", ticketUrl: "https://www.mlb.com/padres/tickets", venue: "Petco Park", apiTeam: "sports/baseball/mlb/teams/25", apiSchedule: "sports/baseball/mlb/teams/25/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/25/roster", teamId: "25", espnAbbr: "SD", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-sf", name: "San Francisco Giants", shortName: "Giants", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/sf.png", accent: "#FD5A1E", league: "MLB", leagueTag: "MLB", conference: "NL West", espnUrl: "https://www.espn.com/mlb/team/_/name/sf/san-francisco-giants", ticketUrl: "https://www.mlb.com/giants/tickets", venue: "Oracle Park", apiTeam: "sports/baseball/mlb/teams/26", apiSchedule: "sports/baseball/mlb/teams/26/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/26/roster", teamId: "26", espnAbbr: "SF", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-sea", name: "Seattle Mariners", shortName: "Mariners", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/sea.png", accent: "#005C5C", league: "MLB", leagueTag: "MLB", conference: "AL West", espnUrl: "https://www.espn.com/mlb/team/_/name/sea/seattle-mariners", ticketUrl: "https://www.mlb.com/mariners/tickets", venue: "T-Mobile Park", apiTeam: "sports/baseball/mlb/teams/12", apiSchedule: "sports/baseball/mlb/teams/12/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/12/roster", teamId: "12", espnAbbr: "SEA", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-stl", name: "St. Louis Cardinals", shortName: "Cardinals", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/stl.png", accent: "#C41E3A", league: "MLB", leagueTag: "MLB", conference: "NL Central", espnUrl: "https://www.espn.com/mlb/team/_/name/stl/st-louis-cardinals", ticketUrl: "https://www.mlb.com/cardinals/tickets", venue: "Busch Stadium", apiTeam: "sports/baseball/mlb/teams/24", apiSchedule: "sports/baseball/mlb/teams/24/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/24/roster", teamId: "24", espnAbbr: "STL", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-tb", name: "Tampa Bay Rays", shortName: "Rays", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/tb.png", accent: "#092C5C", league: "MLB", leagueTag: "MLB", conference: "AL East", espnUrl: "https://www.espn.com/mlb/team/_/name/tb/tampa-bay-rays", ticketUrl: "https://www.mlb.com/rays/tickets", venue: "Tropicana Field", apiTeam: "sports/baseball/mlb/teams/30", apiSchedule: "sports/baseball/mlb/teams/30/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/30/roster", teamId: "30", espnAbbr: "TB", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-tex", name: "Texas Rangers", shortName: "Rangers", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/tex.png", accent: "#003278", league: "MLB", leagueTag: "MLB", conference: "AL West", espnUrl: "https://www.espn.com/mlb/team/_/name/tex/texas-rangers", ticketUrl: "https://www.mlb.com/rangers/tickets", venue: "Globe Life Field", apiTeam: "sports/baseball/mlb/teams/13", apiSchedule: "sports/baseball/mlb/teams/13/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/13/roster", teamId: "13", espnAbbr: "TEX", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-tor", name: "Toronto Blue Jays", shortName: "Blue Jays", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/tor.png", accent: "#134A8E", league: "MLB", leagueTag: "MLB", conference: "AL East", espnUrl: "https://www.espn.com/mlb/team/_/name/tor/toronto-blue-jays", ticketUrl: "https://www.mlb.com/bluejays/tickets", venue: "Rogers Centre", apiTeam: "sports/baseball/mlb/teams/14", apiSchedule: "sports/baseball/mlb/teams/14/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/14/roster", teamId: "14", espnAbbr: "TOR", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
+  { id: "mlb-wsh", name: "Washington Nationals", shortName: "Nationals", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/wsh.png", accent: "#AB0003", league: "MLB", leagueTag: "MLB", conference: "NL East", espnUrl: "https://www.espn.com/mlb/team/_/name/wsh/washington-nationals", ticketUrl: "https://www.mlb.com/nationals/tickets", venue: "Nationals Park", apiTeam: "sports/baseball/mlb/teams/20", apiSchedule: "sports/baseball/mlb/teams/20/schedule", apiStandings: "sports/baseball/mlb/standings", apiRoster: "sports/baseball/mlb/teams/20/roster", teamId: "20", espnAbbr: "WSH", sport: "baseball", isHockey: false, showPlayoffOdds: false, hasSalary: true, salaryCap: null },
 ];
 
 // --- API Helper---
@@ -1391,7 +1422,7 @@ function StandingsTab({ standings, accent, team }) {
             <th style={thStyle}>W</th>
             <th style={thStyle}>L</th>
             {team.isHockey && <th style={thStyle}>OTL</th>}
-            <th style={thStyle}>{team.isHockey ? "PTS" : team.league === "NBA" ? "GB" : "Overall"}</th>
+            <th style={thStyle}>{team.isHockey ? "PTS" : (team.league === "NBA" || team.league === "MLB") ? "GB" : "Overall"}</th>
           </tr>
         </thead>
         <tbody>
@@ -1409,7 +1440,7 @@ function StandingsTab({ standings, accent, team }) {
               <td style={tdStyle}>{e.losses}</td>
               {team.isHockey && <td style={tdStyle}>{e.otl}</td>}
               <td style={{ ...tdStyle, fontFamily: "monospace" }}>
-                {team.isHockey ? e.pts : team.league === "NBA" ? e.gb : e.overall || e.pct}
+                {team.isHockey ? e.pts : (team.league === "NBA" || team.league === "MLB") ? e.gb : e.overall || e.pct}
               </td>
             </tr>
           ))}
@@ -1578,12 +1609,13 @@ function StatsTab({ team, accent }) {
   }
 
   const isHockey = team.isHockey;
+  const isBaseball = team.sport === "baseball";
   // Derive league and sport from the team's API path (e.g. "sports/basketball/mens-college-basketball/teams/254/roster")
   const apiParts = team.apiRoster.split("/");
-  const sport = apiParts[1]; // "hockey", "basketball", "football"
-  const league = apiParts[2]; // "nhl", "nba", "mens-college-basketball", "college-football"
-  // Season year: 2025-26 seasons = 2026 for most sports
-  const season = 2026;
+  const sport = apiParts[1]; // "hockey", "basketball", "football", "baseball"
+  const league = apiParts[2]; // "nhl", "nba", "mens-college-basketball", "college-football", "mlb"
+  // Season year: 2025-26 seasons = 2026 for most sports; MLB uses calendar year
+  const season = isBaseball ? 2026 : 2026;
 
   const columns = isHockey
     ? [
@@ -1592,6 +1624,14 @@ function StatsTab({ team, accent }) {
         { key: "a", label: "A" },
         { key: "pts", label: "PTS" },
         { key: "pm", label: "+/-" },
+      ]
+    : isBaseball
+    ? [
+        { key: "gp", label: "GP" },
+        { key: "avg", label: "AVG" },
+        { key: "hr", label: "HR" },
+        { key: "rbi", label: "RBI" },
+        { key: "ops", label: "OPS" },
       ]
     : [
         { key: "gp", label: "GP" },
@@ -1651,6 +1691,22 @@ function StatsTab({ team, accent }) {
                     pts: parseFloat(find("PTS", "offensive")?.displayValue || "0"),
                     pm: parseFloat(find("+/-", "general")?.displayValue || "0"),
                   };
+                } else if (isBaseball) {
+                  const avg = parseFloat(find("AVG")?.displayValue || find("BA")?.displayValue || "0");
+                  const hr = parseFloat(find("HR")?.displayValue || "0");
+                  const rbi = parseFloat(find("RBI")?.displayValue || "0");
+                  const ops = parseFloat(find("OPS")?.displayValue || "0");
+                  return {
+                    name: p.displayName,
+                    pos: p.position?.abbreviation || "",
+                    jersey: p.jersey || "",
+                    headshot: p.headshot?.href || null,
+                    gp,
+                    avg: avg.toFixed(3).replace(/^0/, ''),
+                    hr,
+                    rbi,
+                    ops: ops.toFixed(3).replace(/^0/, ''),
+                  };
                 } else {
                   const mins = parseFloat(find("MIN")?.displayValue || "0");
                   const pts = parseFloat(find("PTS")?.displayValue || "0");
@@ -1682,8 +1738,8 @@ function StatsTab({ team, accent }) {
           results.push(...batchResults.filter(Boolean));
         }
 
-        // Default sort: PTS desc for hockey, PPG desc for basketball
-        const defaultSort = isHockey ? "pts" : "ppg";
+        // Default sort: PTS desc for hockey, PPG desc for basketball, HR desc for baseball
+        const defaultSort = isHockey ? "pts" : isBaseball ? "hr" : "ppg";
         results.sort((a, b) => b[defaultSort] - a[defaultSort]);
         setPlayers(results);
         setSortCol(defaultSort);
@@ -1745,8 +1801,8 @@ function StatsTab({ team, accent }) {
               {columns.map((c) => (
                 <td key={c.key} style={{
                   ...tdStyle,
-                  color: c.key === (isHockey ? "pts" : "ppg") ? accent : "#ccc",
-                  fontWeight: c.key === (isHockey ? "pts" : "ppg") ? 700 : 400,
+                  color: c.key === (isHockey ? "pts" : isBaseball ? "hr" : "ppg") ? accent : "#ccc",
+                  fontWeight: c.key === (isHockey ? "pts" : isBaseball ? "hr" : "ppg") ? 700 : 400,
                   fontFamily: "monospace", fontSize: 11,
                 }}>
                   {p[c.key]}
@@ -2019,7 +2075,7 @@ const thStyle = { textAlign: "center", padding: "4px 6px", fontWeight: 600 };
 const tdStyle = { padding: "6px", color: "#ccc", textAlign: "center" };
 
 // --- Team Picker Modal ---
-const MAX_TEAMS = 6;
+const MAX_TEAMS = 8;
 
 function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
   const [picked, setPicked] = useState(selectedTeams || []);
