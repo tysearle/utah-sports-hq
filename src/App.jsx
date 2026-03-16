@@ -3,7 +3,8 @@ import {
   auth, db, storage, googleProvider,
   signInWithPopup, signOut,
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  sendPasswordResetEmail,
+  sendPasswordResetEmail, updatePassword,
+  EmailAuthProvider, reauthenticateWithCredential,
 } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc, getDoc, deleteDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
@@ -357,6 +358,205 @@ function AuthModal({ onClose, onLoginGoogle, onSignupEmail, onLoginEmail }) {
             <>Already have an account? <button onClick={() => { setMode("login"); setError(""); }} style={{ background: "none", border: "none", color: "#CC0000", cursor: "pointer", fontSize: 12, fontWeight: 600, padding: 0, textDecoration: "underline" }}>Sign in</button></>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Profile Settings Modal ---
+function ProfileSettingsModal({ user, profile, onClose, onProfileUpdated }) {
+  const [newPic, setNewPic] = useState(null);
+  const [newPicPreview, setNewPicPreview] = useState(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [picSuccess, setPicSuccess] = useState("");
+  const [pwSuccess, setPwSuccess] = useState("");
+  const [error, setError] = useState("");
+
+  const isEmailUser = user?.providerData?.some((p) => p.providerId === "password");
+
+  const inputStyle = {
+    width: "100%", padding: "10px 12px", background: "#0d0d1a", border: "1px solid #2a2a3e",
+    borderRadius: 8, color: "#fff", fontSize: 13, outline: "none", transition: "border-color 0.2s",
+    boxSizing: "border-box",
+  };
+
+  const handlePicChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { setError("Image must be under 2MB"); return; }
+    setNewPic(file);
+    setNewPicPreview(URL.createObjectURL(file));
+    setError("");
+  };
+
+  const handlePicUpload = async () => {
+    if (!newPic) return;
+    setLoading(true); setError(""); setPicSuccess("");
+    try {
+      const storageRef = ref(storage, `profilePics/${user.uid}`);
+      await uploadBytes(storageRef, newPic);
+      const photoURL = await getDownloadURL(storageRef);
+      await setDoc(doc(db, "users", user.uid), { photoURL }, { merge: true });
+      setPicSuccess("Profile picture updated!");
+      setNewPic(null);
+      if (onProfileUpdated) onProfileUpdated();
+    } catch (e) {
+      setError("Failed to upload: " + e.message);
+    }
+    setLoading(false);
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setError(""); setPwSuccess("");
+    if (newPassword.length < 6) { setError("New password must be at least 6 characters"); return; }
+    if (newPassword !== confirmPassword) { setError("Passwords don't match"); return; }
+    setLoading(true);
+    try {
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPassword);
+      setPwSuccess("Password updated successfully!");
+      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+    } catch (e) {
+      if (e.code === "auth/wrong-password" || e.code === "auth/invalid-credential") {
+        setError("Current password is incorrect");
+      } else {
+        setError("Failed to update password: " + e.message);
+      }
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex",
+      alignItems: "center", justifyContent: "center", zIndex: 10000, padding: 16,
+    }} onClick={onClose}>
+      <div style={{
+        background: "#1a1a2e", borderRadius: 16, padding: 24, width: "100%", maxWidth: 400,
+        border: "1px solid #2a2a3e", maxHeight: "85vh", overflowY: "auto",
+      }} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h3 style={{ color: "#fff", margin: 0, fontSize: 18 }}>Profile Settings</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#888", fontSize: 20, cursor: "pointer" }}>✕</button>
+        </div>
+
+        {/* Current profile info */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, padding: 12, background: "#0d0d1a", borderRadius: 10 }}>
+          {profile?.photoURL ? (
+            <img src={profile.photoURL} alt="" style={{ width: 44, height: 44, borderRadius: "50%", border: "2px solid #CC0000", objectFit: "cover" }} referrerPolicy="no-referrer" />
+          ) : (
+            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#CC000033", border: "2px solid #CC0000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: "#CC0000" }}>
+              {(profile?.username || user.email || "?")[0].toUpperCase()}
+            </div>
+          )}
+          <div>
+            <div style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>{profile?.username || "No username"}</div>
+            <div style={{ color: "#888", fontSize: 11 }}>{user.email}</div>
+          </div>
+        </div>
+
+        {/* Change Profile Picture */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, color: "#aaa", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Change Profile Picture</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {newPicPreview ? (
+              <img src={newPicPreview} alt="" style={{ width: 50, height: 50, borderRadius: "50%", objectFit: "cover", border: "2px solid #CC0000" }} />
+            ) : (
+              <div style={{ width: 50, height: 50, borderRadius: "50%", background: "#0d0d1a", border: "2px dashed #2a2a3e", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+            )}
+            <div style={{ flex: 1 }}>
+              <label style={{
+                display: "inline-block", padding: "6px 14px", background: "#CC000022", border: "1px solid #CC000066",
+                borderRadius: 8, color: "#CC0000", fontSize: 11, fontWeight: 600, cursor: "pointer",
+              }}>
+                Choose Photo
+                <input type="file" accept="image/*" onChange={handlePicChange} style={{ display: "none" }} />
+              </label>
+              {newPic && (
+                <button onClick={handlePicUpload} disabled={loading} style={{
+                  marginLeft: 8, padding: "6px 14px", background: "#CC0000", border: "none",
+                  borderRadius: 8, color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer",
+                }}>
+                  {loading ? "..." : "Save"}
+                </button>
+              )}
+            </div>
+          </div>
+          <div style={{ fontSize: 9, color: "#444", marginTop: 4 }}>Max 2MB. JPG or PNG recommended.</div>
+          {picSuccess && <div style={{ fontSize: 11, color: "#4CAF50", marginTop: 6 }}>{picSuccess}</div>}
+        </div>
+
+        {/* Change Password (email users only) */}
+        {isEmailUser ? (
+          <div>
+            <div style={{ fontSize: 12, color: "#aaa", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Change Password</div>
+            <form onSubmit={handlePasswordChange}>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ fontSize: 10, color: "#888", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4, display: "block" }}>Current Password</label>
+                <div style={{ position: "relative" }}>
+                  <input type={showCurrentPw ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
+                    required style={{ ...inputStyle, paddingRight: 44 }}
+                    onFocus={(e) => (e.target.style.borderColor = "#CC000066")}
+                    onBlur={(e) => (e.target.style.borderColor = "#2a2a3e")}
+                  />
+                  <button type="button" onClick={() => setShowCurrentPw(!showCurrentPw)}
+                    style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#888", fontSize: 11, cursor: "pointer", padding: "4px 6px" }}>
+                    {showCurrentPw ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ fontSize: 10, color: "#888", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4, display: "block" }}>New Password</label>
+                <div style={{ position: "relative" }}>
+                  <input type={showNewPw ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Min 6 characters" required style={{ ...inputStyle, paddingRight: 44 }}
+                    onFocus={(e) => (e.target.style.borderColor = "#CC000066")}
+                    onBlur={(e) => (e.target.style.borderColor = "#2a2a3e")}
+                  />
+                  <button type="button" onClick={() => setShowNewPw(!showNewPw)}
+                    style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#888", fontSize: 11, cursor: "pointer", padding: "4px 6px" }}>
+                    {showNewPw ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 10, color: "#888", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4, display: "block" }}>Confirm New Password</label>
+                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter new password" required style={inputStyle}
+                  onFocus={(e) => (e.target.style.borderColor = "#CC000066")}
+                  onBlur={(e) => (e.target.style.borderColor = "#2a2a3e")}
+                />
+              </div>
+              <button type="submit" disabled={loading} style={{
+                width: "100%", background: "#CC0000", border: "none", borderRadius: 8,
+                padding: "10px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "wait" : "pointer",
+              }}>
+                {loading ? "Updating..." : "Update Password"}
+              </button>
+            </form>
+            {pwSuccess && <div style={{ fontSize: 11, color: "#4CAF50", marginTop: 8 }}>{pwSuccess}</div>}
+          </div>
+        ) : (
+          <div style={{ padding: 12, background: "#0d0d1a", borderRadius: 10, fontSize: 12, color: "#888" }}>
+            Password changes are not available for Google sign-in accounts. You can manage your Google password through your Google account settings.
+          </div>
+        )}
+
+        {error && (
+          <div style={{ background: "#CC000015", border: "1px solid #CC000044", borderRadius: 8, padding: "8px 12px", marginTop: 12, fontSize: 11, color: "#CC0000" }}>
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1398,6 +1598,7 @@ export default function App() {
   const [bracketInitialTab, setBracketInitialTab] = useState("bracket");
   const [showAdmin, setShowAdmin] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminLoading, setAdminLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -1854,21 +2055,24 @@ export default function App() {
                   Admin
                 </button>
               )}
-              {profile?.photoURL ? (
-                <img src={profile.photoURL} alt="" style={{ width: 30, height: 30, borderRadius: "50%", border: "2px solid #CC0000", objectFit: "cover" }} referrerPolicy="no-referrer" />
-              ) : (
-                <div style={{
-                  width: 30, height: 30, borderRadius: "50%", background: "#CC000033",
-                  border: "2px solid #CC0000", display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 13, fontWeight: 700, color: "#CC0000",
-                }}>
-                  {(profile?.username || user.email || "?")[0].toUpperCase()}
+              <div onClick={() => setShowProfileSettings(true)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }} title="Profile settings">
+                {profile?.photoURL ? (
+                  <img src={profile.photoURL} alt="" style={{ width: 30, height: 30, borderRadius: "50%", border: "2px solid #CC0000", objectFit: "cover" }} referrerPolicy="no-referrer" />
+                ) : (
+                  <div style={{
+                    width: 30, height: 30, borderRadius: "50%", background: "#CC000033",
+                    border: "2px solid #CC0000", display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 13, fontWeight: 700, color: "#CC0000",
+                  }}>
+                    {(profile?.username || user.email || "?")[0].toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <div style={{ fontSize: 11, color: "#ccc", fontWeight: 600, maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile?.username || profile?.displayName || user.email?.split("@")[0]}</div>
+                  <div style={{ fontSize: 9, color: "#666" }}>Settings</div>
                 </div>
-              )}
-              <div>
-                <div style={{ fontSize: 11, color: "#ccc", fontWeight: 600, maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile?.username || profile?.displayName || user.email?.split("@")[0]}</div>
-                <button onClick={logout} style={{ background: "none", border: "none", color: "#888", fontSize: 9, cursor: "pointer", padding: 0, textDecoration: "underline" }}>Sign out</button>
               </div>
+              <button onClick={logout} style={{ background: "none", border: "none", color: "#888", fontSize: 9, cursor: "pointer", padding: 0, textDecoration: "underline", alignSelf: "flex-end" }}>Sign out</button>
             </div>
           ) : (
             <button onClick={() => setShowAuthModal(true)} style={{
@@ -1996,6 +2200,16 @@ export default function App() {
           onLoginGoogle={loginWithGoogle}
           onSignupEmail={signupWithEmail}
           onLoginEmail={loginWithEmail}
+        />
+      )}
+
+      {/* Profile Settings Modal */}
+      {showProfileSettings && user && (
+        <ProfileSettingsModal
+          user={user}
+          profile={profile}
+          onClose={() => setShowProfileSettings(false)}
+          onProfileUpdated={refreshProfile}
         />
       )}
 
