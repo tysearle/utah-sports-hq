@@ -1457,10 +1457,12 @@ function StatsTab({ team, accent }) {
   const [sortAsc, setSortAsc] = useState(false);
 
   const isHockey = team.isHockey;
-  // Both NHL and NBA 2025-26 season = 2026
+  // Derive league and sport from the team's API path (e.g. "sports/basketball/mens-college-basketball/teams/254/roster")
+  const apiParts = team.apiRoster.split("/");
+  const sport = apiParts[1]; // "hockey", "basketball", "football"
+  const league = apiParts[2]; // "nhl", "nba", "mens-college-basketball", "college-football"
+  // Season year: 2025-26 seasons = 2026 for most sports
   const season = 2026;
-  const league = isHockey ? "nhl" : "nba";
-  const sport = isHockey ? "hockey" : "basketball";
 
   const columns = isHockey
     ? [
