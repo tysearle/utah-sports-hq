@@ -318,6 +318,7 @@ function AuthModal({ onClose, onLoginGoogle, onSignupEmail, onLoginEmail }) {
           {resetSent && mode === "forgot" && (
             <div style={{ background: "#4CAF5015", border: "1px solid #4CAF5044", borderRadius: 8, padding: "8px 12px", marginBottom: 12, fontSize: 11, color: "#4CAF50" }}>
               Reset link sent! Check your email inbox.
+              <div style={{ color: "#FFD700", marginTop: 4, fontSize: 10 }}>⚠️ Don't see it? Check your spam or junk folder.</div>
             </div>
           )}
 
