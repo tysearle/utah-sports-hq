@@ -1816,7 +1816,7 @@ export default function App() {
             <div style={{ background: "#12121f", borderRadius: 12, overflow: "hidden", border: "1px solid #2a2a3e" }}>
               {/* Table Header */}
               <div style={{
-                display: "grid", gridTemplateColumns: "36px 1fr 1fr 100px 1fr",
+                display: "grid", gridTemplateColumns: "36px 1fr 1fr 100px 1fr 60px",
                 padding: "10px 16px", borderBottom: "1px solid #2a2a3e",
                 fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 700,
               }}>
@@ -1825,6 +1825,7 @@ export default function App() {
                 <div>Email</div>
                 <div style={{ textAlign: "center" }}>Brackets</div>
                 <div>Last Active</div>
+                <div></div>
               </div>
 
               {adminUsers.map((u, i) => {
@@ -1833,7 +1834,7 @@ export default function App() {
                   <div key={u.uid}>
                     {/* User Row */}
                     <div style={{
-                      display: "grid", gridTemplateColumns: "36px 1fr 1fr 100px 1fr",
+                      display: "grid", gridTemplateColumns: "36px 1fr 1fr 100px 1fr 60px",
                       padding: "10px 16px", borderBottom: hasBrackets ? "none" : "1px solid #1a1a2e",
                       background: i % 2 === 0 ? "#0f0f1e" : "transparent",
                       alignItems: "center",
@@ -1881,6 +1882,29 @@ export default function App() {
                         {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString("en-US", {
                           month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
                         }) : "—"}
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        {u.uid !== user?.uid && (
+                          <button onClick={async () => {
+                            if (!window.confirm(`Delete ${u.displayName || u.email}? This removes their Firestore profile and brackets.`)) return;
+                            try {
+                              await deleteDoc(doc(db, "users", u.uid));
+                              const bSnap = await getDocs(collection(db, "brackets"));
+                              for (const d of bSnap.docs) {
+                                if (d.data().ownerUid === u.uid) await deleteDoc(doc(db, "brackets", d.id));
+                              }
+                              loadAdminUsers();
+                            } catch (e) { alert("Error: " + e.message); }
+                          }} style={{
+                            background: "transparent", border: "1px solid #CC000044", borderRadius: 6,
+                            padding: "3px 8px", color: "#CC0000", fontSize: 10, cursor: "pointer",
+                            opacity: 0.6, transition: "opacity 0.2s",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}
+                          title="Delete user from Firestore"
+                          >Delete</button>
+                        )}
                       </div>
                     </div>
 
