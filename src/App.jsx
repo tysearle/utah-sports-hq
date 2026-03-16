@@ -2208,8 +2208,11 @@ export default function App() {
         a:hover { filter: brightness(1.2); }
         @media (max-width: 600px) {
           .ush-header { flex-direction: column !important; gap: 10px !important; padding: 12px 14px !important; align-items: flex-start !important; }
-          .ush-header-right { width: 100% !important; flex-direction: row !important; justify-content: space-between !important; }
-          .ush-leaderboard-btn, .ush-chat-btn { padding: 6px 10px !important; font-size: 11px !important; }
+          .ush-header-right { width: 100% !important; flex-wrap: wrap !important; gap: 8px !important; }
+          .ush-leaderboard-btn, .ush-chat-btn { padding: 5px 8px !important; font-size: 10px !important; }
+          .ush-auth-section { gap: 6px !important; }
+          .ush-auth-section .ush-username { max-width: 60px !important; }
+          .ush-admin-btn { padding: 5px 8px !important; font-size: 10px !important; }
           .ush-subtitle { display: none !important; }
           .ush-auto-refresh { display: none !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
@@ -2273,9 +2276,10 @@ export default function App() {
           </div>
           {/* Auth */}
           {authLoading ? null : user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div className="ush-auth-section" style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {isAdmin && (
                 <button onClick={() => { setShowAdmin(true); loadAdminUsers(); }}
+                  className="ush-admin-btn"
                   style={{
                     background: "#4A90D915", border: "1px solid #4A90D944", borderRadius: 8,
                     padding: "6px 10px", color: "#4A90D9", fontSize: 11, fontWeight: 600,
@@ -2301,7 +2305,7 @@ export default function App() {
                   </div>
                 )}
                 <div>
-                  <div style={{ fontSize: 11, color: "#ccc", fontWeight: 600, maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile?.username || profile?.displayName || user.email?.split("@")[0]}</div>
+                  <div className="ush-username" style={{ fontSize: 11, color: "#ccc", fontWeight: 600, maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile?.username || profile?.displayName || user.email?.split("@")[0]}</div>
                   <div style={{ fontSize: 9, color: "#666" }}>Settings</div>
                 </div>
               </div>
