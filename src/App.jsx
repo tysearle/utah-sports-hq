@@ -1015,14 +1015,66 @@ export default function App() {
   }, [draggedId]);
   const handleDragEnd = useCallback(() => { setDraggedId(null); setDragOverId(null); }, []);
 
-  // Load admin users
+  // Load admin users + bracket data
   const loadAdminUsers = async () => {
     setAdminLoading(true);
     try {
-      const q = query(collection(db, "users"), orderBy("lastLogin", "desc"));
-      const snap = await getDocs(q);
-      const users = snap.docs.map((d) => d.data());
-      setAdminUsers(users);
+      // Fetch both collections in parallel
+      const [usersSnap, bracketsSnap] = await Promise.all([
+        getDocs(query(collection(db, "users"), orderBy("lastLogin", "desc"))),
+        getDocs(collection(db, "brackets")),
+      ]);
+
+      // Build bracket map keyed by ownerUid
+      const bracketsByUser = {};
+      bracketsSnap.docs.forEach((d) => {
+        const b = d.data();
+        const uid = b.ownerUid || d.id;
+        if (!bracketsByUser[uid]) bracketsByUser[uid] = [];
+        bracketsByUser[uid].push({
+          entryNum: b.entryNum || 1,
+          entryName: b.entryName || "",
+          picks: b.picks || {},
+          updatedAt: b.updatedAt || null,
+          champion: b.picks?.champ || null,
+          displayName: b.displayName || "Anonymous",
+          photoURL: b.photoURL || null,
+          email: b.email || null,
+        });
+      });
+
+      // Build user map from "users" collection
+      const userMap = {};
+      usersSnap.docs.forEach((d) => {
+        const u = d.data();
+        userMap[u.uid] = { ...u, brackets: bracketsByUser[u.uid] || [] };
+      });
+
+      // Add bracket-only users (submitted a bracket but haven't signed in since the users collection was added)
+      for (const uid of Object.keys(bracketsByUser)) {
+        if (!userMap[uid]) {
+          const first = bracketsByUser[uid][0];
+          userMap[uid] = {
+            uid,
+            displayName: first.displayName,
+            email: first.email,
+            photoURL: first.photoURL,
+            lastLogin: first.updatedAt,
+            brackets: bracketsByUser[uid],
+            bracketOnly: true, // signed up before users collection existed
+          };
+        }
+      }
+
+      // Sort: users with brackets first, then by last login
+      const allUsers = Object.values(userMap).sort((a, b) => {
+        const aHas = a.brackets.length > 0 ? 1 : 0;
+        const bHas = b.brackets.length > 0 ? 1 : 0;
+        if (aHas !== bHas) return bHas - aHas;
+        return new Date(b.lastLogin || 0) - new Date(a.lastLogin || 0);
+      });
+
+      setAdminUsers(allUsers);
     } catch (e) {
       console.error("Admin load error:", e);
     }
@@ -1036,6 +1088,11 @@ export default function App() {
 
   // Show Admin Panel
   if (showAdmin && isAdmin) {
+    const totalUsers = adminUsers.length;
+    const usersWithBrackets = adminUsers.filter((u) => u.brackets.length > 0).length;
+    const totalBrackets = adminUsers.reduce((sum, u) => sum + u.brackets.length, 0);
+    const signUpOnly = totalUsers - usersWithBrackets;
+
     return (
       <div style={{
         minHeight: "100vh",
@@ -1067,10 +1124,33 @@ export default function App() {
               <p style={{ margin: 0, fontSize: 10, color: "#666" }}>USER MANAGEMENT</p>
             </div>
           </div>
-          <div style={{ fontSize: 12, color: "#888" }}>{adminUsers.length} registered users</div>
+          <button onClick={loadAdminUsers} style={{
+            background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
+            padding: "6px 12px", color: "#888", fontSize: 11, cursor: "pointer",
+          }}>Refresh</button>
         </header>
 
-        <main style={{ padding: 20, maxWidth: 900, margin: "0 auto" }}>
+        <main style={{ padding: 20, maxWidth: 1000, margin: "0 auto" }}>
+          {/* Stats Cards */}
+          {!adminLoading && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 20 }}>
+              {[
+                { label: "Total Users", value: totalUsers, color: "#4A90D9" },
+                { label: "With Brackets", value: usersWithBrackets, color: "#4CAF50" },
+                { label: "Total Brackets", value: totalBrackets, color: "#FF6B35" },
+                { label: "Sign-Up Only", value: signUpOnly, color: "#888" },
+              ].map((stat) => (
+                <div key={stat.label} style={{
+                  background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 10,
+                  padding: "14px 16px", textAlign: "center",
+                }}>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: stat.color }}>{stat.value}</div>
+                  <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, marginTop: 4 }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {adminLoading ? (
             <div style={{ textAlign: "center", padding: 60, color: "#555" }}>Loading users...</div>
           ) : adminUsers.length === 0 ? (
@@ -1079,52 +1159,122 @@ export default function App() {
             <div style={{ background: "#12121f", borderRadius: 12, overflow: "hidden", border: "1px solid #2a2a3e" }}>
               {/* Table Header */}
               <div style={{
-                display: "grid", gridTemplateColumns: "40px 1fr 1fr 160px",
+                display: "grid", gridTemplateColumns: "36px 1fr 1fr 100px 1fr",
                 padding: "10px 16px", borderBottom: "1px solid #2a2a3e",
                 fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 700,
               }}>
                 <div>#</div>
                 <div>User</div>
                 <div>Email</div>
-                <div>Last Login</div>
+                <div style={{ textAlign: "center" }}>Brackets</div>
+                <div>Last Active</div>
               </div>
 
-              {adminUsers.map((u, i) => (
-                <div key={u.uid} style={{
-                  display: "grid", gridTemplateColumns: "40px 1fr 1fr 160px",
-                  padding: "12px 16px", borderBottom: "1px solid #1a1a2e",
-                  background: i % 2 === 0 ? "#0f0f1e" : "transparent",
-                  alignItems: "center",
-                }}>
-                  <div style={{ color: "#888", fontWeight: 700, fontSize: 13 }}>{i + 1}</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    {u.photoURL ? (
-                      <img src={u.photoURL} alt="" referrerPolicy="no-referrer"
-                        style={{ width: 28, height: 28, borderRadius: "50%", border: "1px solid #333", flexShrink: 0 }}
-                      />
-                    ) : (
+              {adminUsers.map((u, i) => {
+                const hasBrackets = u.brackets.length > 0;
+                return (
+                  <div key={u.uid}>
+                    {/* User Row */}
+                    <div style={{
+                      display: "grid", gridTemplateColumns: "36px 1fr 1fr 100px 1fr",
+                      padding: "10px 16px", borderBottom: hasBrackets ? "none" : "1px solid #1a1a2e",
+                      background: i % 2 === 0 ? "#0f0f1e" : "transparent",
+                      alignItems: "center",
+                    }}>
+                      <div style={{ color: "#888", fontWeight: 700, fontSize: 12 }}>{i + 1}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                        {u.photoURL ? (
+                          <img src={u.photoURL} alt="" referrerPolicy="no-referrer"
+                            style={{ width: 26, height: 26, borderRadius: "50%", border: "1px solid #333", flexShrink: 0 }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: 26, height: 26, borderRadius: "50%", background: "#2a2a3e",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 11, color: "#888", fontWeight: 700, flexShrink: 0,
+                          }}>
+                            {(u.displayName || "?")[0].toUpperCase()}
+                          </div>
+                        )}
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "#ccc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {u.displayName || "Anonymous"}
+                          </div>
+                          {u.bracketOnly && (
+                            <div style={{ fontSize: 9, color: "#FF6B35" }}>pre-registration</div>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {u.email || "—"}
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        {hasBrackets ? (
+                          <span style={{
+                            background: "#4CAF5022", color: "#4CAF50", fontSize: 11, fontWeight: 700,
+                            padding: "2px 10px", borderRadius: 10, border: "1px solid #4CAF5044",
+                          }}>
+                            {u.brackets.length}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 11, color: "#444" }}>—</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#666" }}>
+                        {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString("en-US", {
+                          month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+                        }) : "—"}
+                      </div>
+                    </div>
+
+                    {/* Bracket Details (inline, beneath the user row) */}
+                    {hasBrackets && (
                       <div style={{
-                        width: 28, height: 28, borderRadius: "50%", background: "#2a2a3e",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 12, color: "#888", fontWeight: 700, flexShrink: 0,
+                        padding: "0 16px 10px 52px",
+                        background: i % 2 === 0 ? "#0f0f1e" : "transparent",
+                        borderBottom: "1px solid #1a1a2e",
                       }}>
-                        {(u.displayName || "?")[0].toUpperCase()}
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          {u.brackets.map((b, bi) => {
+                            const numPicks = Object.keys(b.picks || {}).filter((k) => b.picks[k]).length;
+                            const champName = b.champion && b.picks[b.champion] ? null : null; // just use champion ID
+                            return (
+                              <div key={bi} style={{
+                                background: "#0a0a16", border: "1px solid #2a2a3e", borderRadius: 8,
+                                padding: "6px 12px", fontSize: 10, color: "#888",
+                                display: "flex", alignItems: "center", gap: 8,
+                              }}>
+                                <div style={{
+                                  width: 6, height: 6, borderRadius: "50%",
+                                  background: numPicks === 67 ? "#4CAF50" : numPicks > 0 ? "#FF6B35" : "#444",
+                                }} />
+                                <div>
+                                  <span style={{ fontWeight: 600, color: "#ccc" }}>
+                                    {b.entryName || `Entry ${b.entryNum}`}
+                                  </span>
+                                  <span style={{ color: "#555", marginLeft: 6 }}>
+                                    {numPicks}/67 picks
+                                  </span>
+                                  {b.champion && (
+                                    <span style={{ color: "#FFD700", marginLeft: 6 }}>
+                                      Champ: {b.champion}
+                                    </span>
+                                  )}
+                                </div>
+                                {b.updatedAt && (
+                                  <div style={{ fontSize: 9, color: "#444", marginLeft: 4 }}>
+                                    {new Date(b.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "#ccc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {u.displayName || "Anonymous"}
-                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {u.email || "—"}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#666" }}>
-                    {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString("en-US", {
-                      month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
-                    }) : "—"}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </main>
