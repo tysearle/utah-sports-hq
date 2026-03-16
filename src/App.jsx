@@ -3486,11 +3486,11 @@ export default function App() {
               </div>
             ) : (
               <button onClick={() => setShowAuthModal(true)} style={{
-                background: "none", border: "1px solid #CC000066", borderRadius: 8,
-                padding: "7px 16px", color: "#CC0000", fontSize: 13, fontWeight: 600,
+                background: "none", border: "1px solid #ffffff66", borderRadius: 8,
+                padding: "7px 16px", color: "#fff", fontSize: 13, fontWeight: 600,
                 cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s",
               }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#CC000018")}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff18")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
               >
                 Sign In
