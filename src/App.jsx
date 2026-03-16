@@ -735,7 +735,7 @@ const TEAMS_CONFIG = [
     espnAbbr: "UTAH",
     sport: "hockey",
     isHockey: true,
-    showPlayoffOdds: true,
+    showPlayoffOdds: false,
     hasSalary: true,
     salaryCap: "$88M",
   },
