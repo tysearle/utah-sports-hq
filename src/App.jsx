@@ -2746,10 +2746,10 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
             value={confFilter}
             onChange={(e) => setConfFilter(e.target.value)}
             style={{
-              width: "100%", padding: "7px 10px", marginBottom: 12, borderRadius: 8,
+              width: "100%", padding: "10px 12px", marginBottom: 12, borderRadius: 8,
               border: "1px solid #2a2a3e", background: "#1a1a2e", color: "#ccc",
-              fontSize: 12, outline: "none", boxSizing: "border-box",
-              appearance: "auto", cursor: "pointer",
+              fontSize: 13, outline: "none", boxSizing: "border-box",
+              appearance: "auto", cursor: "pointer", height: 40,
             }}
           >
             {conferences.map((c) => (
