@@ -191,13 +191,38 @@ function useTeamData(team) {
       setError(null);
 
       try {
-        const [teamData, schedData, standData] = await Promise.allSettled([
+        // Derive scoreboard path from apiSchedule (e.g. "sports/basketball/nba/teams/26/schedule" -> "sports/basketball/nba/scoreboard")
+        const scoreboardPath = team.apiSchedule.replace(/\/teams\/.*$/, "/scoreboard");
+        const [teamData, schedData, standData, scoreboardData] = await Promise.allSettled([
           fetchESPN(team.apiTeam),
           fetchESPN(team.apiSchedule),
           fetchESPN(team.apiStandings, true),
+          fetchESPN(scoreboardPath),
         ]);
 
         if (cancelled) return;
+
+        // Build a map of live scores from the scoreboard endpoint
+        const liveScoreMap = {};
+        if (scoreboardData.status === "fulfilled") {
+          const sbEvents = scoreboardData.value?.events || [];
+          for (const ev of sbEvents) {
+            const comp = ev.competitions?.[0];
+            const statusName = comp?.status?.type?.name || "";
+            if (statusName.includes("IN_PROGRESS")) {
+              const teamComp = comp?.competitors?.find(
+                (c) => String(c.team?.id) === String(team.teamId) || c.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase()
+              );
+              if (teamComp) {
+                const opp = comp.competitors.find((c) => c !== teamComp);
+                liveScoreMap.us = parseInt(teamComp.score || "0");
+                liveScoreMap.them = parseInt(opp?.score || "0");
+                liveScoreMap.detail = comp.status?.type?.shortDetail || "";
+                liveScoreMap.oppName = opp?.team?.displayName || "";
+              }
+            }
+          }
+        }
 
         // -- Parse record--
         if (teamData.status === "fulfilled") {
@@ -257,7 +282,12 @@ function useTeamData(team) {
                 result = usS > thS ? `W ${usS}-${thS}` : usS < thS ? `L ${usS}-${thS}` : `T ${usS}-${thS}`;
               }
               if (isLive) {
-                liveScore = { us: usS, them: thS, detail: statusDetail };
+                // Prefer scoreboard data (has real-time scores) over schedule data
+                if (liveScoreMap.detail) {
+                  liveScore = { us: liveScoreMap.us, them: liveScoreMap.them, detail: liveScoreMap.detail };
+                } else {
+                  liveScore = { us: usS, them: thS, detail: statusDetail };
+                }
               }
             }
 
