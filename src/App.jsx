@@ -773,7 +773,7 @@ function TeamWidget({ team, isDragging, dragHandlers }) {
               background: team.accent + "22", color: team.accent, fontSize: 9,
               padding: "2px 6px", borderRadius: 4, fontWeight: 700,
             }}>{team.leagueTag}</span>
-            {schedule.some((g) => g.status === "live") && (
+            {schedule?.some((g) => g.status === "live") && (
               <span style={{
                 background: "#CC0000", color: "#fff", fontSize: 9, fontWeight: 800,
                 padding: "2px 6px", borderRadius: 4, letterSpacing: 0.5,
