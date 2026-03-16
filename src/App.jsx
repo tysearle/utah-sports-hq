@@ -3067,7 +3067,7 @@ export default function App() {
               </svg>
               Back
             </button>
-            <div>
+            <div className="ush-admin-title-block">
               <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: -0.5 }}>
                 Salt City Sports <span style={{ color: "#CC0000" }}>Admin</span>
               </h1>
@@ -3346,6 +3346,7 @@ export default function App() {
           .ush-title { display: none !important; }
           .ush-header-left { margin-right: 8px !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
+          .ush-admin-title-block { display: none !important; }
         }
       `}</style>
 
