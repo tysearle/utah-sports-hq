@@ -907,6 +907,7 @@ export default function App() {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
         @keyframes liveBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes bannerShimmer { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0a0a16; }
@@ -981,22 +982,53 @@ export default function App() {
         </div>
       </header>
 
-      {/* Team Pills */}
-      <div className="ush-pills" style={{ padding: "14px 28px 0", display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {/* March Madness Banner */}
+      <div style={{ padding: "14px 28px 0" }}>
         <button
-          onClick={() => setShowBracket(true)}
-          style={{
-            background: "linear-gradient(135deg, #FF6B3522, #FFD70022)",
-            border: "1px solid #FF6B3566", borderRadius: 20,
-            padding: "6px 16px", color: "#FF6B35", fontSize: 12, fontWeight: 700,
-            cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
-            animation: "fadeIn 0.5s ease",
+          onClick={() => {
+            if (!user) { login(); return; }
+            setShowBracket(true);
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "linear-gradient(135deg, #FF6B3544, #FFD70044)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "linear-gradient(135deg, #FF6B3522, #FFD70022)")}
+          style={{
+            width: "100%",
+            background: "linear-gradient(135deg, #FF6B35 0%, #CC0000 40%, #8B0000 70%, #FF6B35 100%)",
+            backgroundSize: "200% 200%",
+            animation: "bannerShimmer 4s ease infinite",
+            border: "none", borderRadius: 14,
+            padding: "16px 24px",
+            cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            boxShadow: "0 4px 20px #CC000044",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.01)"; e.currentTarget.style.boxShadow = "0 6px 30px #CC000066"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 20px #CC000044"; }}
         >
-          🏀 March Madness
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <span style={{ fontSize: 32 }}>🏀</span>
+            <div style={{ textAlign: "left" }}>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: -0.5, textShadow: "0 2px 8px #00000066" }}>
+                March Madness 2026 Bracket Challenge
+              </div>
+              <div style={{ fontSize: 12, color: "#ffffffcc", fontWeight: 500, marginTop: 2 }}>
+                Make your picks, compete on the leaderboard, and prove you know college hoops
+              </div>
+            </div>
+          </div>
+          <div style={{
+            background: "#ffffff22", backdropFilter: "blur(4px)",
+            borderRadius: 8, padding: "8px 18px",
+            color: "#fff", fontSize: 13, fontWeight: 700,
+            border: "1px solid #ffffff33", whiteSpace: "nowrap",
+            display: "flex", alignItems: "center", gap: 6,
+          }}>
+            {user ? "Fill Out Bracket" : "Sign In & Play"}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
         </button>
+      </div>
+
+      {/* Team Pills */}
+      <div className="ush-pills" style={{ padding: "10px 28px 0", display: "flex", gap: 8, flexWrap: "wrap" }}>
         {TEAMS_CONFIG.map((team) => (
           <button key={team.id}
             onClick={() => document.getElementById(`widget-${team.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
