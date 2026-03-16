@@ -945,15 +945,24 @@ function useTeamData(team) {
       setError(null);
 
       try {
+        // Detect football offseason (Jan-Aug) — show previous season data
+        const isFootball = team.sport === "football";
+        const currentMonth = new Date().getMonth(); // 0-11
+        const isFootballOffseason = isFootball && (currentMonth < 7); // Jan(0) through Jul(7)
+        const seasonParam = isFootballOffseason ? { season: 2025 } : {};
+        const teamParam = isFootballOffseason ? { season: 2025 } : {};
+
         // Derive scoreboard path from apiSchedule (e.g. "sports/basketball/nba/teams/26/schedule" -> "sports/basketball/nba/scoreboard")
         const scoreboardPath = team.apiSchedule.replace(/\/teams\/.*$/, "/scoreboard");
-        // Also fetch postseason schedule for NCAA tournament games
+        // Also fetch postseason schedule for NCAA tournament / bowl games
+        const needsPostseason = team.league === "NCAA";
+        const postseasonParams = isFootballOffseason ? { season: 2025, seasontype: 3 } : { seasontype: 3 };
         const [teamData, schedData, standData, scoreboardData, postData] = await Promise.allSettled([
-          fetchESPN(team.apiTeam),
-          fetchESPN(team.apiSchedule),
+          fetchESPN(team.apiTeam, false, teamParam),
+          fetchESPN(team.apiSchedule, false, seasonParam),
           fetchESPN(team.apiStandings, true),
-          fetchESPN(scoreboardPath),
-          team.league === "NCAA" ? fetchESPN(team.apiSchedule, false, { seasontype: 3 }) : Promise.resolve(null),
+          isFootballOffseason ? Promise.resolve(null) : fetchESPN(scoreboardPath),
+          needsPostseason ? fetchESPN(team.apiSchedule, false, postseasonParams) : Promise.resolve(null),
         ]);
 
         if (cancelled) return;
@@ -1467,6 +1476,18 @@ function StatsTab({ team, accent }) {
   const [loading, setLoading] = useState(true);
   const [sortCol, setSortCol] = useState(null);
   const [sortAsc, setSortAsc] = useState(false);
+
+  // Football player stats not available via ESPN core API
+  if (team.sport === "football") {
+    return (
+      <div style={{ color: "#888", padding: "30px 12px", textAlign: "center" }}>
+        <div style={{ fontSize: 14, marginBottom: 6 }}>Individual player stats are not available for college football.</div>
+        <a href={team.espnUrl} target="_blank" rel="noopener noreferrer" style={{ color: accent, fontSize: 12, textDecoration: "underline" }}>
+          View full stats on ESPN
+        </a>
+      </div>
+    );
+  }
 
   const isHockey = team.isHockey;
   // Derive league and sport from the team's API path (e.g. "sports/basketball/mens-college-basketball/teams/254/roster")
