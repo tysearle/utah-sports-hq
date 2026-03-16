@@ -1683,10 +1683,14 @@ export default function App() {
       const userMap = {};
       usersSnap.docs.forEach((d) => {
         const u = d.data();
-        userMap[u.uid] = { ...u, brackets: bracketsByUser[u.uid] || [] };
+        userMap[u.uid] = {
+          ...u,
+          displayName: u.username || u.displayName || "Anonymous",
+          brackets: bracketsByUser[u.uid] || [],
+        };
       });
 
-      // Add bracket-only users (submitted a bracket but haven't signed in since the users collection was added)
+      // Add bracket-only users (submitted a bracket but no Firestore profile)
       for (const uid of Object.keys(bracketsByUser)) {
         if (!userMap[uid]) {
           const first = bracketsByUser[uid][0];
@@ -1697,7 +1701,7 @@ export default function App() {
             photoURL: first.photoURL,
             lastLogin: first.updatedAt,
             brackets: bracketsByUser[uid],
-            bracketOnly: true, // signed up before users collection existed
+            bracketOnly: true,
           };
         }
       }
