@@ -2214,8 +2214,8 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         a:hover { filter: brightness(1.2); }
         @media (max-width: 768px) {
-          .ush-header { flex-direction: column !important; gap: 8px !important; padding: 10px 12px !important; align-items: stretch !important; }
-          .ush-header-right { width: 100% !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 6px !important; align-items: center !important; }
+          .ush-header { flex-direction: row !important; gap: 8px !important; padding: 10px 12px !important; align-items: center !important; justify-content: space-between !important; }
+          .ush-header-right { flex-direction: row !important; flex-wrap: wrap !important; gap: 6px !important; align-items: center !important; justify-content: flex-end !important; }
           .ush-header-nav { gap: 4px !important; }
           .ush-leaderboard-btn, .ush-chat-btn { padding: 4px 8px !important; font-size: 10px !important; display: inline-flex !important; }
           .ush-auth-section { gap: 6px !important; flex-wrap: nowrap !important; }
