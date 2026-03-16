@@ -507,17 +507,29 @@ async function loadUserEntries(uid) {
 
 async function loadLeaderboard() {
   try {
-    const snap = await getDocs(collection(db, "brackets"));
-    const entries = [];
-    snap.forEach((d) => {
+    // Fetch brackets and user profiles in parallel
+    const [bracketSnap, usersSnap] = await Promise.all([
+      getDocs(collection(db, "brackets")),
+      getDocs(collection(db, "users")),
+    ]);
+    // Build a map of uid -> latest user profile data
+    const userMap = {};
+    usersSnap.forEach((d) => {
       const data = d.data();
+      userMap[d.id] = { photoURL: data.photoURL, displayName: data.username || data.displayName };
+    });
+    const entries = [];
+    bracketSnap.forEach((d) => {
+      const data = d.data();
+      const uid = data.ownerUid || d.id;
+      const freshUser = userMap[uid];
       entries.push({
         docId: d.id,
-        ownerUid: data.ownerUid || d.id,
+        ownerUid: uid,
         entryNum: data.entryNum || 1,
         entryName: data.entryName || "",
-        displayName: data.displayName || "Anonymous",
-        photoURL: data.photoURL,
+        displayName: freshUser?.displayName || data.displayName || "Anonymous",
+        photoURL: freshUser?.photoURL || data.photoURL,
         picks: data.picks || {},
         updatedAt: data.updatedAt,
       });
