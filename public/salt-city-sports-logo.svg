@@ -1,63 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <defs>
-    <clipPath id="circle-clip">
-      <circle cx="100" cy="100" r="94"/>
-    </clipPath>
-    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1a3a6a"/>
-      <stop offset="100%" stop-color="#0d1b33"/>
-    </linearGradient>
-  </defs>
-
-  <!-- Outer ring -->
-  <circle cx="100" cy="100" r="98" fill="#CC0000"/>
-  <!-- Inner circle background -->
-  <circle cx="100" cy="100" r="94" fill="url(#skyGrad)"/>
-
-  <g clip-path="url(#circle-clip)">
-    <!-- Mountains - bright white/gray for visibility -->
-    <polygon points="-5,155 45,80 70,105 100,60 130,100 160,72 205,155" fill="#4a6a9a"/>
-    <!-- Snow caps - bright white -->
-    <polygon points="100,60 115,82 85,82" fill="#ffffff" opacity="0.85"/>
-    <polygon points="160,72 172,88 148,88" fill="#ffffff" opacity="0.75"/>
-    <polygon points="45,80 55,92 35,92" fill="#ffffff" opacity="0.65"/>
-
-    <!-- Mammoth - white silhouette for contrast -->
-    <g transform="translate(48, 88) scale(0.5)">
-      <!-- Body -->
-      <ellipse cx="100" cy="75" rx="58" ry="42" fill="#ffffff"/>
-      <!-- Hump -->
-      <ellipse cx="80" cy="45" rx="28" ry="22" fill="#ffffff"/>
-      <!-- Head -->
-      <ellipse cx="158" cy="52" rx="32" ry="30" fill="#ffffff"/>
-      <!-- Trunk -->
-      <path d="M180,65 Q198,82 193,105 Q190,115 184,110 Q188,90 175,72" fill="#ffffff"/>
-      <!-- Tusks -->
-      <path d="M168,58 Q192,48 186,78" stroke="#CC0000" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <!-- Legs -->
-      <rect x="60" y="102" width="16" height="38" rx="6" fill="#ffffff"/>
-      <rect x="82" y="102" width="16" height="42" rx="6" fill="#ffffff"/>
-      <rect x="112" y="102" width="16" height="42" rx="6" fill="#ffffff"/>
-      <rect x="134" y="102" width="16" height="38" rx="6" fill="#ffffff"/>
-      <!-- Ear -->
-      <ellipse cx="148" cy="40" rx="13" ry="16" fill="#d0d8e8"/>
-      <!-- Eye -->
-      <circle cx="168" cy="45" r="4" fill="#0d1b33"/>
-    </g>
-
-    <!-- Ground -->
-    <rect x="0" y="155" width="200" height="50" fill="#0d1b33" opacity="0.6"/>
-  </g>
-
-  <!-- Top text - SALT CITY -->
-  <path id="topArc" d="M 22,108 A 82,82 0 0,1 178,108" fill="none"/>
-  <text font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="19" fill="#ffffff" letter-spacing="3">
-    <textPath href="#topArc" startOffset="50%" text-anchor="middle">SALT CITY</textPath>
-  </text>
-
-  <!-- Bottom text - SPORTS -->
-  <path id="bottomArc" d="M 30,120 A 78,78 0 0,0 170,120" fill="none"/>
-  <text font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="19" fill="#ffffff" letter-spacing="4">
-    <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">SPORTS</textPath>
-  </text>
+  <!-- Red circle -->
+  <circle cx="100" cy="100" r="96" fill="#CC0000"/>
+  <!-- Inner dark circle -->
+  <circle cx="100" cy="100" r="82" fill="#0a0a1a"/>
+  <!-- SCS text -->
+  <text x="100" y="118" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-size="72" fill="#ffffff" letter-spacing="-2">SCS</text>
 </svg>
