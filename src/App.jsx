@@ -3331,7 +3331,7 @@ export default function App() {
           .ush-header > div { padding: 0 12px !important; }
           .ush-header-left { gap: 6px !important; margin-right: 12px !important; }
           .ush-header-nav { gap: 0 !important; }
-          .ush-nav-link { padding: 6px 8px !important; font-size: 11px !important; }
+          .ush-nav-link { padding: 6px 8px !important; font-size: 11px !important; color: #fff !important; }
           .ush-header-nav .ush-nav-link svg { display: none !important; }
           .ush-teams-label { display: none !important; }
           .ush-customize-teams { padding: 6px !important; border: none !important; }
