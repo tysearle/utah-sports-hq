@@ -655,56 +655,106 @@ function useIsMobile(breakpoint = 700) {
 function MobileRegionView({ region, picks, onPick }) {
   const rounds = [1, 2, 3, 4];
   const matchupsPerRound = [8, 4, 2, 1];
+  const roundLabels = { 1: "Round of 64", 2: "Round of 32", 3: "Sweet 16", 4: "Elite 8" };
   const [activeRound, setActiveRound] = useState(1);
+
+  // Count picks per round for this region
+  const roundProgress = {};
+  let regionTotal = 0;
+  const regionMax = 15; // 8+4+2+1
+  rounds.forEach((round) => {
+    const games = matchupsPerRound[round - 1];
+    let picked = 0;
+    for (let gi = 0; gi < games; gi++) {
+      if (picks[`${region.id}_${round}_${gi}`]) picked++;
+    }
+    roundProgress[round] = { picked, total: games };
+    regionTotal += picked;
+  });
+
+  const regionComplete = regionTotal === regionMax;
 
   return (
     <div style={{
-      background: "#0a0a16", borderRadius: 12, border: "1px solid #2a2a3e",
+      background: "#0a0a16", borderRadius: 12, border: `1px solid ${regionComplete ? region.color + "66" : "#2a2a3e"}`,
       padding: 12, marginBottom: 12,
     }}>
       {/* Region Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <div style={{ width: 4, height: 20, borderRadius: 2, background: region.color }} />
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", flex: 1 }}>
-          {region.name}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <div style={{ width: 4, height: 28, borderRadius: 2, background: region.color }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+            {region.name} Region
+          </div>
+          <div style={{ fontSize: 10, color: "#888" }}>{region.location}</div>
         </div>
-        {(() => {
-          const winner = getRegionWinner(region.id, picks);
-          return winner ? (
-            <div style={{
-              background: region.color + "20", border: `1px solid ${region.color}66`,
-              borderRadius: 6, padding: "3px 10px", fontSize: 10, fontWeight: 700, color: region.color,
-            }}>
-              {winner.seed} {winner.name}
-            </div>
-          ) : null;
-        })()}
+        {/* Region progress badge */}
+        <div style={{
+          background: regionComplete ? "#4CAF5022" : region.color + "15",
+          border: `1px solid ${regionComplete ? "#4CAF5066" : region.color + "44"}`,
+          borderRadius: 8, padding: "4px 10px", textAlign: "center",
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: regionComplete ? "#4CAF50" : region.color }}>
+            {regionComplete ? "✓" : `${regionTotal}/${regionMax}`}
+          </div>
+          <div style={{ fontSize: 8, color: regionComplete ? "#4CAF50" : "#666" }}>
+            {regionComplete ? "Complete" : "picks"}
+          </div>
+        </div>
       </div>
 
-      {/* Round Tabs */}
-      <div style={{ display: "flex", gap: 2, marginBottom: 12, overflowX: "auto" }}>
+      {/* Region winner display */}
+      {(() => {
+        const winner = getRegionWinner(region.id, picks);
+        return winner ? (
+          <div style={{
+            background: region.color + "15", border: `1px solid ${region.color}44`,
+            borderRadius: 8, padding: "6px 12px", marginBottom: 10, textAlign: "center",
+            fontSize: 11, color: region.color, fontWeight: 600,
+          }}>
+            🏆 Region Winner: <span style={{ color: "#fff" }}>{winner.seed} {winner.name}</span>
+          </div>
+        ) : null;
+      })()}
+
+      {/* Round Tabs with progress dots */}
+      <div style={{ display: "flex", gap: 3, marginBottom: 10, overflowX: "auto" }}>
         {rounds.map((round) => {
           const active = activeRound === round;
+          const { picked, total } = roundProgress[round];
+          const roundDone = picked === total;
           return (
             <button key={round} onClick={() => setActiveRound(round)} style={{
-              flex: 1, background: active ? region.color + "22" : "#12121f",
-              border: active ? `1px solid ${region.color}66` : "1px solid #2a2a3e",
+              flex: 1, background: active ? region.color + "22" : roundDone ? "#4CAF5010" : "#12121f",
+              border: active ? `1px solid ${region.color}66` : roundDone ? "1px solid #4CAF5044" : "1px solid #2a2a3e",
               borderRadius: 6, padding: "6px 4px", cursor: "pointer",
-              color: active ? region.color : "#666", fontSize: 9, fontWeight: 700,
+              color: active ? region.color : roundDone ? "#4CAF50" : "#666",
+              fontSize: 9, fontWeight: 700,
               textTransform: "uppercase", letterSpacing: 0.3, whiteSpace: "nowrap",
               transition: "all 0.15s",
             }}>
               {round === 1 ? "R64" : round === 2 ? "R32" : round === 3 ? "S16" : "E8"}
-              <div style={{ fontSize: 7, color: active ? region.color : "#444", marginTop: 1 }}>
-                {SCORING[round]}pt
+              <div style={{ fontSize: 7, marginTop: 2, color: active ? region.color : roundDone ? "#4CAF50" : "#555" }}>
+                {roundDone ? "✓" : `${picked}/${total}`}
               </div>
             </button>
           );
         })}
       </div>
 
+      {/* Round instruction */}
+      <div style={{
+        fontSize: 10, color: "#888", marginBottom: 8, padding: "0 2px",
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+      }}>
+        <span>
+          {roundLabels[activeRound]} — <span style={{ color: region.color }}>Tap a team</span> to pick the winner
+        </span>
+        <span style={{ color: "#FFD700", fontSize: 9 }}>{SCORING[activeRound]} pt{SCORING[activeRound] > 1 ? "s" : ""} each</span>
+      </div>
+
       {/* Active Round Matchups */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: matchupsPerRound[activeRound - 1] === 1 ? "1fr" : "1fr 1fr", gap: 8 }}>
         {Array.from({ length: matchupsPerRound[activeRound - 1] }, (_, gameIdx) => {
           const [t1, t2] = getGameTeams(region.id, activeRound, gameIdx, picks);
           const gameKey = `${region.id}_${activeRound}_${gameIdx}`;
@@ -721,6 +771,18 @@ function MobileRegionView({ region, picks, onPick }) {
           );
         })}
       </div>
+
+      {/* Next round hint */}
+      {roundProgress[activeRound].picked === roundProgress[activeRound].total && activeRound < 4 && (
+        <button onClick={() => setActiveRound(activeRound + 1)} style={{
+          width: "100%", marginTop: 10, padding: "8px", background: region.color + "15",
+          border: `1px solid ${region.color}44`, borderRadius: 8,
+          color: region.color, fontSize: 11, fontWeight: 600, cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+        }}>
+          ✓ Round complete — Continue to {roundLabels[activeRound + 1]} →
+        </button>
+      )}
     </div>
   );
 }
@@ -1617,18 +1679,18 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
             )}
 
             {/* Progress */}
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: isMobile ? 10 : 11, color: "#888" }}>{totalPicks}/67</div>
-              <div style={{
-                width: isMobile ? 50 : 80, height: 4, background: "#1a1a2e", borderRadius: 2, marginTop: 2,
-              }}>
-                <div style={{
-                  width: `${(totalPicks / 67) * 100}%`, height: "100%",
-                  background: totalPicks === 67 ? "#4CAF50" : "#CC0000",
-                  borderRadius: 2, transition: "width 0.3s",
-                }} />
+            {!isMobile && (
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 11, color: "#888" }}>{totalPicks}/67</div>
+                <div style={{ width: 80, height: 4, background: "#1a1a2e", borderRadius: 2, marginTop: 2 }}>
+                  <div style={{
+                    width: `${(totalPicks / 67) * 100}%`, height: "100%",
+                    background: totalPicks === 67 ? "#4CAF50" : "#CC0000",
+                    borderRadius: 2, transition: "width 0.3s",
+                  }} />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -1719,6 +1781,72 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
           <>
             {tab === "bracket" && (
               <div>
+                {isMobile && (
+                  <>
+                    {/* Mobile progress overview */}
+                    <div style={{
+                      background: "#12121f", borderRadius: 12, border: "1px solid #2a2a3e",
+                      padding: 14, marginBottom: 12,
+                    }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Your Bracket Progress</div>
+                        <div style={{
+                          fontSize: 12, fontWeight: 700,
+                          color: totalPicks === 67 ? "#4CAF50" : totalPicks > 0 ? "#FFD700" : "#666",
+                        }}>
+                          {totalPicks}/67 picks
+                        </div>
+                      </div>
+                      {/* Progress bar */}
+                      <div style={{ width: "100%", height: 8, background: "#0a0a16", borderRadius: 4, marginBottom: 8, overflow: "hidden" }}>
+                        <div style={{
+                          width: `${(totalPicks / 67) * 100}%`, height: "100%",
+                          background: totalPicks === 67
+                            ? "linear-gradient(90deg, #4CAF50, #66BB6A)"
+                            : totalPicks > 30
+                            ? "linear-gradient(90deg, #FFD700, #FFA000)"
+                            : "linear-gradient(90deg, #CC0000, #FF4444)",
+                          borderRadius: 4, transition: "width 0.3s",
+                        }} />
+                      </div>
+                      {/* Step guide */}
+                      <div style={{ display: "flex", gap: 4, justifyContent: "space-between" }}>
+                        {[
+                          { label: "4 Regions", done: totalPicks >= 60 },
+                          { label: "First Four", done: FIRST_FOUR.every((ff) => picks[ff.id]) },
+                          { label: "Final Four", done: picks["ff_0"] && picks["ff_1"] },
+                          { label: "Champion", done: !!picks["champ"] },
+                        ].map((step, i) => (
+                          <div key={i} style={{
+                            flex: 1, textAlign: "center", fontSize: 9,
+                            color: step.done ? "#4CAF50" : "#666", fontWeight: step.done ? 600 : 400,
+                          }}>
+                            {step.done ? "✓ " : ""}{step.label}
+                          </div>
+                        ))}
+                      </div>
+                      {totalPicks === 0 && (
+                        <div style={{
+                          marginTop: 10, padding: "8px 12px", background: "#FFD70010",
+                          border: "1px solid #FFD70033", borderRadius: 8,
+                          fontSize: 11, color: "#FFD700", textAlign: "center",
+                        }}>
+                          👇 Start by picking winners in each matchup below
+                        </div>
+                      )}
+                      {totalPicks > 0 && totalPicks < 67 && (
+                        <div style={{
+                          marginTop: 8, fontSize: 10, color: "#888", textAlign: "center",
+                        }}>
+                          {totalPicks < 60
+                            ? "Pick winners in each region, then fill out First Four, Final Four & Championship tabs"
+                            : "Almost there! Check the First Four, Final Four & Championship tabs to finish"
+                          }
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
                 {isMobile
                   ? REGIONS.map((r) => (
                       <MobileRegionView key={r.id} region={r} picks={picks} onPick={handlePick} />
@@ -1736,6 +1864,67 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
           </>
         )}
       </main>
+
+      {/* Mobile sticky bottom bar */}
+      {isMobile && user && !locked && (tab === "bracket" || tab === "first4" || tab === "ff") && (
+        <div style={{
+          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200,
+          background: "linear-gradient(180deg, transparent 0%, #0a0a16 15%)",
+          paddingTop: 20,
+        }}>
+          <div style={{
+            background: "#12121f", borderTop: "1px solid #2a2a3e",
+            padding: "10px 12px", display: "flex", alignItems: "center", gap: 10,
+          }}>
+            {/* Progress ring */}
+            <div style={{ position: "relative", width: 40, height: 40, flexShrink: 0 }}>
+              <svg width="40" height="40" viewBox="0 0 40 40">
+                <circle cx="20" cy="20" r="16" fill="none" stroke="#1a1a2e" strokeWidth="4" />
+                <circle cx="20" cy="20" r="16" fill="none"
+                  stroke={totalPicks === 67 ? "#4CAF50" : "#CC0000"} strokeWidth="4"
+                  strokeDasharray={`${(totalPicks / 67) * 100.5} 100.5`}
+                  strokeLinecap="round"
+                  transform="rotate(-90 20 20)"
+                  style={{ transition: "stroke-dasharray 0.3s" }}
+                />
+              </svg>
+              <div style={{
+                position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 9, fontWeight: 700, color: totalPicks === 67 ? "#4CAF50" : "#fff",
+              }}>
+                {totalPicks === 67 ? "✓" : totalPicks}
+              </div>
+            </div>
+            {/* Status text */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>
+                {totalPicks === 67 ? "Bracket Complete!" : `${67 - totalPicks} picks remaining`}
+              </div>
+              <div style={{ fontSize: 9, color: "#888" }}>
+                {saved ? "✓ Your bracket is saved" : totalPicks === 0 ? "Tap teams to start picking" : !saved ? "Unsaved changes" : ""}
+              </div>
+            </div>
+            {/* Save button */}
+            <button onClick={handleSave} disabled={saving || totalPicks === 0} style={{
+              background: saved ? "#4CAF50" : "#CC0000",
+              border: "none", borderRadius: 10,
+              padding: "10px 20px",
+              color: "#fff", fontSize: 13, fontWeight: 700,
+              cursor: saving ? "wait" : totalPicks === 0 ? "not-allowed" : "pointer",
+              opacity: totalPicks === 0 ? 0.4 : 1,
+              whiteSpace: "nowrap", flexShrink: 0,
+              transition: "all 0.2s",
+            }}>
+              {saving ? "Saving..." : saved ? "✓ Saved!" : "Save Bracket"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Spacer for mobile sticky bar */}
+      {isMobile && user && !locked && (tab === "bracket" || tab === "first4" || tab === "ff") && (
+        <div style={{ height: 80 }} />
+      )}
 
       {/* Footer */}
       <footer style={{
