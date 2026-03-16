@@ -2112,9 +2112,19 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
         background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 16,
         padding: "28px 24px", maxWidth: 520, width: "100%", maxHeight: "90vh", overflowY: "auto",
       }}>
-        <h2 style={{ color: "#fff", margin: "0 0 6px", fontSize: 20, fontWeight: 700 }}>
-          {isFirstTime ? "Welcome! Pick Your Teams" : "Customize Your Dashboard"}
-        </h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h2 style={{ color: "#fff", margin: "0 0 6px", fontSize: 20, fontWeight: 700 }}>
+            {isFirstTime ? "Welcome! Pick Your Teams" : "Customize Your Dashboard"}
+          </h2>
+          {!isFirstTime && (
+            <button onClick={onClose} style={{
+              background: "none", border: "none", cursor: "pointer", padding: 4,
+              color: "#666", fontSize: 20, lineHeight: 1, borderRadius: 6,
+            }} title="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          )}
+        </div>
         <p style={{ color: "#888", fontSize: 13, margin: "0 0 20px" }}>
           Select up to {MAX_TEAMS} teams to follow. {picked.length}/{MAX_TEAMS} selected.
         </p>
