@@ -2228,7 +2228,6 @@ export default function App() {
           .ush-logo { width: 32px !important; height: 32px !important; }
           .ush-title { font-size: 16px !important; }
           .ush-subtitle { display: none !important; }
-          .ush-auto-refresh { display: none !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
         }
       `}</style>
@@ -2288,10 +2287,6 @@ export default function App() {
         </div>
         {/* Auth section */}
         <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div className="ush-auto-refresh" style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 10, color: "#555" }}>Auto-refresh</div>
-            <div style={{ fontSize: 12, color: "#888", fontFamily: "monospace" }}>{lastRefresh.toLocaleTimeString()}</div>
-          </div>
           {authLoading ? null : user ? (
             <div className="ush-auth-section" style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {isAdmin && (
