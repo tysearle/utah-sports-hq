@@ -2331,24 +2331,60 @@ export default function App() {
   // If Google user signs in without a username, they need to set one
   const needsUsername = user && profile && !profile.username;
 
-  // Load team preferences from Firebase on login
+  // Load team preferences: Firebase for logged-in users, localStorage for guests
   useEffect(() => {
     if (!user) {
-      setSelectedTeams(null);
-      setOrder([]);
-      setTeamsLoaded(false);
+      // Guest: load from localStorage
+      try {
+        const saved = localStorage.getItem("scs_selectedTeams");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          const valid = parsed.filter(id => TEAMS_CONFIG.find(t => t.id === id));
+          if (valid.length > 0) {
+            setSelectedTeams(valid);
+            setOrder(valid);
+          } else {
+            setSelectedTeams([]);
+            setShowTeamPicker(true);
+          }
+        } else {
+          // First visit — show default teams but prompt to customize
+          setSelectedTeams(["mammoth", "jazz", "utes-football", "utes-basketball"]);
+          setOrder(["mammoth", "jazz", "utes-football", "utes-basketball"]);
+        }
+      } catch {
+        setSelectedTeams(["mammoth", "jazz", "utes-football", "utes-basketball"]);
+        setOrder(["mammoth", "jazz", "utes-football", "utes-basketball"]);
+      }
+      setTeamsLoaded(true);
       return;
     }
+    // Logged-in: load from Firebase
     (async () => {
       try {
         const snap = await getDoc(doc(db, "users", user.uid));
         const data = snap.exists() ? snap.data() : {};
         if (data.selectedTeams && data.selectedTeams.length > 0) {
-          // Validate that saved teams still exist in config
           const valid = data.selectedTeams.filter(id => TEAMS_CONFIG.find(t => t.id === id));
           setSelectedTeams(valid);
           setOrder(valid);
         } else {
+          // Check if guest had localStorage prefs to migrate
+          try {
+            const local = localStorage.getItem("scs_selectedTeams");
+            if (local) {
+              const parsed = JSON.parse(local);
+              const valid = parsed.filter(id => TEAMS_CONFIG.find(t => t.id === id));
+              if (valid.length > 0) {
+                setSelectedTeams(valid);
+                setOrder(valid);
+                await setDoc(doc(db, "users", user.uid), { selectedTeams: valid }, { merge: true });
+                localStorage.removeItem("scs_selectedTeams");
+                setTeamsLoaded(true);
+                return;
+              }
+            }
+          } catch {}
           // First-time user — show team picker
           setSelectedTeams([]);
           setShowTeamPicker(true);
@@ -2362,11 +2398,15 @@ export default function App() {
     })();
   }, [user]);
 
-  // Save team preferences to Firebase
+  // Save team preferences: Firebase for logged-in users, localStorage for guests
   const saveTeamPrefs = async (teams) => {
-    if (!user) return;
     setSelectedTeams(teams);
     setOrder(teams);
+    if (!user) {
+      // Guest: save to localStorage
+      try { localStorage.setItem("scs_selectedTeams", JSON.stringify(teams)); } catch {}
+      return;
+    }
     try {
       await setDoc(doc(db, "users", user.uid), { selectedTeams: teams }, { merge: true });
     } catch (e) {
@@ -2399,9 +2439,11 @@ export default function App() {
     setOrder((prev) => {
       const n = [...prev]; const si = n.indexOf(draggedId); const ti = n.indexOf(targetId);
       n.splice(si, 1); n.splice(ti, 0, draggedId);
-      // Persist reorder to Firebase
+      // Persist reorder
       if (user) {
         setDoc(doc(db, "users", user.uid), { selectedTeams: n }, { merge: true }).catch(() => {});
+      } else {
+        try { localStorage.setItem("scs_selectedTeams", JSON.stringify(n)); } catch {}
       }
       return n;
     });
@@ -2854,21 +2896,21 @@ export default function App() {
         </div>
         {/* Auth section */}
         <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <button onClick={() => setShowTeamPicker(true)}
+            title="Customize teams"
+            style={{
+              background: "#ffffff10", border: "1px solid #ffffff22", borderRadius: 8,
+              padding: "6px 10px", color: "#aaa", fontSize: 11, fontWeight: 600,
+              cursor: "pointer", display: "flex", alignItems: "center", gap: 4, transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff22")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff10")}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span className="ush-teams-label">Teams</span>
+          </button>
           {authLoading ? null : user ? (
             <div className="ush-auth-section" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <button onClick={() => setShowTeamPicker(true)}
-                title="Customize teams"
-                style={{
-                  background: "#ffffff10", border: "1px solid #ffffff22", borderRadius: 8,
-                  padding: "6px 10px", color: "#aaa", fontSize: 11, fontWeight: 600,
-                  cursor: "pointer", display: "flex", alignItems: "center", gap: 4, transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff22")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff10")}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                <span className="ush-teams-label">Teams</span>
-              </button>
               {isAdmin && (
                 <button onClick={() => { setShowAdmin(true); loadAdminUsers(); }}
                   className="ush-admin-btn"
@@ -2991,12 +3033,11 @@ export default function App() {
 
       {/* Widget Grid */}
       {(() => {
-        // For non-logged-in users, show default 4 teams
-        const displayOrder = (!user || !teamsLoaded)
+        const displayOrder = !teamsLoaded
           ? ["mammoth", "jazz", "utes-football", "utes-basketball"]
           : order;
 
-        if (user && teamsLoaded && displayOrder.length === 0) {
+        if (teamsLoaded && displayOrder.length === 0) {
           // User hasn't picked teams yet — show prompt
           return (
             <div style={{ textAlign: "center", padding: "80px 20px", color: "#888" }}>
@@ -3078,7 +3119,7 @@ export default function App() {
       )}
 
       {/* Team Picker Modal */}
-      {showTeamPicker && user && (
+      {showTeamPicker && (
         <TeamPickerModal
           selectedTeams={selectedTeams || []}
           isFirstTime={!selectedTeams || selectedTeams.length === 0}
