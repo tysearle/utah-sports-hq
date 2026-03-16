@@ -2207,11 +2207,11 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         a:hover { filter: brightness(1.2); }
         @media (max-width: 600px) {
-          .ush-header { flex-direction: column !important; gap: 8px !important; padding: 10px 12px !important; align-items: flex-start !important; }
-          .ush-header-right { width: 100% !important; flex-wrap: wrap !important; gap: 6px !important; justify-content: flex-start !important; }
-          .ush-leaderboard-btn, .ush-chat-btn { padding: 4px 8px !important; font-size: 10px !important; }
-          .ush-auth-section { width: 100% !important; flex-basis: 100% !important; gap: 8px !important; justify-content: flex-start !important; border-top: 1px solid #2a2a3e !important; padding-top: 8px !important; margin-top: 2px !important; flex-shrink: 0 !important; }
-          .ush-auth-section .ush-username { max-width: 80px !important; }
+          .ush-header { flex-direction: column !important; gap: 8px !important; padding: 10px 12px !important; align-items: stretch !important; }
+          .ush-header-right { width: 100% !important; flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
+          .ush-leaderboard-btn, .ush-chat-btn { padding: 4px 8px !important; font-size: 10px !important; display: inline-flex !important; }
+          .ush-auth-section { width: 100% !important; gap: 8px !important; flex-wrap: wrap !important; }
+          .ush-auth-section .ush-username { max-width: 100px !important; }
           .ush-admin-btn { padding: 4px 8px !important; font-size: 10px !important; }
           .ush-subtitle { display: none !important; }
           .ush-auto-refresh { display: none !important; }
@@ -2238,6 +2238,7 @@ export default function App() {
           </div>
         </div>
         <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div className="ush-header-nav" style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {user && (
             <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
               className="ush-leaderboard-btn"
@@ -2270,6 +2271,7 @@ export default function App() {
               View Chat
             </button>
           )}
+          </div>
           <div className="ush-auto-refresh" style={{ textAlign: "right" }}>
             <div style={{ fontSize: 10, color: "#555" }}>Auto-refresh</div>
             <div style={{ fontSize: 12, color: "#888", fontFamily: "monospace" }}>{lastRefresh.toLocaleTimeString()}</div>
