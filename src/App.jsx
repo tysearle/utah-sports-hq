@@ -2208,11 +2208,12 @@ export default function App() {
         a:hover { filter: brightness(1.2); }
         @media (max-width: 768px) {
           .ush-header { flex-direction: column !important; gap: 8px !important; padding: 10px 12px !important; align-items: stretch !important; }
-          .ush-header-right { width: 100% !important; flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
+          .ush-header-right { width: 100% !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 6px !important; align-items: center !important; }
+          .ush-header-nav { gap: 4px !important; }
           .ush-leaderboard-btn, .ush-chat-btn { padding: 4px 8px !important; font-size: 10px !important; display: inline-flex !important; }
-          .ush-auth-section { width: 100% !important; gap: 8px !important; flex-wrap: wrap !important; }
-          .ush-auth-section .ush-username { max-width: 100px !important; }
-          .ush-admin-btn { padding: 4px 8px !important; font-size: 10px !important; }
+          .ush-auth-section { gap: 6px !important; flex-wrap: nowrap !important; }
+          .ush-auth-section .ush-username { max-width: 80px !important; }
+          .ush-admin-btn { padding: 4px 6px !important; font-size: 10px !important; }
           .ush-subtitle { display: none !important; }
           .ush-auto-refresh { display: none !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
