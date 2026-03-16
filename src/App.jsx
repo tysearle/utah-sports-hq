@@ -811,6 +811,104 @@ const TEAMS_CONFIG = [
     hasSalary: false,
     salaryCap: null,
   },
+  // --- BYU Teams ---
+  {
+    id: "byu-football",
+    name: "BYU Cougars Football",
+    shortName: "BYU FB",
+    logo: "https://a.espncdn.com/i/teamlogos/ncaa/500/252.png",
+    accent: "#002E5D",
+    league: "NCAA",
+    leagueTag: "NCAAF",
+    conference: "Big 12",
+    espnUrl: "https://www.espn.com/college-football/team/_/id/252/byu-cougars",
+    ticketUrl: "https://byucougars.com/sports/football/schedule",
+    venue: "LaVell Edwards Stadium",
+    apiTeam: "sports/football/college-football/teams/252",
+    apiSchedule: "sports/football/college-football/teams/252/schedule",
+    apiStandings: "sports/football/college-football/standings",
+    apiRoster: "sports/football/college-football/teams/252/roster",
+    teamId: "252",
+    espnAbbr: "BYU",
+    sport: "football",
+    isHockey: false,
+    showPlayoffOdds: false,
+    hasSalary: false,
+    salaryCap: null,
+  },
+  {
+    id: "byu-basketball",
+    name: "BYU Cougars Basketball",
+    shortName: "BYU BBall",
+    logo: "https://a.espncdn.com/i/teamlogos/ncaa/500/252.png",
+    accent: "#002E5D",
+    league: "NCAA",
+    leagueTag: "NCAAM",
+    conference: "Big 12",
+    espnUrl: "https://www.espn.com/mens-college-basketball/team/_/id/252/byu-cougars",
+    ticketUrl: "https://byucougars.com/sports/mens-basketball/schedule",
+    venue: "Marriott Center",
+    apiTeam: "sports/basketball/mens-college-basketball/teams/252",
+    apiSchedule: "sports/basketball/mens-college-basketball/teams/252/schedule",
+    apiStandings: "sports/basketball/mens-college-basketball/standings",
+    apiRoster: "sports/basketball/mens-college-basketball/teams/252/roster",
+    teamId: "252",
+    espnAbbr: "BYU",
+    sport: "basketball",
+    isHockey: false,
+    showPlayoffOdds: false,
+    hasSalary: false,
+    salaryCap: null,
+  },
+  // --- Utah State Teams ---
+  {
+    id: "usu-football",
+    name: "Utah State Aggies Football",
+    shortName: "USU FB",
+    logo: "https://a.espncdn.com/i/teamlogos/ncaa/500/328.png",
+    accent: "#0F2439",
+    league: "NCAA",
+    leagueTag: "NCAAF",
+    conference: "Mountain West",
+    espnUrl: "https://www.espn.com/college-football/team/_/id/328/utah-state-aggies",
+    ticketUrl: "https://utahstateaggies.com/sports/football/schedule",
+    venue: "Maverik Stadium",
+    apiTeam: "sports/football/college-football/teams/328",
+    apiSchedule: "sports/football/college-football/teams/328/schedule",
+    apiStandings: "sports/football/college-football/standings",
+    apiRoster: "sports/football/college-football/teams/328/roster",
+    teamId: "328",
+    espnAbbr: "USU",
+    sport: "football",
+    isHockey: false,
+    showPlayoffOdds: false,
+    hasSalary: false,
+    salaryCap: null,
+  },
+  {
+    id: "usu-basketball",
+    name: "Utah State Aggies Basketball",
+    shortName: "USU BBall",
+    logo: "https://a.espncdn.com/i/teamlogos/ncaa/500/328.png",
+    accent: "#0F2439",
+    league: "NCAA",
+    leagueTag: "NCAAM",
+    conference: "Mountain West",
+    espnUrl: "https://www.espn.com/mens-college-basketball/team/_/id/328/utah-state-aggies",
+    ticketUrl: "https://utahstateaggies.com/sports/mens-basketball/schedule",
+    venue: "Dee Glen Smith Spectrum",
+    apiTeam: "sports/basketball/mens-college-basketball/teams/328",
+    apiSchedule: "sports/basketball/mens-college-basketball/teams/328/schedule",
+    apiStandings: "sports/basketball/mens-college-basketball/standings",
+    apiRoster: "sports/basketball/mens-college-basketball/teams/328/roster",
+    teamId: "328",
+    espnAbbr: "USU",
+    sport: "basketball",
+    isHockey: false,
+    showPlayoffOdds: false,
+    hasSalary: false,
+    salaryCap: null,
+  },
 ];
 
 // --- API Helper---
@@ -1793,13 +1891,99 @@ const rowStyle = (i) => ({
 const thStyle = { textAlign: "center", padding: "4px 6px", fontWeight: 600 };
 const tdStyle = { padding: "6px", color: "#ccc", textAlign: "center" };
 
+// --- Team Picker Modal ---
+const MAX_TEAMS = 6;
+
+function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
+  const [picked, setPicked] = useState(selectedTeams || []);
+
+  const toggle = (id) => {
+    setPicked((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= MAX_TEAMS) return prev; // enforce cap
+      return [...prev, id];
+    });
+  };
+
+  const canSave = picked.length >= 1 && picked.length <= MAX_TEAMS;
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 9999,
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+    }} onClick={(e) => { if (!isFirstTime && e.target === e.currentTarget) onClose(); }}>
+      <div style={{
+        background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 16,
+        padding: "28px 24px", maxWidth: 520, width: "100%", maxHeight: "90vh", overflowY: "auto",
+      }}>
+        <h2 style={{ color: "#fff", margin: "0 0 6px", fontSize: 20, fontWeight: 700 }}>
+          {isFirstTime ? "Welcome! Pick Your Teams" : "Customize Your Dashboard"}
+        </h2>
+        <p style={{ color: "#888", fontSize: 13, margin: "0 0 20px" }}>
+          Select up to {MAX_TEAMS} teams to follow. {picked.length}/{MAX_TEAMS} selected.
+        </p>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {TEAMS_CONFIG.map((team) => {
+            const isSelected = picked.includes(team.id);
+            const isDisabled = !isSelected && picked.length >= MAX_TEAMS;
+            return (
+              <div key={team.id} onClick={() => !isDisabled && toggle(team.id)} style={{
+                display: "flex", alignItems: "center", gap: 10, padding: "10px 12px",
+                borderRadius: 10, cursor: isDisabled ? "not-allowed" : "pointer",
+                border: isSelected ? `2px solid ${team.accent}` : "2px solid #2a2a3e",
+                background: isSelected ? team.accent + "15" : "#1a1a2e",
+                opacity: isDisabled ? 0.4 : 1, transition: "all 0.2s",
+              }}>
+                <img src={team.logo} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: "contain", background: "#222", padding: 2 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: isSelected ? team.accent : "#ccc", fontSize: 13, fontWeight: 600 }}>{team.shortName}</div>
+                  <div style={{ color: "#666", fontSize: 10 }}>{team.league} • {team.venue}</div>
+                </div>
+                <div style={{
+                  width: 22, height: 22, borderRadius: 6,
+                  border: isSelected ? `2px solid ${team.accent}` : "2px solid #444",
+                  background: isSelected ? team.accent : "transparent",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0,
+                }}>
+                  {isSelected && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
+          {!isFirstTime && (
+            <button onClick={onClose} style={{
+              background: "none", border: "1px solid #444", borderRadius: 8,
+              padding: "10px 20px", color: "#888", fontSize: 13, cursor: "pointer",
+            }}>Cancel</button>
+          )}
+          <button onClick={() => canSave && onSave(picked)} disabled={!canSave} style={{
+            background: canSave ? "#CC0000" : "#333", border: "none", borderRadius: 8,
+            padding: "10px 24px", color: canSave ? "#fff" : "#666", fontSize: 13,
+            fontWeight: 600, cursor: canSave ? "pointer" : "not-allowed", transition: "all 0.2s",
+          }}>
+            {isFirstTime ? `Let's Go (${picked.length})` : `Save (${picked.length})`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // --- Main Dashboard---
 export default function App() {
   const { user, profile, authLoading, loginWithGoogle, signupWithEmail, loginWithEmail, logout, isAdmin, refreshProfile } = useAuth();
   const [showBracket, setShowBracket] = useState(false);
   const [bracketEntry, setBracketEntry] = useState(1);
   const [userEntries, setUserEntries] = useState([null, null]);
-  const [order, setOrder] = useState(() => TEAMS_CONFIG.map((t) => t.id));
+  const [order, setOrder] = useState([]);
+  const [selectedTeams, setSelectedTeams] = useState(null); // null = not loaded yet
+  const [showTeamPicker, setShowTeamPicker] = useState(false);
+  const [teamsLoaded, setTeamsLoaded] = useState(false);
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [bracketInitialTab, setBracketInitialTab] = useState("bracket");
@@ -1812,6 +1996,49 @@ export default function App() {
 
   // If Google user signs in without a username, they need to set one
   const needsUsername = user && profile && !profile.username;
+
+  // Load team preferences from Firebase on login
+  useEffect(() => {
+    if (!user) {
+      setSelectedTeams(null);
+      setOrder([]);
+      setTeamsLoaded(false);
+      return;
+    }
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        const data = snap.exists() ? snap.data() : {};
+        if (data.selectedTeams && data.selectedTeams.length > 0) {
+          // Validate that saved teams still exist in config
+          const valid = data.selectedTeams.filter(id => TEAMS_CONFIG.find(t => t.id === id));
+          setSelectedTeams(valid);
+          setOrder(valid);
+        } else {
+          // First-time user — show team picker
+          setSelectedTeams([]);
+          setShowTeamPicker(true);
+        }
+      } catch (e) {
+        console.error("Failed to load team prefs:", e);
+        setSelectedTeams([]);
+        setShowTeamPicker(true);
+      }
+      setTeamsLoaded(true);
+    })();
+  }, [user]);
+
+  // Save team preferences to Firebase
+  const saveTeamPrefs = async (teams) => {
+    if (!user) return;
+    setSelectedTeams(teams);
+    setOrder(teams);
+    try {
+      await setDoc(doc(db, "users", user.uid), { selectedTeams: teams }, { merge: true });
+    } catch (e) {
+      console.error("Failed to save team prefs:", e);
+    }
+  };
 
   // Load user bracket entries for banner display
   useEffect(() => {
@@ -1837,10 +2064,15 @@ export default function App() {
     if (!draggedId || draggedId === targetId) { setDraggedId(null); setDragOverId(null); return; }
     setOrder((prev) => {
       const n = [...prev]; const si = n.indexOf(draggedId); const ti = n.indexOf(targetId);
-      n.splice(si, 1); n.splice(ti, 0, draggedId); return n;
+      n.splice(si, 1); n.splice(ti, 0, draggedId);
+      // Persist reorder to Firebase
+      if (user) {
+        setDoc(doc(db, "users", user.uid), { selectedTeams: n }, { merge: true }).catch(() => {});
+      }
+      return n;
     });
     setDraggedId(null); setDragOverId(null);
-  }, [draggedId]);
+  }, [draggedId, user]);
   const handleDragEnd = useCallback(() => { setDraggedId(null); setDragOverId(null); }, []);
 
   // Load admin users + bracket data
@@ -2289,6 +2521,19 @@ export default function App() {
         <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {authLoading ? null : user ? (
             <div className="ush-auth-section" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button onClick={() => setShowTeamPicker(true)}
+                title="Customize teams"
+                style={{
+                  background: "#ffffff10", border: "1px solid #ffffff22", borderRadius: 8,
+                  padding: "6px 10px", color: "#aaa", fontSize: 11, fontWeight: 600,
+                  cursor: "pointer", display: "flex", alignItems: "center", gap: 4, transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff22")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff10")}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                Teams
+              </button>
               {isAdmin && (
                 <button onClick={() => { setShowAdmin(true); loadAdminUsers(); }}
                   className="ush-admin-btn"
@@ -2409,34 +2654,58 @@ export default function App() {
         )}
       </div>
 
-      {/* Team Pills */}
       {/* Widget Grid */}
-      <main className="ush-grid" style={{
-        padding: "20px 28px 40px", display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(440px, 1fr))",
-        gap: 20, maxWidth: 1400, margin: "0 auto",
-      }}>
-        {order.map((id, index) => {
-          const team = TEAMS_CONFIG.find((t) => t.id === id);
-          if (!team) return null;
+      {(() => {
+        // For non-logged-in users, show default 4 teams
+        const displayOrder = (!user || !teamsLoaded)
+          ? ["mammoth", "jazz", "utes-football", "utes-basketball"]
+          : order;
+
+        if (user && teamsLoaded && displayOrder.length === 0) {
+          // User hasn't picked teams yet — show prompt
           return (
-            <div key={id} id={`widget-${id}`}
-              style={{ animation: `fadeIn 0.4s ease ${index * 0.08}s both`, position: "relative" }}>
-              {dragOverId === id && draggedId !== id && (
-                <div style={{ position: "absolute", top: -3, left: 0, right: 0, height: 3, background: team.accent, borderRadius: 2, zIndex: 10 }} />
-              )}
-              <TeamWidget team={team} isDragging={draggedId === id}
-                dragHandlers={{
-                  onDragStart: (e) => handleDragStart(e, id),
-                  onDragOver: (e) => handleDragOver(e, id),
-                  onDrop: (e) => handleDrop(e, id),
-                  onDragEnd: handleDragEnd,
-                }}
-              />
+            <div style={{ textAlign: "center", padding: "80px 20px", color: "#888" }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#444" strokeWidth="1.5" style={{ marginBottom: 16 }}>
+                <path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <div style={{ fontSize: 16, fontWeight: 600, color: "#ccc", marginBottom: 8 }}>Pick your teams to get started</div>
+              <button onClick={() => setShowTeamPicker(true)} style={{
+                background: "#CC0000", border: "none", borderRadius: 8, padding: "10px 24px",
+                color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer",
+              }}>Choose Teams</button>
             </div>
           );
-        })}
-      </main>
+        }
+
+        return (
+          <main className="ush-grid" style={{
+            padding: "20px 28px 40px", display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(440px, 1fr))",
+            gap: 20, maxWidth: 1400, margin: "0 auto",
+          }}>
+            {displayOrder.map((id, index) => {
+              const team = TEAMS_CONFIG.find((t) => t.id === id);
+              if (!team) return null;
+              return (
+                <div key={id} id={`widget-${id}`}
+                  style={{ animation: `fadeIn 0.4s ease ${index * 0.08}s both`, position: "relative" }}>
+                  {dragOverId === id && draggedId !== id && (
+                    <div style={{ position: "absolute", top: -3, left: 0, right: 0, height: 3, background: team.accent, borderRadius: 2, zIndex: 10 }} />
+                  )}
+                  <TeamWidget team={team} isDragging={draggedId === id}
+                    dragHandlers={{
+                      onDragStart: (e) => handleDragStart(e, id),
+                      onDragOver: (e) => handleDragOver(e, id),
+                      onDrop: (e) => handleDrop(e, id),
+                      onDragEnd: handleDragEnd,
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </main>
+        );
+      })()}
 
       <footer style={{ textAlign: "center", padding: "20px 28px", borderTop: "1px solid #1a1a2e", color: "#444", fontSize: 11 }}>
         <div style={{ marginBottom: 8 }}>Salt City Sports | Live data from ESPN API via serverless proxy | Auto-refreshes every 5 minutes</div>
@@ -2471,6 +2740,16 @@ export default function App() {
       {/* Username Prompt for Google users who don't have one yet */}
       {needsUsername && (
         <UsernameSetupModal user={user} onDone={refreshProfile} />
+      )}
+
+      {/* Team Picker Modal */}
+      {showTeamPicker && user && (
+        <TeamPickerModal
+          selectedTeams={selectedTeams || []}
+          isFirstTime={!selectedTeams || selectedTeams.length === 0}
+          onSave={(teams) => { saveTeamPrefs(teams); setShowTeamPicker(false); }}
+          onClose={() => setShowTeamPicker(false)}
+        />
       )}
     </div>
   );
