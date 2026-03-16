@@ -817,7 +817,7 @@ const TEAMS_CONFIG = [
     name: "BYU Cougars Football",
     shortName: "BYU FB",
     logo: "https://a.espncdn.com/i/teamlogos/ncaa/500/252.png",
-    accent: "#002E5D",
+    accent: "#5B9BD5",
     league: "NCAA",
     leagueTag: "NCAAF",
     conference: "Big 12",
@@ -835,13 +835,14 @@ const TEAMS_CONFIG = [
     showPlayoffOdds: false,
     hasSalary: false,
     salaryCap: null,
+    logoBgLight: true,
   },
   {
     id: "byu-basketball",
     name: "BYU Cougars Basketball",
     shortName: "BYU BBall",
     logo: "https://a.espncdn.com/i/teamlogos/ncaa/500/252.png",
-    accent: "#002E5D",
+    accent: "#5B9BD5",
     league: "NCAA",
     leagueTag: "NCAAM",
     conference: "Big 12",
@@ -859,6 +860,7 @@ const TEAMS_CONFIG = [
     showPlayoffOdds: false,
     hasSalary: false,
     salaryCap: null,
+    logoBgLight: true,
   },
   // --- Utah State Teams ---
   {
@@ -866,7 +868,7 @@ const TEAMS_CONFIG = [
     name: "Utah State Aggies Football",
     shortName: "USU FB",
     logo: "https://a.espncdn.com/i/teamlogos/ncaa/500/328.png",
-    accent: "#0F2439",
+    accent: "#4A90D9",
     league: "NCAA",
     leagueTag: "NCAAF",
     conference: "Mountain West",
@@ -884,13 +886,14 @@ const TEAMS_CONFIG = [
     showPlayoffOdds: false,
     hasSalary: false,
     salaryCap: null,
+    logoBgLight: true,
   },
   {
     id: "usu-basketball",
     name: "Utah State Aggies Basketball",
     shortName: "USU BBall",
     logo: "https://a.espncdn.com/i/teamlogos/ncaa/500/328.png",
-    accent: "#0F2439",
+    accent: "#4A90D9",
     league: "NCAA",
     leagueTag: "NCAAM",
     conference: "Mountain West",
@@ -908,6 +911,7 @@ const TEAMS_CONFIG = [
     showPlayoffOdds: false,
     hasSalary: false,
     salaryCap: null,
+    logoBgLight: true,
   },
 ];
 
@@ -1829,7 +1833,7 @@ function TeamWidget({ team, isDragging, dragHandlers }) {
       }}>
         <div style={{ cursor: "grab", color: "#555", fontSize: 18, userSelect: "none", lineHeight: 1 }}><svg width="18" height="18" viewBox="0 0 24 24" fill="#555"><circle cx="8" cy="4" r="2"/><circle cx="16" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="20" r="2"/><circle cx="16" cy="20" r="2"/></svg></div>
         <img src={team.logo} alt={team.name}
-          style={{ width: 44, height: 44, borderRadius: 8, background: "#222", objectFit: "contain", padding: 3 }}
+          style={{ width: 44, height: 44, borderRadius: 8, background: team.logoBgLight ? "#fff" : "#222", objectFit: "contain", padding: 3 }}
           onError={(e) => { e.target.style.display = "none"; }}
         />
         <div style={{ flex: 1 }}>
