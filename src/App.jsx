@@ -1352,8 +1352,8 @@ function StatsTab({ team, accent }) {
   const [sortAsc, setSortAsc] = useState(false);
 
   const isHockey = team.isHockey;
-  // NHL season uses calendar year of spring (2024-25 = 2025), NBA uses end year (2025-26 = 2026)
-  const season = isHockey ? 2025 : 2026;
+  // Both NHL and NBA 2025-26 season = 2026
+  const season = 2026;
   const league = isHockey ? "nhl" : "nba";
   const sport = isHockey ? "hockey" : "basketball";
 
