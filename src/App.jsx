@@ -3516,8 +3516,8 @@ export default function App() {
             <div className="mm-banner-content">
               <span className="mm-banner-emoji">🏀</span>
               <div style={{ textAlign: "left" }}>
-                <div className="mm-banner-title">March Madness 2026</div>
-                <div className="mm-banner-sub">Your brackets are live — edit or add a second entry</div>
+                <div className="mm-banner-title">March Madness 2026 — <span style={{ color: "#22c55e" }}>$75 Prize</span></div>
+                <div className="mm-banner-sub">Your brackets are live — best score wins $75 cash</div>
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -3566,8 +3566,8 @@ export default function App() {
             <div className="mm-banner-content">
               <span className="mm-banner-emoji">🏀</span>
               <div style={{ textAlign: "left" }}>
-                <div className="mm-banner-title">March Madness 2026 Bracket Challenge</div>
-                <div className="mm-banner-sub">Make your picks, compete on the leaderboard, and prove you know college hoops</div>
+                <div className="mm-banner-title">March Madness 2026 — <span style={{ color: "#22c55e" }}>Win $75</span></div>
+                <div className="mm-banner-sub">Free to enter — fill out your bracket, best score wins $75 cash</div>
               </div>
             </div>
             <div className="mm-banner-cta">
