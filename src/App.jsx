@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { auth, googleProvider, signInWithPopup, signOut } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import BracketChallenge from "./BracketChallenge";
 
 // --- Auth Hook ---
 function useAuth() {
@@ -756,6 +757,7 @@ const tdStyle = { padding: "6px", color: "#ccc", textAlign: "center" };
 // --- Main Dashboard---
 export default function App() {
   const { user, authLoading, login, logout } = useAuth();
+  const [showBracket, setShowBracket] = useState(false);
   const [order, setOrder] = useState(() => TEAMS_CONFIG.map((t) => t.id));
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
@@ -787,6 +789,11 @@ export default function App() {
     if (!searchQuery) return true;
     return TEAMS_CONFIG.find((t) => t.id === id)?.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
+
+  // Show Bracket Challenge if active
+  if (showBracket) {
+    return <BracketChallenge user={user} onBack={() => setShowBracket(false)} />;
+  }
 
   return (
     <div style={{
@@ -874,6 +881,20 @@ export default function App() {
 
       {/* Team Pills */}
       <div className="ush-pills" style={{ padding: "14px 28px 0", display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button
+          onClick={() => setShowBracket(true)}
+          style={{
+            background: "linear-gradient(135deg, #FF6B3522, #FFD70022)",
+            border: "1px solid #FF6B3566", borderRadius: 20,
+            padding: "6px 16px", color: "#FF6B35", fontSize: 12, fontWeight: 700,
+            cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
+            animation: "fadeIn 0.5s ease",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "linear-gradient(135deg, #FF6B3544, #FFD70044)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "linear-gradient(135deg, #FF6B3522, #FFD70022)")}
+        >
+          🏀 March Madness
+        </button>
         {TEAMS_CONFIG.map((team) => (
           <button key={team.id}
             onClick={() => document.getElementById(`widget-${team.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
