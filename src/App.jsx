@@ -1344,70 +1344,187 @@ function RosterTab({ roster, accent, team }) {
   );
 }
 
-// --- Stats Tab ---
+// --- Stats Tab (Individual Player Stats) ---
 function StatsTab({ team, accent }) {
-  const [stats, setStats] = useState(null);
+  const [players, setPlayers] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeCat, setActiveCat] = useState(0);
+  const [sortCol, setSortCol] = useState(null);
+  const [sortAsc, setSortAsc] = useState(false);
+
+  const isHockey = team.isHockey;
+  // NHL season uses calendar year of spring (2024-25 = 2025), NBA uses end year (2025-26 = 2026)
+  const season = isHockey ? 2025 : 2026;
+  const league = isHockey ? "nhl" : "nba";
+  const sport = isHockey ? "hockey" : "basketball";
+
+  const columns = isHockey
+    ? [
+        { key: "gp", label: "GP" },
+        { key: "g", label: "G" },
+        { key: "a", label: "A" },
+        { key: "pts", label: "PTS" },
+        { key: "pm", label: "+/-" },
+      ]
+    : [
+        { key: "gp", label: "GP" },
+        { key: "mpg", label: "MPG" },
+        { key: "ppg", label: "PPG" },
+        { key: "rpg", label: "RPG" },
+        { key: "apg", label: "APG" },
+        { key: "spg", label: "SPG" },
+        { key: "bpg", label: "BPG" },
+        { key: "pm", label: "+/-" },
+      ];
 
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch(`/api/espn?path=${team.apiSchedule.replace("/schedule", "/statistics")}`);
-        const d = await r.json();
-        const cats = d?.results?.stats?.categories || [];
-        // Filter out less useful stats and format
-        const formatted = cats.map((c) => ({
-          name: c.displayName,
-          stats: c.stats
-            .filter((s) => s.displayValue !== "0" && s.displayValue !== "0.0" && s.displayValue !== "0:00")
-            .map((s) => ({
-              label: s.shortDisplayName || s.displayName,
-              abbr: s.abbreviation,
-              value: s.displayValue,
-              desc: s.description || "",
-            })),
-        })).filter((c) => c.stats.length > 0);
-        setStats(formatted);
+        // 1. Fetch roster to get player IDs
+        const rosterRes = await fetch(`/api/espn?path=${team.apiRoster}`);
+        const rosterData = await rosterRes.json();
+        const rosterPlayers = rosterData?.athletes || [];
+
+        // 2. Fetch each player's stats in parallel (batches of 10)
+        const results = [];
+        for (let i = 0; i < rosterPlayers.length; i += 10) {
+          const batch = rosterPlayers.slice(i, i + 10);
+          const batchResults = await Promise.all(
+            batch.map(async (p) => {
+              try {
+                const sr = await fetch(
+                  `/api/espn?path=sports/${sport}/leagues/${league}/seasons/${season}/types/2/athletes/${p.id}/statistics&core`
+                );
+                if (!sr.ok) return null;
+                const sd = await sr.json();
+                const cats = sd?.splits?.categories || [];
+                const allStats = cats.flatMap((c) => c.stats);
+                const find = (abbr, catName) => {
+                  if (catName) {
+                    const cat = cats.find((c) => c.name === catName);
+                    return cat?.stats?.find((s) => s.abbreviation === abbr);
+                  }
+                  return allStats.find((s) => s.abbreviation === abbr);
+                };
+                const gp = parseFloat(find("GP", "general")?.displayValue || "0");
+                if (gp === 0) return null;
+
+                if (isHockey) {
+                  return {
+                    name: p.displayName,
+                    pos: p.position?.abbreviation || "",
+                    jersey: p.jersey || "",
+                    headshot: p.headshot?.href || null,
+                    gp,
+                    g: parseFloat(find("G", "offensive")?.displayValue || "0"),
+                    a: parseFloat(find("A", "offensive")?.displayValue || "0"),
+                    pts: parseFloat(find("PTS", "offensive")?.displayValue || "0"),
+                    pm: parseFloat(find("+/-", "general")?.displayValue || "0"),
+                  };
+                } else {
+                  const mins = parseFloat(find("MIN")?.displayValue || "0");
+                  const pts = parseFloat(find("PTS")?.displayValue || "0");
+                  const reb = parseFloat(find("REB")?.displayValue || "0");
+                  const ast = parseFloat(find("AST")?.displayValue || "0");
+                  const stl = parseFloat(find("STL")?.displayValue || "0");
+                  const blk = parseFloat(find("BLK")?.displayValue || "0");
+                  const pm = parseFloat(find("+/-")?.displayValue || "0");
+                  return {
+                    name: p.displayName,
+                    pos: p.position?.abbreviation || "",
+                    jersey: p.jersey || "",
+                    headshot: p.headshot?.href || null,
+                    gp,
+                    mpg: (mins / gp).toFixed(1),
+                    ppg: (pts / gp).toFixed(1),
+                    rpg: (reb / gp).toFixed(1),
+                    apg: (ast / gp).toFixed(1),
+                    spg: (stl / gp).toFixed(1),
+                    bpg: (blk / gp).toFixed(1),
+                    pm,
+                  };
+                }
+              } catch {
+                return null;
+              }
+            })
+          );
+          results.push(...batchResults.filter(Boolean));
+        }
+
+        // Default sort: PTS desc for hockey, PPG desc for basketball
+        const defaultSort = isHockey ? "pts" : "ppg";
+        results.sort((a, b) => b[defaultSort] - a[defaultSort]);
+        setPlayers(results);
+        setSortCol(defaultSort);
       } catch (e) {
         console.error("Stats load error:", e);
-        setStats([]);
+        setPlayers([]);
       }
       setLoading(false);
     })();
   }, [team]);
 
-  if (loading) return <div style={{ color: "#888", padding: 20, textAlign: "center" }}>Loading stats...</div>;
-  if (!stats || stats.length === 0) return <div style={{ color: "#777", padding: 12 }}>Stats not available</div>;
+  const handleSort = (key) => {
+    if (sortCol === key) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortCol(key);
+      setSortAsc(false);
+    }
+  };
 
-  const cat = stats[activeCat];
+  if (loading) return <div style={{ color: "#888", padding: 20, textAlign: "center" }}>Loading player stats...</div>;
+  if (!players || players.length === 0) return <div style={{ color: "#777", padding: 12 }}>Player stats not available</div>;
+
+  const sorted = [...players].sort((a, b) => {
+    if (!sortCol) return 0;
+    const av = parseFloat(a[sortCol]) || 0;
+    const bv = parseFloat(b[sortCol]) || 0;
+    return sortAsc ? av - bv : bv - av;
+  });
 
   return (
-    <div>
-      {/* Category selector */}
-      <div style={{ display: "flex", gap: 4, marginBottom: 10 }}>
-        {stats.map((c, i) => (
-          <button key={c.name} onClick={() => setActiveCat(i)} style={{
-            background: activeCat === i ? accent + "33" : "#1a1a2e",
-            color: activeCat === i ? accent : "#888",
-            border: `1px solid ${activeCat === i ? accent + "66" : "#2a2a3e"}`,
-            borderRadius: 6, padding: "4px 10px", fontSize: 10, fontWeight: 600,
-            cursor: "pointer", transition: "all 0.2s", textTransform: "uppercase",
-          }}>{c.name}</button>
-        ))}
-      </div>
-      {/* Stats grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 6, maxHeight: 300, overflowY: "auto" }}>
-        {cat.stats.map((s) => (
-          <div key={s.abbr + s.label} title={s.desc} style={{
-            background: "#0f0f1e", border: "1px solid #2a2a3e", borderRadius: 8,
-            padding: "8px 10px", textAlign: "center",
-          }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: accent, lineHeight: 1.2 }}>{s.value}</div>
-            <div style={{ fontSize: 9, color: "#888", marginTop: 3, textTransform: "uppercase", letterSpacing: 0.3 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
+    <div style={{ maxHeight: 340, overflowY: "auto" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+        <thead>
+          <tr style={{ color: "#666", borderBottom: "1px solid #333", position: "sticky", top: 0, background: "#12121f", zIndex: 1 }}>
+            <th style={{ ...thStyle, textAlign: "left", minWidth: 100 }}>Player</th>
+            <th style={{ ...thStyle, width: 32 }}>Pos</th>
+            {columns.map((c) => (
+              <th key={c.key} onClick={() => handleSort(c.key)} style={{
+                ...thStyle, width: 42, cursor: "pointer", color: sortCol === c.key ? accent : "#666",
+              }}>
+                {c.label}{sortCol === c.key ? (sortAsc ? " ↑" : " ↓") : ""}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map((p, i) => (
+            <tr key={p.name} style={{ background: i % 2 === 0 ? "#1a1a2e" : "transparent" }}>
+              <td style={{ ...tdStyle, textAlign: "left", display: "flex", alignItems: "center", gap: 6 }}>
+                {p.headshot ? (
+                  <img src={p.headshot} alt="" style={{ width: 20, height: 20, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                ) : (
+                  <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#2a2a3e", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: "#666" }}>{p.jersey}</div>
+                )}
+                <span style={{ color: "#eee", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
+              </td>
+              <td style={{ ...tdStyle, fontSize: 10, color: "#888" }}>{p.pos}</td>
+              {columns.map((c) => (
+                <td key={c.key} style={{
+                  ...tdStyle,
+                  color: c.key === (isHockey ? "pts" : "ppg") ? accent : "#ccc",
+                  fontWeight: c.key === (isHockey ? "pts" : "ppg") ? 700 : 400,
+                  fontFamily: "monospace", fontSize: 11,
+                }}>
+                  {p[c.key]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
