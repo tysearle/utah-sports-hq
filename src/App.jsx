@@ -3624,38 +3624,29 @@ export default function App() {
 
       <footer style={{ borderTop: "1px solid #1e1e34", background: "linear-gradient(180deg, #0d0d1a 0%, #08080f 100%)", padding: "32px 28px 20px", color: "#555" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-          {/* Top row: Logo + tagline | Quick links */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 20, marginBottom: 24 }}>
+          {/* Top row: Logo + tagline | Live data */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20, marginBottom: 24 }}>
             {/* Brand */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <img src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", opacity: 0.85 }} />
               <div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#aaa", letterSpacing: -0.3 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: -0.3 }}>
                   <span style={{ color: "#ccc" }}>Salt City </span><span style={{ color: "#CC0000" }}>Sports</span>
                 </div>
                 <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>Your Utah sports hub</div>
               </div>
             </div>
-            {/* Links */}
-            <div style={{ display: "flex", gap: 20, fontSize: 11, color: "#555" }}>
-              <a href="https://www.espn.com" target="_blank" rel="noopener noreferrer" style={{ color: "#666", textDecoration: "none", transition: "color 0.15s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#aaa"} onMouseLeave={(e) => e.currentTarget.style.color = "#666"}>ESPN</a>
-              <span style={{ color: "#2a2a3e" }}>|</span>
-              <a href="https://www.nba.com/jazz" target="_blank" rel="noopener noreferrer" style={{ color: "#666", textDecoration: "none", transition: "color 0.15s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#aaa"} onMouseLeave={(e) => e.currentTarget.style.color = "#666"}>Utah Jazz</a>
-              <span style={{ color: "#2a2a3e" }}>|</span>
-              <a href="https://www.nhl.com/utah-hockey-club" target="_blank" rel="noopener noreferrer" style={{ color: "#666", textDecoration: "none", transition: "color 0.15s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#aaa"} onMouseLeave={(e) => e.currentTarget.style.color = "#666"}>Utah HC</a>
-              <span style={{ color: "#2a2a3e" }}>|</span>
-              <a href="https://www.realsaltlake.com" target="_blank" rel="noopener noreferrer" style={{ color: "#666", textDecoration: "none", transition: "color 0.15s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#aaa"} onMouseLeave={(e) => e.currentTarget.style.color = "#666"}>RSL</a>
-            </div>
+            {/* Live data indicator */}
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#fff" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e", display: "inline-block", boxShadow: "0 0 6px #22c55e66" }} />
+              Live data &middot; Auto-refreshes every 5 min
+            </span>
           </div>
           {/* Divider */}
           <div style={{ height: 1, background: "linear-gradient(90deg, transparent, #1e1e34 30%, #1e1e34 70%, transparent)", marginBottom: 16 }} />
           {/* Bottom row */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, fontSize: 10, color: "#3a3a50" }}>
+          <div style={{ textAlign: "center", fontSize: 10, color: "#fff" }}>
             <span>&copy; {new Date().getFullYear()} Salt City Sports. Not affiliated with ESPN or any league.</span>
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#22c55e", display: "inline-block", boxShadow: "0 0 4px #22c55e66" }} />
-              Live data &middot; Auto-refreshes every 5 min
-            </span>
           </div>
         </div>
       </footer>
