@@ -14,6 +14,25 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
+// ===== BRACKET DEADLINE =====
+// Tuesday March 17, 2026 at 11:30 AM MDT (UTC-6)
+const BRACKET_DEADLINE = new Date("2026-03-17T11:30:00-06:00");
+
+function isBracketLocked() {
+  return Date.now() >= BRACKET_DEADLINE.getTime();
+}
+
+function getTimeUntilDeadline() {
+  const diff = BRACKET_DEADLINE.getTime() - Date.now();
+  if (diff <= 0) return null;
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  if (days > 0) return `${days}d ${hours}h left`;
+  if (hours > 0) return `${hours}h ${minutes}m left`;
+  return `${minutes}m left`;
+}
+
 // ===== BRACKET DATA =====
 const T = (seed, name, id) => ({ seed, name, id });
 
@@ -1203,6 +1222,17 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
   const [entryNum, setEntryNum] = useState(initialEntry || 1);
   const [entryExists, setEntryExists] = useState([false, false]);
   const [userProfile, setUserProfile] = useState(null);
+  const [locked, setLocked] = useState(isBracketLocked());
+  const [countdown, setCountdown] = useState(getTimeUntilDeadline());
+
+  // Update lock state and countdown every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLocked(isBracketLocked());
+      setCountdown(getTimeUntilDeadline());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Load user's Firestore profile
   useEffect(() => {
@@ -1244,6 +1274,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
   };
 
   const handlePick = useCallback((gameKey, teamId) => {
+    if (isBracketLocked()) return; // Bracket is locked
     setPicks((prev) => {
       // If clicking the same team, deselect
       if (prev[gameKey] === teamId) {
@@ -1257,7 +1288,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
   }, []);
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || isBracketLocked()) return;
     setSaving(true);
     const ok = await saveBracket(user, picks, entryName, entryNum, userProfile);
     setSaving(false);
@@ -1364,30 +1395,49 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
             <input
               type="text"
               value={entryName}
-              onChange={(e) => { setEntryName(e.target.value); setSaved(false); }}
+              onChange={(e) => { if (!locked) { setEntryName(e.target.value); setSaved(false); } }}
               placeholder={userProfile?.username || user.displayName || "Entry name"}
+              disabled={locked}
               style={{
                 background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
-                padding: isMobile ? "6px 10px" : "8px 12px", color: "#ccc",
+                padding: isMobile ? "6px 10px" : "8px 12px", color: locked ? "#666" : "#ccc",
                 fontSize: isMobile ? 11 : 12, flex: 1, minWidth: 0,
-                outline: "none",
+                outline: "none", opacity: locked ? 0.6 : 1,
               }}
             />
-            <button onClick={handleSave} disabled={saving} style={{
-              background: saved ? "#4CAF5022" : "#CC000022",
-              border: `1px solid ${saved ? "#4CAF5066" : "#CC000066"}`,
+            <button onClick={handleSave} disabled={saving || locked} style={{
+              background: locked ? "#44444422" : saved ? "#4CAF5022" : "#CC000022",
+              border: `1px solid ${locked ? "#44444466" : saved ? "#4CAF5066" : "#CC000066"}`,
               borderRadius: 8, padding: isMobile ? "6px 12px" : "8px 16px",
-              color: saved ? "#4CAF50" : "#CC0000",
-              fontSize: isMobile ? 11 : 12, fontWeight: 700, cursor: saving ? "wait" : "pointer",
+              color: locked ? "#666" : saved ? "#4CAF50" : "#CC0000",
+              fontSize: isMobile ? 11 : 12, fontWeight: 700, cursor: locked ? "not-allowed" : saving ? "wait" : "pointer",
               whiteSpace: "nowrap", flexShrink: 0,
             }}>
-              {saving ? "..." : saved ? "✓ Saved" : "Save"}
+              {locked ? "🔒 Locked" : saving ? "..." : saved ? "✓ Saved" : "Save"}
             </button>
           </div>
         ) : (
           !isMobile && <div style={{ fontSize: 11, color: "#666" }}>Sign in to save</div>
         )}
       </header>
+
+      {/* Deadline Banner */}
+      <div style={{
+        background: locked ? "#CC000015" : "#FFD70010",
+        borderBottom: `1px solid ${locked ? "#CC000033" : "#FFD70033"}`,
+        padding: "6px 20px",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        fontSize: 11, fontWeight: 600,
+      }}>
+        {locked ? (
+          <span style={{ color: "#CC0000" }}>🔒 Brackets are locked — entries were due Tue, Mar 17 at 11:30 AM MDT</span>
+        ) : (
+          <>
+            <span style={{ color: "#FFD700" }}>⏰ Entries due: Tue, Mar 17 at 11:30 AM MDT</span>
+            {countdown && <span style={{ color: "#888", fontSize: 10 }}>({countdown})</span>}
+          </>
+        )}
+      </div>
 
       {/* Tab Navigation */}
       <div style={{
