@@ -2193,7 +2193,7 @@ export default function App() {
           border: 1px solid #ffffff33; white-space: nowrap;
           display: flex; align-items: center; gap: 6px; flex-shrink: 0;
         }
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
           .mm-banner { flex-direction: column; gap: 12px; padding: 14px 16px; align-items: stretch; }
           .mm-banner-content { gap: 10px; }
           .mm-banner-emoji { font-size: 24px; }
@@ -2206,7 +2206,7 @@ export default function App() {
         ::-webkit-scrollbar-track { background: #0a0a16; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         a:hover { filter: brightness(1.2); }
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
           .ush-header { flex-direction: column !important; gap: 8px !important; padding: 10px 12px !important; align-items: stretch !important; }
           .ush-header-right { width: 100% !important; flex-direction: column !important; gap: 8px !important; align-items: flex-start !important; }
           .ush-leaderboard-btn, .ush-chat-btn { padding: 4px 8px !important; font-size: 10px !important; display: inline-flex !important; }
