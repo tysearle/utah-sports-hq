@@ -1196,7 +1196,7 @@ function ScheduleTab({ schedule, accent }) {
       {recent.length > 0 && (
         <div style={{ marginBottom: 14 }}>
           <div style={subheaderStyle}>Recent Results</div>
-          {recent.slice(-5).map((g, i) => (
+          {recent.slice(-5).reverse().map((g, i) => (
             <div key={i} style={rowStyle(i)}>
               <div style={{ flex: 1 }}>
                 <span style={{ color: "#999", fontSize: 11 }}>{formatDate(g.date)}</span>
