@@ -2022,20 +2022,22 @@ export default function App() {
           </div>
         </div>
         <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
-            className="ush-leaderboard-btn"
-            style={{
-              background: "#FFD70015", border: "1px solid #FFD70044", borderRadius: 8,
-              padding: "8px 14px", color: "#FFD700", fontSize: 12, fontWeight: 600,
-              cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#FFD70033")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#FFD70015")}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-            Live Leaderboard
-          </button>
+          {user && (
+            <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
+              className="ush-leaderboard-btn"
+              style={{
+                background: "#FFD70015", border: "1px solid #FFD70044", borderRadius: 8,
+                padding: "8px 14px", color: "#FFD700", fontSize: 12, fontWeight: 600,
+                cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
+                whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#FFD70033")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#FFD70015")}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+              Live Leaderboard
+            </button>
+          )}
           {user && (
             <button onClick={() => { setBracketEntry(1); setBracketInitialTab("chat"); setShowBracket(true); }}
               className="ush-chat-btn"
