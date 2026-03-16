@@ -2221,6 +2221,9 @@ export default function App() {
           .ush-auth-section { gap: 6px !important; flex-wrap: nowrap !important; }
           .ush-auth-section .ush-username { max-width: 80px !important; }
           .ush-admin-btn { padding: 4px 6px !important; font-size: 10px !important; }
+          .ush-header-left { gap: 8px !important; }
+          .ush-logo { width: 32px !important; height: 32px !important; }
+          .ush-title { font-size: 16px !important; }
           .ush-subtitle { display: none !important; }
           .ush-auto-refresh { display: none !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
@@ -2234,10 +2237,10 @@ export default function App() {
         display: "flex", alignItems: "center", justifyContent: "space-between",
         position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <img src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }} />
+        <div className="ush-header-left" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <img className="ush-logo" src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }} />
           <div>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>
+            <h1 className="ush-title" style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>
               Salt City <span style={{ color: "#CC0000" }}>Sports</span>
             </h1>
             <p className="ush-subtitle" style={{ margin: 0, fontSize: 11, color: "#666", letterSpacing: 0.5 }}>
