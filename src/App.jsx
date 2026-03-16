@@ -1277,10 +1277,10 @@ function Tabs({ tabs, accent }) {
 
 // --- Schedule Tab---
 function ScheduleTab({ schedule, accent }) {
-  const scrollRef = React.useRef(null);
-  const dividerRef = React.useRef(null);
+  const scrollRef = useRef(null);
+  const dividerRef = useRef(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Auto-scroll so the divider between recent & upcoming is visible near top
     if (dividerRef.current && scrollRef.current) {
       const container = scrollRef.current;
