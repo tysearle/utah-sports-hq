@@ -3050,6 +3050,7 @@ export default function App() {
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         color: "#fff",
       }}>
+        <style>{`@media (max-width: 768px) { .ush-admin-title-block { display: none !important; } }`}</style>
         <header style={{
           background: "linear-gradient(135deg, #12121f 0%, #1a1a30 100%)",
           borderBottom: "1px solid #2a2a3e", padding: "14px 20px",
