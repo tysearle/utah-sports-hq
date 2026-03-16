@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { auth, googleProvider, signInWithPopup, signOut } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import BracketChallenge from "./BracketChallenge";
+import BracketChallenge, { loadUserEntries } from "./BracketChallenge";
 
 // --- Auth Hook ---
 function useAuth() {
@@ -858,11 +858,22 @@ const tdStyle = { padding: "6px", color: "#ccc", textAlign: "center" };
 export default function App() {
   const { user, authLoading, login, logout } = useAuth();
   const [showBracket, setShowBracket] = useState(false);
+  const [bracketEntry, setBracketEntry] = useState(1);
+  const [userEntries, setUserEntries] = useState([null, null]);
   const [order, setOrder] = useState(() => TEAMS_CONFIG.map((t) => t.id));
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [lastRefresh, setLastRefresh] = useState(new Date());
+
+  // Load user bracket entries for banner display
+  useEffect(() => {
+    if (user) {
+      loadUserEntries(user.uid).then(setUserEntries);
+    } else {
+      setUserEntries([null, null]);
+    }
+  }, [user, showBracket]); // re-fetch when returning from bracket
 
   // Auto-update the "last refresh" display every minute
   useEffect(() => {
@@ -892,8 +903,14 @@ export default function App() {
 
   // Show Bracket Challenge if active
   if (showBracket) {
-    return <BracketChallenge user={user} onBack={() => setShowBracket(false)} />;
+    return <BracketChallenge user={user} onBack={() => setShowBracket(false)} initialEntry={bracketEntry} />;
   }
+
+  const hasAnyBracket = userEntries.some((e) => e && Object.keys(e.picks || {}).length > 0);
+  const entry1 = userEntries[0];
+  const entry2 = userEntries[1];
+  const entry1Picks = entry1 ? Object.keys(entry1.picks || {}).length : 0;
+  const entry2Picks = entry2 ? Object.keys(entry2.picks || {}).length : 0;
 
   return (
     <div style={{
@@ -936,7 +953,7 @@ export default function App() {
           .mm-banner-emoji { font-size: 24px; }
           .mm-banner-title { font-size: 15px; }
           .mm-banner-sub { font-size: 11px; }
-          .mm-banner-cta { justify-content: center; padding: 10px 16px; }
+          .mm-banner-cta { justify-content: center; padding: 10px 16px; white-space: normal; min-width: 0 !important; flex: 1; }
         }
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 6px; }
@@ -1014,31 +1031,72 @@ export default function App() {
 
       {/* March Madness Banner */}
       <div style={{ padding: "14px 28px 0" }}>
-        <button
-          className="mm-banner"
-          onClick={() => {
-            if (!user) { login(); return; }
-            setShowBracket(true);
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.01)"; e.currentTarget.style.boxShadow = "0 6px 30px #CC000066"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 20px #CC000044"; }}
-        >
-          <div className="mm-banner-content">
-            <span className="mm-banner-emoji">🏀</span>
-            <div style={{ textAlign: "left" }}>
-              <div className="mm-banner-title">
-                March Madness 2026 Bracket Challenge
-              </div>
-              <div className="mm-banner-sub">
-                Make your picks, compete on the leaderboard, and prove you know college hoops
+        {user && hasAnyBracket ? (
+          /* Returning user banner — show entries & stats */
+          <div className="mm-banner" style={{ cursor: "default" }}>
+            <div className="mm-banner-content">
+              <span className="mm-banner-emoji">🏀</span>
+              <div style={{ textAlign: "left" }}>
+                <div className="mm-banner-title">March Madness 2026</div>
+                <div className="mm-banner-sub">Your brackets are live — edit or add a second entry</div>
               </div>
             </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {[1, 2].map((num) => {
+                const entry = userEntries[num - 1];
+                const picks = entry ? Object.keys(entry.picks || {}).length : 0;
+                const exists = picks > 0;
+                const name = entry?.entryName || (num === 1 ? "Entry 1" : "Entry 2");
+                const champion = entry?.picks?.champ;
+                return (
+                  <button key={num} onClick={() => { setBracketEntry(num); setShowBracket(true); }}
+                    className="mm-banner-cta"
+                    style={{ flexDirection: "column", alignItems: "flex-start", gap: 2, padding: "8px 16px", minWidth: 150 }}
+                  >
+                    {exists ? (
+                      <>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, width: "100%" }}>
+                          <span style={{ fontWeight: 700, fontSize: 13 }}>{name}</span>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </div>
+                        <div style={{ fontSize: 10, color: "#ffffffaa", fontWeight: 400 }}>{picks}/67 picks • Score: 0</div>
+                      </>
+                    ) : (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 16, opacity: 0.6 }}>+</span>
+                        <span style={{ fontWeight: 600, fontSize: 12 }}>Add Entry {num}</span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div className="mm-banner-cta">
-            {user ? "Fill Out Bracket" : "Sign In & Play"}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-          </div>
-        </button>
+        ) : (
+          /* New user / not signed in banner */
+          <button
+            className="mm-banner"
+            onClick={() => {
+              if (!user) { login(); return; }
+              setBracketEntry(1);
+              setShowBracket(true);
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.01)"; e.currentTarget.style.boxShadow = "0 6px 30px #CC000066"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 20px #CC000044"; }}
+          >
+            <div className="mm-banner-content">
+              <span className="mm-banner-emoji">🏀</span>
+              <div style={{ textAlign: "left" }}>
+                <div className="mm-banner-title">March Madness 2026 Bracket Challenge</div>
+                <div className="mm-banner-sub">Make your picks, compete on the leaderboard, and prove you know college hoops</div>
+              </div>
+            </div>
+            <div className="mm-banner-cta">
+              {user ? "Fill Out Bracket" : "Sign In & Play"}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </button>
+        )}
       </div>
 
       {/* Team Pills */}

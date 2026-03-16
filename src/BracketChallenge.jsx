@@ -250,12 +250,18 @@ function clearDownstream(picks, key, newPick) {
 }
 
 // ===== FIRESTORE =====
-async function saveBracket(user, picks, entryName) {
+function entryDocId(uid, entryNum) {
+  return entryNum === 1 ? uid : `${uid}_${entryNum}`;
+}
+
+async function saveBracket(user, picks, entryName, entryNum = 1) {
   if (!user) return;
   try {
-    await setDoc(doc(db, "brackets", user.uid), {
+    await setDoc(doc(db, "brackets", entryDocId(user.uid, entryNum)), {
       picks,
       entryName: entryName || "",
+      entryNum,
+      ownerUid: user.uid,
       displayName: user.displayName || "Anonymous",
       photoURL: user.photoURL || null,
       email: user.email || null,
@@ -268,9 +274,9 @@ async function saveBracket(user, picks, entryName) {
   }
 }
 
-async function loadBracket(uid) {
+async function loadBracket(uid, entryNum = 1) {
   try {
-    const snap = await getDoc(doc(db, "brackets", uid));
+    const snap = await getDoc(doc(db, "brackets", entryDocId(uid, entryNum)));
     if (snap.exists()) {
       const data = snap.data();
       return { picks: data.picks || {}, entryName: data.entryName || "" };
@@ -282,6 +288,23 @@ async function loadBracket(uid) {
   }
 }
 
+async function loadUserEntries(uid) {
+  try {
+    const results = await Promise.all([
+      getDoc(doc(db, "brackets", entryDocId(uid, 1))),
+      getDoc(doc(db, "brackets", entryDocId(uid, 2))),
+    ]);
+    return results.map((snap, i) => {
+      if (!snap.exists()) return null;
+      const d = snap.data();
+      return { entryNum: i + 1, picks: d.picks || {}, entryName: d.entryName || "", updatedAt: d.updatedAt };
+    });
+  } catch (e) {
+    console.error("Load entries failed:", e);
+    return [null, null];
+  }
+}
+
 async function loadLeaderboard() {
   try {
     const snap = await getDocs(collection(db, "brackets"));
@@ -289,7 +312,9 @@ async function loadLeaderboard() {
     snap.forEach((d) => {
       const data = d.data();
       entries.push({
-        uid: d.id,
+        docId: d.id,
+        ownerUid: data.ownerUid || d.id,
+        entryNum: data.entryNum || 1,
         entryName: data.entryName || "",
         displayName: data.displayName || "Anonymous",
         photoURL: data.photoURL,
@@ -303,6 +328,9 @@ async function loadLeaderboard() {
     return [];
   }
 }
+
+// Export for use in App.jsx banner
+export { loadUserEntries };
 
 // ===== COMPONENTS =====
 
@@ -626,7 +654,7 @@ function Leaderboard({ entries, currentUid }) {
           </div>
 
           {sorted.map((entry, i) => {
-            const isMe = entry.uid === currentUid;
+            const isMe = entry.ownerUid === currentUid;
             const numPicks = countPicks(entry.picks);
             const champion = entry.picks["champ"] ? TEAM_MAP[entry.picks["champ"]]?.name : "—";
             return (
@@ -677,7 +705,7 @@ const sectionHeader = {
 };
 
 // ===== MAIN COMPONENT =====
-export default function BracketChallenge({ user, onBack }) {
+export default function BracketChallenge({ user, onBack, initialEntry }) {
   const [picks, setPicks] = useState({});
   const [tab, setTab] = useState("east");
   const [saving, setSaving] = useState(false);
@@ -685,20 +713,38 @@ export default function BracketChallenge({ user, onBack }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [entryName, setEntryName] = useState("");
+  const [entryNum, setEntryNum] = useState(initialEntry || 1);
+  const [entryExists, setEntryExists] = useState([false, false]); // track which entries have data
 
-  // Load user's bracket and leaderboard on mount
+  // Load user's bracket and leaderboard on mount or entry switch
   useEffect(() => {
+    setLoaded(false);
+    setPicks({});
+    setEntryName("");
+    setSaved(false);
     if (user) {
-      loadBracket(user.uid).then(({ picks: p, entryName: en }) => {
+      loadBracket(user.uid, entryNum).then(({ picks: p, entryName: en }) => {
         if (p && Object.keys(p).length > 0) setPicks(p);
         if (en) setEntryName(en);
         setLoaded(true);
+      });
+      // Check which entries exist
+      loadUserEntries(user.uid).then((results) => {
+        setEntryExists([
+          !!(results[0] && Object.keys(results[0]?.picks || {}).length > 0),
+          !!(results[1] && Object.keys(results[1]?.picks || {}).length > 0),
+        ]);
       });
     } else {
       setLoaded(true);
     }
     loadLeaderboard().then(setLeaderboard);
-  }, [user]);
+  }, [user, entryNum]);
+
+  const switchEntry = (num) => {
+    if (num === entryNum) return;
+    setEntryNum(num);
+  };
 
   const handlePick = useCallback((gameKey, teamId) => {
     setPicks((prev) => {
@@ -716,11 +762,11 @@ export default function BracketChallenge({ user, onBack }) {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const ok = await saveBracket(user, picks, entryName);
+    const ok = await saveBracket(user, picks, entryName, entryNum);
     setSaving(false);
     if (ok) {
       setSaved(true);
-      // Refresh leaderboard
+      setEntryExists((prev) => { const n = [...prev]; n[entryNum - 1] = true; return n; });
       loadLeaderboard().then(setLeaderboard);
     }
   };
@@ -766,6 +812,28 @@ export default function BracketChallenge({ user, onBack }) {
             <p style={{ margin: 0, fontSize: 10, color: "#666" }}>BRACKET CHALLENGE</p>
           </div>
         </div>
+
+        {/* Entry Switcher */}
+        {user && (
+          <div style={{ display: "flex", gap: 4, background: "#0a0a16", borderRadius: 8, padding: 3 }}>
+            {[1, 2].map((num) => {
+              const active = entryNum === num;
+              const exists = entryExists[num - 1];
+              return (
+                <button key={num} onClick={() => switchEntry(num)} style={{
+                  background: active ? "#CC000033" : "transparent",
+                  border: active ? "1px solid #CC000066" : "1px solid transparent",
+                  borderRadius: 6, padding: "5px 12px",
+                  color: active ? "#fff" : exists ? "#888" : "#444",
+                  fontSize: 11, fontWeight: active ? 700 : 500,
+                  cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap",
+                }}>
+                  Entry {num} {exists && !active ? "✓" : ""}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ textAlign: "right" }}>
