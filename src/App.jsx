@@ -690,17 +690,83 @@ function RosterTab({ roster, accent, team }) {
 }
 
 // --- Playoff Odds Gauge (Mammoth)---
-function PlayoffOddsTab({ record, accent }) {
-  // Simple estimate from win% - in a real app, you'd fetch from an odds API
-  const parts = record?.match(/(\d+)-(\d+)-(\d+)/);
-  let odds = 50;
-  if (parts) {
-    const [_, w, l, otl] = parts.map(Number);
-    const gp = w + l + otl;
-    const ptPct = gp > 0 ? (w * 2 + otl) / (gp * 2) : 0.5;
-    // Rough model: .550+ pts% ~ 95%+, .500 ~ 50%, below .480 drops fast
-    odds = Math.min(99, Math.max(1, Math.round(ptPct * 180 - 40)));
-  }
+function PlayoffOddsTab({ team, accent }) {
+  const [odds, setOdds] = useState(null);
+  const [rank, setRank] = useState(null);
+  const [confTeams, setConfTeams] = useState([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetchESPN(team.apiStandings, true);
+        // Determine which conference our team is in
+        const conferences = r?.children || [];
+        let myConf = null;
+        let myTeamEntry = null;
+        for (const conf of conferences) {
+          const entries = conf.standings?.entries || [];
+          // Also check children (divisions) if entries are nested
+          const allEntries = entries.length > 0 ? entries : (conf.children || []).flatMap(d => d.standings?.entries || []);
+          const found = allEntries.find(e =>
+            String(e.team?.id) === String(team.teamId) ||
+            e.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase() ||
+            e.team?.abbreviation === team.espnAbbr
+          );
+          if (found) { myConf = conf; myTeamEntry = found; break; }
+        }
+        if (!myConf || !myTeamEntry) return;
+
+        const allEntries = myConf.standings?.entries || (myConf.children || []).flatMap(d => d.standings?.entries || []);
+        const standings = allEntries.map(e => {
+          const pts = e.stats?.find(s => s.name === "points")?.value || 0;
+          const gp = e.stats?.find(s => s.name === "gamesPlayed")?.value || 0;
+          const w = e.stats?.find(s => s.name === "wins")?.value || 0;
+          const l = e.stats?.find(s => s.name === "losses")?.value || 0;
+          const otl = e.stats?.find(s => s.name === "otLosses")?.value || 0;
+          const remaining = 82 - gp;
+          const ptPct = gp > 0 ? (w * 2 + otl) / (gp * 2) : 0.5;
+          const isUs = e === myTeamEntry;
+          return { team: e.team?.abbreviation, displayName: e.team?.displayName, pts, gp, w, l, otl, remaining, ptPct, isUs };
+        }).sort((a, b) => b.pts - a.pts);
+
+        const myIdx = standings.findIndex(t => t.isUs);
+        const myTeam = standings[myIdx];
+        setRank(myIdx + 1);
+        setConfTeams(standings.slice(0, 10));
+
+        // Monte Carlo-ish estimate using points pace
+        // For each team, project final points using their current pt%
+        const projections = standings.map(t => ({
+          ...t,
+          projPts: Math.round(t.pts + t.remaining * t.ptPct * 2),
+        }));
+        projections.sort((a, b) => b.projPts - a.projPts);
+        const projRank = projections.findIndex(t => t.isUs) + 1;
+        const myProj = projections.find(t => t.isUs);
+
+        // Cutline: 8th place team projected points
+        const cutlineProj = projections[7]?.projPts || 90;
+        const buffer = myProj.projPts - cutlineProj;
+
+        // Calculate probability based on buffer above/below cutline and remaining variance
+        // Each remaining game has ~1.1 pts expected, variance matters with more games left
+        const variance = Math.sqrt(myTeam.remaining) * 2.5;
+        let prob;
+        if (variance < 0.1) {
+          prob = myIdx < 8 ? 99 : 1;
+        } else {
+          // Use a sigmoid-like function centered on the cutline
+          prob = Math.round(100 / (1 + Math.exp(-buffer / (variance * 0.4))));
+        }
+        prob = Math.min(99, Math.max(1, prob));
+        setOdds(prob);
+      } catch (e) {
+        console.error("Playoff odds error:", e);
+      }
+    })();
+  }, [team]);
+
+  if (odds === null) return <div style={{ padding: 20, color: "#555" }}>Calculating playoff odds...</div>;
 
   const radius = 50, stroke = 10;
   const circ = 2 * Math.PI * radius;
@@ -721,17 +787,43 @@ function PlayoffOddsTab({ record, accent }) {
           <text x="60" y="72" textAnchor="middle" fill="#888" fontSize="10">PLAYOFF</text>
         </svg>
         <div>
-          <div style={{ color: "#ccc", fontSize: 13, lineHeight: 1.5, marginBottom: 6 }}>
-            Estimated from current record and points percentage. Updates automatically as new games are played.
+          <div style={{ color: "#ccc", fontSize: 13, lineHeight: 1.5, marginBottom: 4 }}>
+            Currently <span style={{ color: "#fff", fontWeight: 700 }}>{rank ? `#${rank}` : "--"}</span> in the Western Conference.
+            {rank && rank <= 8 ? " In a playoff spot." : " Outside the playoff picture."}
+          </div>
+          <div style={{ fontSize: 11, color: "#666", marginBottom: 6 }}>
+            Based on current pace vs. conference standings. Updates with every game.
           </div>
           <div style={{
-            color: odds > 90 ? "#4CAF50" : odds > 60 ? "#8BC34A" : odds > 40 ? "#FFC107" : "#f44336",
+            color: odds > 90 ? "#4CAF50" : odds > 70 ? "#8BC34A" : odds > 50 ? "#FFC107" : odds > 30 ? "#FF9800" : "#f44336",
             fontSize: 15, fontWeight: 700,
           }}>
-            {odds > 90 ? "Virtually Clinched" : odds > 70 ? "Strong Contender" : odds > 50 ? "In the Hunt" : "Needs Help"}
+            {odds > 95 ? "Clinched / Near Clinch" : odds > 85 ? "Very Likely" : odds > 70 ? "Strong Contender" : odds > 50 ? "In the Hunt" : odds > 30 ? "Bubble Team" : "Longshot"}
           </div>
         </div>
       </div>
+      {/* Mini standings */}
+      {confTeams.length > 0 && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>Conference Standings</div>
+          {confTeams.map((t, i) => (
+            <div key={t.team} style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "4px 8px",
+              fontSize: 11, borderRadius: 4,
+              background: t.isUs ? accent + "18" : i === 7 ? "#ffffff08" : "transparent",
+              borderLeft: t.isUs ? `3px solid ${accent}` : i === 7 ? "3px solid #ffffff22" : "3px solid transparent",
+              color: t.isUs ? "#fff" : i < 8 ? "#aaa" : "#555",
+              fontWeight: t.isUs ? 700 : 400,
+            }}>
+              <span style={{ width: 18, textAlign: "right", color: i < 8 ? "#888" : "#444" }}>{i + 1}</span>
+              <span style={{ flex: 1 }}>{t.team}</span>
+              <span style={{ width: 30, textAlign: "right" }}>{t.pts} pts</span>
+              <span style={{ width: 55, textAlign: "right", color: "#555" }}>{t.w}-{t.l}-{t.otl}</span>
+            </div>
+          ))}
+          <div style={{ fontSize: 9, color: "#444", marginTop: 4, paddingLeft: 8 }}>— Top 8 qualify for playoffs —</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -772,7 +864,7 @@ function TeamWidget({ team, isDragging, dragHandlers }) {
     <RosterTab roster={roster} accent={team.accent} team={team} />
   });
   if (team.showPlayoffOdds) {
-    tabs.push({ label: "Playoff Odds", content: <PlayoffOddsTab record={record} accent={team.accent} /> });
+    tabs.push({ label: "Playoff Odds", content: <PlayoffOddsTab team={team} accent={team.accent} /> });
   }
 
   return (
