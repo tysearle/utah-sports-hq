@@ -957,12 +957,15 @@ function useTeamData(team) {
         // Also fetch postseason schedule for NCAA tournament / bowl games
         const needsPostseason = team.league === "NCAA";
         const postseasonParams = isFootballOffseason ? { season: 2025, seasontype: 3 } : { seasontype: 3 };
-        const [teamData, schedData, standData, scoreboardData, postData] = await Promise.allSettled([
+        // For football offseason, also fetch team statistics to get the record
+        const statsPath = team.apiTeam.replace("/teams/", "/teams/") + "/statistics";
+        const [teamData, schedData, standData, scoreboardData, postData, fbStatsData] = await Promise.allSettled([
           fetchESPN(team.apiTeam, false, teamParam),
           fetchESPN(team.apiSchedule, false, seasonParam),
           fetchESPN(team.apiStandings, true),
           isFootballOffseason ? Promise.resolve(null) : fetchESPN(scoreboardPath),
           needsPostseason ? fetchESPN(team.apiSchedule, false, postseasonParams) : Promise.resolve(null),
+          isFootballOffseason ? fetchESPN(statsPath, false, { season: 2025 }) : Promise.resolve(null),
         ]);
 
         if (cancelled) return;
@@ -1005,6 +1008,11 @@ function useTeamData(team) {
               setRecord(rec || "--");
             }
           }
+        }
+        // Football offseason: get record from statistics endpoint if team endpoint didn't have it
+        if (isFootballOffseason && fbStatsData?.status === "fulfilled" && fbStatsData.value) {
+          const fbRec = fbStatsData.value?.team?.recordSummary;
+          if (fbRec) setRecord(fbRec);
         }
 
         // -- Parse schedule--
@@ -1470,6 +1478,93 @@ function RosterTab({ roster, accent, team }) {
   );
 }
 
+// --- Football Team Stats Tab ---
+function FootballStatsTab({ team, accent }) {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`/api/espn?path=${team.apiTeam.replace('/teams/', '/teams/')}/statistics&season=2025`);
+        const data = await res.json();
+        const cats = data?.results?.stats?.categories || [];
+        const getStat = (catName, abbr) => {
+          const cat = cats.find(c => c.name === catName);
+          const s = cat?.stats?.find(st => st.abbreviation === abbr);
+          return s ? { value: s.displayValue, perGame: s.perGameDisplayValue, name: s.displayName } : null;
+        };
+        setStats({
+          passing: { yds: getStat("passing", "YDS"), td: getStat("passing", "TD"), cmpPct: getStat("passing", "CMP%"), int: getStat("passing", "INT"), att: getStat("passing", "ATT") },
+          rushing: { yds: getStat("rushing", "YDS"), td: getStat("rushing", "TD"), avg: getStat("rushing", "AVG"), car: getStat("rushing", "CAR") },
+          receiving: { yds: getStat("receiving", "YDS"), td: getStat("receiving", "TD"), rec: getStat("receiving", "REC") },
+          defense: { sacks: getStat("defensive", "SACK"), tfl: getStat("defensive", "TFL"), tackles: getStat("defensive", "TOT") },
+          interceptions: { int: getStat("defensiveInterceptions", "INT") },
+          scoring: { pts: getStat("scoring", "PTS"), ppg: getStat("scoring", "PPG") },
+          turnovers: { to: getStat("general", "TO"), pen: getStat("general", "PEN") },
+        });
+      } catch (e) {
+        console.error("Football stats error:", e);
+        setStats(null);
+      }
+      setLoading(false);
+    })();
+  }, [team.apiTeam]);
+
+  if (loading) return <div style={{ color: "#888", padding: 20, textAlign: "center" }}>Loading stats...</div>;
+  if (!stats) return <div style={{ color: "#888", padding: 20, textAlign: "center" }}>Stats not available</div>;
+
+  const StatCard = ({ label, value, sub }) => (
+    <div style={{ background: accent + "10", borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
+      <div style={{ color: "#888", fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
+      <div style={{ color: "#fff", fontSize: 20, fontWeight: 700 }}>{value || "--"}</div>
+      {sub && <div style={{ color: "#888", fontSize: 10, marginTop: 2 }}>{sub}</div>}
+    </div>
+  );
+
+  const SectionHeader = ({ title }) => (
+    <div style={{ color: accent, fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, margin: "14px 0 8px", borderBottom: `1px solid ${accent}33`, paddingBottom: 4 }}>{title}</div>
+  );
+
+  return (
+    <div style={{ padding: "4px 8px" }}>
+      <div style={{ color: "#666", fontSize: 10, textAlign: "right", marginBottom: 8 }}>2025 Season</div>
+
+      <SectionHeader title="Offense" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+        <StatCard label="Pass YDS" value={stats.passing.yds?.value} sub={`${stats.passing.cmpPct?.value || '--'}% CMP`} />
+        <StatCard label="Pass TD" value={stats.passing.td?.value} sub={`${stats.passing.int?.value || '0'} INT`} />
+        <StatCard label="Rush YDS" value={stats.rushing.yds?.value} sub={`${stats.rushing.avg?.value || '--'} AVG`} />
+        <StatCard label="Rush TD" value={stats.rushing.td?.value} sub={`${stats.rushing.car?.value || '--'} CAR`} />
+        <StatCard label="Rec YDS" value={stats.receiving.yds?.value} sub={`${stats.receiving.rec?.value || '--'} REC`} />
+        <StatCard label="Rec TD" value={stats.receiving.td?.value} />
+      </div>
+
+      <SectionHeader title="Defense" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+        <StatCard label="Tackles" value={stats.defense.tackles?.value} />
+        <StatCard label="Sacks" value={stats.defense.sacks?.value} />
+        <StatCard label="TFL" value={stats.defense.tfl?.value} />
+        <StatCard label="INT" value={stats.interceptions.int?.value} />
+        <StatCard label="Points Allowed" value={stats.scoring.pts?.value ? null : "--"} />
+        <StatCard label="Turnovers" value={stats.turnovers.to?.value} sub={`${stats.turnovers.pen?.value || '--'} PEN`} />
+      </div>
+
+      <SectionHeader title="Scoring" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
+        <StatCard label="Total Points" value={stats.scoring.pts?.value} sub={stats.scoring.ppg?.value ? `${stats.scoring.ppg.value} PPG` : null} />
+        <StatCard label="Total TDs" value={stats.passing.td && stats.rushing.td ? String(parseInt(stats.passing.td.value) + parseInt(stats.rushing.td.value) + parseInt(stats.receiving.td?.value || "0")) : "--"} />
+      </div>
+
+      <div style={{ textAlign: "center", marginTop: 12 }}>
+        <a href={team.espnUrl} target="_blank" rel="noopener noreferrer" style={{ color: accent, fontSize: 11, textDecoration: "underline" }}>
+          Full stats on ESPN
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // --- Stats Tab (Individual Player Stats) ---
 function StatsTab({ team, accent }) {
   const [players, setPlayers] = useState(null);
@@ -1477,16 +1572,9 @@ function StatsTab({ team, accent }) {
   const [sortCol, setSortCol] = useState(null);
   const [sortAsc, setSortAsc] = useState(false);
 
-  // Football player stats not available via ESPN core API
+  // Football uses team-level stats from the statistics endpoint
   if (team.sport === "football") {
-    return (
-      <div style={{ color: "#888", padding: "30px 12px", textAlign: "center" }}>
-        <div style={{ fontSize: 14, marginBottom: 6 }}>Individual player stats are not available for college football.</div>
-        <a href={team.espnUrl} target="_blank" rel="noopener noreferrer" style={{ color: accent, fontSize: 12, textDecoration: "underline" }}>
-          View full stats on ESPN
-        </a>
-      </div>
-    );
+    return <FootballStatsTab team={team} accent={accent} />;
   }
 
   const isHockey = team.isHockey;
