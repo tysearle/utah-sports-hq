@@ -2458,7 +2458,8 @@ export default function App() {
           .ush-header-nav { order: 3 !important; width: 100% !important; gap: 6px !important; justify-content: center !important; margin-left: 0 !important; }
           .ush-leaderboard-btn, .ush-chat-btn { padding: 5px 10px !important; font-size: 11px !important; display: inline-flex !important; flex: 1 !important; justify-content: center !important; }
           .ush-auth-section { gap: 6px !important; flex-wrap: nowrap !important; }
-          .ush-auth-section .ush-username { max-width: 80px !important; }
+          .ush-teams-label { display: none !important; }
+          .ush-profile-info { display: none !important; }
           .ush-admin-btn { padding: 4px 6px !important; font-size: 10px !important; }
           .ush-header-left { gap: 8px !important; }
           .ush-logo { width: 32px !important; height: 32px !important; }
@@ -2536,7 +2537,7 @@ export default function App() {
                 onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff10")}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                Teams
+                <span className="ush-teams-label">Teams</span>
               </button>
               {isAdmin && (
                 <button onClick={() => { setShowAdmin(true); loadAdminUsers(); }}
@@ -2565,7 +2566,7 @@ export default function App() {
                     {(profile?.username || user.email || "?")[0].toUpperCase()}
                   </div>
                 )}
-                <div>
+                <div className="ush-profile-info">
                   <div className="ush-username" style={{ fontSize: 11, color: "#ccc", fontWeight: 600, maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile?.username || profile?.displayName || user.email?.split("@")[0]}</div>
                   <div style={{ fontSize: 9, color: "#666" }}>Settings</div>
                 </div>
