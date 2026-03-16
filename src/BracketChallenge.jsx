@@ -94,6 +94,19 @@ for (const ff of FIRST_FOUR) {
   for (const t of ff.teams) TEAM_MAP[t.id] = t;
 }
 
+// Build combo placeholder teams for unresolved First Four slots
+const FF_COMBOS = {};
+for (const ff of FIRST_FOUR) {
+  const combo = {
+    seed: ff.teams[0].seed,
+    name: `${ff.teams[0].name} / ${ff.teams[1].name}`,
+    id: ff.id,
+    isCombo: true,
+  };
+  FF_COMBOS[ff.id] = combo;
+  TEAM_MAP[ff.id] = combo;
+}
+
 // ===== WIN PROBABILITY (historical seed-based) =====
 // Historical R64 win rates for the higher seed (1985-2025)
 const SEED_MATCHUP_PCT = {
@@ -129,7 +142,8 @@ function resolveTeam(team, picks) {
   if (!team) return null;
   if (!team.isFirstFour) return team;
   const pickedId = picks[team.id];
-  return pickedId ? TEAM_MAP[pickedId] : null;
+  // If First Four winner is picked, show that team; otherwise show combo "Team1 / Team2"
+  return pickedId ? TEAM_MAP[pickedId] : FF_COMBOS[team.id];
 }
 
 function getGameTeams(regionId, round, gameIndex, picks) {
@@ -168,21 +182,28 @@ function clearDownstream(picks, key, newPick) {
   const newPicks = { ...picks, [key]: newPick };
   const parts = key.split("_");
 
-  // First Four pick changed → check if it affects regional games
+  // First Four pick changed → update any R1 picks that used the combo ID
   if (key.startsWith("ff_") && !key.startsWith("ff_0") && !key.startsWith("ff_1")) {
-    // This is a first four game. We need to check all R1 games that reference this FF
     for (const region of REGIONS) {
       region.matchups.forEach(([t1, t2], gi) => {
+        const r1Key = `${region.id}_1_${gi}`;
         if (t1.isFirstFour && t1.id === key) {
-          // Clear the R1 game pick if it was the old FF winner
-          const r1Key = `${region.id}_1_${gi}`;
-          if (newPicks[r1Key] && newPicks[r1Key] !== newPick) {
+          // If user had picked the combo team, auto-update to the actual picked team
+          if (newPicks[r1Key] === key) {
+            newPicks[r1Key] = newPick;
+          }
+          // If the old specific pick no longer matches, clear it
+          const oldPick = picks[key];
+          if (oldPick && newPicks[r1Key] === oldPick && oldPick !== newPick) {
             delete newPicks[r1Key];
           }
         }
         if (t2.isFirstFour && t2.id === key) {
-          const r1Key = `${region.id}_1_${gi}`;
-          if (newPicks[r1Key] && newPicks[r1Key] !== newPick) {
+          if (newPicks[r1Key] === key) {
+            newPicks[r1Key] = newPick;
+          }
+          const oldPick = picks[key];
+          if (oldPick && newPicks[r1Key] === oldPick && oldPick !== newPick) {
             delete newPicks[r1Key];
           }
         }
@@ -314,8 +335,9 @@ function TeamRow({ team, isSelected, isPicked, onPick, color, disabled, winPct, 
         {team.seed}
       </span>
       <span style={{
-        flex: 1, fontSize: 13, fontWeight: isSelected ? 700 : 500,
-        color: isSelected ? "#fff" : isPicked ? "#555" : "#ccc",
+        flex: 1, fontSize: team.isCombo ? 11 : 13, fontWeight: isSelected ? 700 : 500,
+        color: isSelected ? "#fff" : isPicked ? "#555" : team.isCombo ? "#9a9aaa" : "#ccc",
+        fontStyle: team.isCombo ? "italic" : "normal",
       }}>
         {team.name}
       </span>
