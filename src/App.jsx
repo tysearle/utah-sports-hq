@@ -3084,13 +3084,7 @@ export default function App() {
       })()}
 
       <footer style={{ textAlign: "center", padding: "20px 28px", borderTop: "1px solid #1a1a2e", color: "#444", fontSize: 11 }}>
-        <div style={{ marginBottom: 8 }}>Salt City Sports | Live data from ESPN API via serverless proxy | Auto-refreshes every 5 minutes</div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
-          <a href="https://x.com/saltcitysportut" target="_blank" rel="noopener noreferrer" style={{ color: "#666", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.602l-5.165-6.748L2.881 21.75H-1.265l7.732-8.835L-1.993 2.25h6.736l4.793 6.341 5.982-6.341zM16.905 19.5h1.829L5.327 4.132H3.457l13.448 15.368z"/></svg>
-            X
-          </a>
-        </div>
+        Salt City Sports | Live data from ESPN API via serverless proxy | Auto-refreshes every 5 minutes
       </footer>
 
       {/* Auth Modal */}
