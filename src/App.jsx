@@ -2210,7 +2210,7 @@ export default function App() {
           .ush-header { flex-direction: column !important; gap: 8px !important; padding: 10px 12px !important; align-items: flex-start !important; }
           .ush-header-right { width: 100% !important; flex-wrap: wrap !important; gap: 6px !important; justify-content: flex-start !important; }
           .ush-leaderboard-btn, .ush-chat-btn { padding: 4px 8px !important; font-size: 10px !important; }
-          .ush-auth-section { width: 100% !important; gap: 8px !important; justify-content: flex-start !important; border-top: 1px solid #2a2a3e !important; padding-top: 8px !important; margin-top: 2px !important; }
+          .ush-auth-section { width: 100% !important; flex-basis: 100% !important; gap: 8px !important; justify-content: flex-start !important; border-top: 1px solid #2a2a3e !important; padding-top: 8px !important; margin-top: 2px !important; flex-shrink: 0 !important; }
           .ush-auth-section .ush-username { max-width: 80px !important; }
           .ush-admin-btn { padding: 4px 8px !important; font-size: 10px !important; }
           .ush-subtitle { display: none !important; }
