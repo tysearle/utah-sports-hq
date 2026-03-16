@@ -184,8 +184,19 @@ function useTeamData(team) {
         // -- Parse schedule--
         if (schedData.status === "fulfilled") {
           const raw = schedData.value;
-          const events = raw?.events || raw?.requestedSeason?.events || [];
-          const parsed = events.slice(0, 20).map((ev) => {
+          const allEvents = raw?.events || raw?.requestedSeason?.events || [];
+          // Find games around today: last 5 completed + next 5 upcoming
+          const now = new Date();
+          const completed = [];
+          const upcoming = [];
+          for (const ev of allEvents) {
+            const sn = ev.competitions?.[0]?.status?.type?.name || ev.status?.type?.name || "";
+            const done = sn.includes("FINAL") || sn === "post" || sn === "STATUS_FINAL";
+            if (done) completed.push(ev);
+            else upcoming.push(ev);
+          }
+          const events = [...completed.slice(-5), ...upcoming.slice(0, 5)];
+          const parsed = events.map((ev) => {
             const comp = ev.competitions?.[0];
             const us = comp?.competitors?.find(
               (c) => String(c.id) === String(team.teamId) || c.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase()
@@ -757,10 +768,19 @@ export default function App() {
         ::-webkit-scrollbar-track { background: #0a0a16; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         a:hover { filter: brightness(1.2); }
+        @media (max-width: 600px) {
+          .ush-header { flex-direction: column !important; gap: 10px !important; padding: 12px 14px !important; align-items: flex-start !important; }
+          .ush-header-right { width: 100% !important; flex-direction: row !important; justify-content: space-between !important; }
+          .ush-header-right input { width: 140px !important; }
+          .ush-subtitle { display: none !important; }
+          .ush-pills { padding: 10px 14px 0 !important; gap: 6px !important; }
+          .ush-pills button { padding: 5px 10px !important; font-size: 11px !important; }
+          .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
+        }
       `}</style>
 
       {/* Header */}
-      <header style={{
+      <header className="ush-header" style={{
         background: "linear-gradient(135deg, #12121f 0%, #1a1a30 100%)",
         borderBottom: "1px solid #2a2a3e", padding: "16px 28px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -772,12 +792,12 @@ export default function App() {
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>
               Utah Sports <span style={{ color: "#CC0000" }}>HQ</span>
             </h1>
-            <p style={{ margin: 0, fontSize: 11, color: "#666", letterSpacing: 0.5 }}>
+            <p className="ush-subtitle" style={{ margin: 0, fontSize: 11, color: "#666", letterSpacing: 0.5 }}>
               LIVE DASHBOARD | AUTO-REFRESHES EVERY 5 MIN | DRAG TO REARRANGE
             </p>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ position: "relative" }}>
             <input type="text" placeholder="Filter teams..." value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -796,7 +816,7 @@ export default function App() {
       </header>
 
       {/* Team Pills */}
-      <div style={{ padding: "14px 28px 0", display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <div className="ush-pills" style={{ padding: "14px 28px 0", display: "flex", gap: 8, flexWrap: "wrap" }}>
         {TEAMS_CONFIG.map((team) => (
           <button key={team.id}
             onClick={() => document.getElementById(`widget-${team.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
@@ -815,7 +835,7 @@ export default function App() {
       </div>
 
       {/* Widget Grid */}
-      <main style={{
+      <main className="ush-grid" style={{
         padding: "20px 28px 40px", display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(440px, 1fr))",
         gap: 20, maxWidth: 1400, margin: "0 auto",
