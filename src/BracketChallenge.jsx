@@ -257,16 +257,18 @@ function entryDocId(uid, entryNum) {
   return entryNum === 1 ? uid : `${uid}_${entryNum}`;
 }
 
-async function saveBracket(user, picks, entryName, entryNum = 1) {
+async function saveBracket(user, picks, entryName, entryNum = 1, profile = null) {
   if (!user) return;
   try {
+    const username = profile?.username || user.displayName || "Anonymous";
+    const photoURL = profile?.photoURL || user.photoURL || null;
     await setDoc(doc(db, "brackets", entryDocId(user.uid, entryNum)), {
       picks,
       entryName: entryName || "",
       entryNum,
       ownerUid: user.uid,
-      displayName: user.displayName || "Anonymous",
-      photoURL: user.photoURL || null,
+      displayName: username,
+      photoURL,
       email: user.email || null,
       updatedAt: new Date().toISOString(),
     });
@@ -970,7 +972,7 @@ function BracketChat({ user, isMobile }) {
         text: newMsg.trim(),
         uid: user.uid,
         username: username,
-        photoURL: user.photoURL || null,
+        photoURL: null,
         createdAt: serverTimestamp(),
       });
       setNewMsg("");
@@ -1199,7 +1201,17 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
   const [loaded, setLoaded] = useState(false);
   const [entryName, setEntryName] = useState("");
   const [entryNum, setEntryNum] = useState(initialEntry || 1);
-  const [entryExists, setEntryExists] = useState([false, false]); // track which entries have data
+  const [entryExists, setEntryExists] = useState([false, false]);
+  const [userProfile, setUserProfile] = useState(null);
+
+  // Load user's Firestore profile
+  useEffect(() => {
+    if (user) {
+      getDoc(doc(db, "users", user.uid)).then((snap) => {
+        if (snap.exists()) setUserProfile(snap.data());
+      });
+    }
+  }, [user]);
 
   // Load user's bracket and leaderboard on mount or entry switch
   useEffect(() => {
@@ -1247,7 +1259,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const ok = await saveBracket(user, picks, entryName, entryNum);
+    const ok = await saveBracket(user, picks, entryName, entryNum, userProfile);
     setSaving(false);
     if (ok) {
       setSaved(true);
@@ -1353,7 +1365,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
               type="text"
               value={entryName}
               onChange={(e) => { setEntryName(e.target.value); setSaved(false); }}
-              placeholder={user.displayName || "Entry name"}
+              placeholder={userProfile?.username || user.displayName || "Entry name"}
               style={{
                 background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
                 padding: isMobile ? "6px 10px" : "8px 12px", color: "#ccc",
