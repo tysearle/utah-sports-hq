@@ -271,6 +271,182 @@ function clearDownstream(picks, key, newPick) {
   return newPicks;
 }
 
+// ===== SCORING ENGINE =====
+// Given actual results, find each bracket game key whose winner matches
+
+// Build a reverse lookup: for each team id, which R1 game key does it appear in?
+const TEAM_TO_R1_GAME = {};
+for (const region of REGIONS) {
+  region.matchups.forEach(([t1, t2], gi) => {
+    const gameKey = `${region.id}_1_${gi}`;
+    if (!t1.isFirstFour) TEAM_TO_R1_GAME[t1.id] = { gameKey, region: region.id, gameIndex: gi };
+    if (!t2.isFirstFour) TEAM_TO_R1_GAME[t2.id] = { gameKey, region: region.id, gameIndex: gi };
+    // Also map First Four placeholder IDs
+    if (t1.isFirstFour) {
+      const ff = FIRST_FOUR.find((f) => f.id === t1.id);
+      if (ff) ff.teams.forEach((t) => { TEAM_TO_R1_GAME[t.id] = { gameKey, region: region.id, gameIndex: gi, isFirstFour: t1.id }; });
+    }
+    if (t2.isFirstFour) {
+      const ff = FIRST_FOUR.find((f) => f.id === t2.id);
+      if (ff) ff.teams.forEach((t) => { TEAM_TO_R1_GAME[t.id] = { gameKey, region: region.id, gameIndex: gi, isFirstFour: t2.id }; });
+    }
+  });
+}
+
+// Build actual results from ESPN game data
+// Returns an object: { "east_1_0": "duke", "east_2_0": "duke", ... }
+function buildActualResults(games) {
+  const results = {};
+  if (!games || !games.length) return results;
+
+  // Get only completed games with winners
+  const completed = games.filter((g) => g.status === "final" && g.winnerId);
+
+  // First pass: map First Four results
+  for (const game of completed) {
+    if (game.round === 0) {
+      // First Four game - find which First Four slot this belongs to
+      for (const ff of FIRST_FOUR) {
+        const ids = ff.teams.map((t) => t.id);
+        if (ids.includes(game.winnerId)) {
+          results[ff.id] = game.winnerId;
+          break;
+        }
+      }
+    }
+  }
+
+  // Second pass: map Round 1 (R64) results
+  for (const game of completed) {
+    if (game.round === 1 || (!game.round && game.winnerId)) {
+      const winnerInfo = TEAM_TO_R1_GAME[game.winnerId];
+      const loserInfo = TEAM_TO_R1_GAME[game.loserId];
+      if (winnerInfo && loserInfo && winnerInfo.gameKey === loserInfo.gameKey) {
+        results[winnerInfo.gameKey] = game.winnerId;
+      }
+    }
+  }
+
+  // For rounds 2-4: walk the bracket forward using actual results
+  for (const region of REGIONS) {
+    for (let round = 2; round <= 4; round++) {
+      const gamesInRound = 8 / Math.pow(2, round);
+      for (let gi = 0; gi < gamesInRound; gi++) {
+        // The two feeder games
+        const feeder1Key = `${region.id}_${round - 1}_${gi * 2}`;
+        const feeder2Key = `${region.id}_${round - 1}_${gi * 2 + 1}`;
+        const team1 = results[feeder1Key];
+        const team2 = results[feeder2Key];
+        if (!team1 || !team2) continue;
+
+        // Find if there's a completed game between these two teams
+        const match = completed.find(
+          (g) => (g.winnerId === team1 || g.winnerId === team2) &&
+                 (g.loserId === team1 || g.loserId === team2)
+        );
+        if (match) {
+          results[`${region.id}_${round}_${gi}`] = match.winnerId;
+        }
+      }
+    }
+  }
+
+  // Final Four
+  for (let gi = 0; gi < 2; gi++) {
+    const [r1, r2] = FF_PAIRS[gi];
+    const team1 = results[`${r1}_4_0`]; // region winner
+    const team2 = results[`${r2}_4_0`];
+    if (!team1 || !team2) continue;
+    const match = completed.find(
+      (g) => (g.winnerId === team1 || g.winnerId === team2) &&
+             (g.loserId === team1 || g.loserId === team2)
+    );
+    if (match) {
+      results[`ff_${gi}`] = match.winnerId;
+    }
+  }
+
+  // Championship
+  const ffWinner1 = results["ff_0"];
+  const ffWinner2 = results["ff_1"];
+  if (ffWinner1 && ffWinner2) {
+    const match = completed.find(
+      (g) => (g.winnerId === ffWinner1 || g.winnerId === ffWinner2) &&
+             (g.loserId === ffWinner1 || g.loserId === ffWinner2)
+    );
+    if (match) {
+      results["champ"] = match.winnerId;
+    }
+  }
+
+  return results;
+}
+
+// Score a user's picks against actual results
+function scoreBracket(picks, actualResults) {
+  let total = 0;
+  const breakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+  let correctPicks = 0;
+  let possiblePicks = 0;
+
+  // Score regional rounds (1-4) for each region
+  for (const region of REGIONS) {
+    for (let round = 1; round <= 4; round++) {
+      const gamesInRound = 8 / Math.pow(2, round);
+      for (let gi = 0; gi < gamesInRound; gi++) {
+        const key = `${region.id}_${round}_${gi}`;
+        if (actualResults[key]) {
+          possiblePicks++;
+          if (picks[key] === actualResults[key]) {
+            const pts = SCORING[round] || 0;
+            total += pts;
+            breakdown[round] = (breakdown[round] || 0) + pts;
+            correctPicks++;
+          }
+        }
+      }
+    }
+  }
+
+  // Score Final Four (round 5)
+  for (let gi = 0; gi < 2; gi++) {
+    const key = `ff_${gi}`;
+    if (actualResults[key]) {
+      possiblePicks++;
+      if (picks[key] === actualResults[key]) {
+        total += SCORING[5];
+        breakdown[5] = (breakdown[5] || 0) + SCORING[5];
+        correctPicks++;
+      }
+    }
+  }
+
+  // Score Championship (round 6)
+  if (actualResults["champ"]) {
+    possiblePicks++;
+    if (picks["champ"] === actualResults["champ"]) {
+      total += SCORING[6];
+      breakdown[6] = (breakdown[6] || 0) + SCORING[6];
+      correctPicks++;
+    }
+  }
+
+  return { total, breakdown, correctPicks, possiblePicks };
+}
+
+// Fetch results from our API
+async function fetchTournamentResults() {
+  try {
+    const resp = await fetch("/api/ncaa-results");
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data;
+  } catch (e) {
+    console.error("Failed to fetch tournament results:", e);
+    return null;
+  }
+}
+
 // ===== FIRESTORE =====
 function entryDocId(uid, entryNum) {
   return entryNum === 1 ? uid : `${uid}_${entryNum}`;
@@ -834,15 +1010,24 @@ function FinalFourView({ picks, onPick }) {
 }
 
 
-function Leaderboard({ entries, currentUid, isMobile }) {
-  // Sort by number of picks for now (score will be 0 until games are played)
-  const sorted = [...entries].sort((a, b) => {
-    const aPicks = countPicks(a.picks);
-    const bPicks = countPicks(b.picks);
-    return bPicks - aPicks;
+function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo }) {
+  // Score each entry against actual results
+  const scored = entries.map((entry) => {
+    const score = actualResults ? scoreBracket(entry.picks, actualResults) : { total: 0, breakdown: {}, correctPicks: 0, possiblePicks: 0 };
+    return { ...entry, score };
   });
 
-  const gridCols = isMobile ? "28px 1fr 50px 50px" : "40px 1fr 80px 80px";
+  // Sort by score descending, then by correct picks, then by total picks
+  const sorted = scored.sort((a, b) => {
+    if (b.score.total !== a.score.total) return b.score.total - a.score.total;
+    if (b.score.correctPicks !== a.score.correctPicks) return b.score.correctPicks - a.score.correctPicks;
+    return countPicks(b.picks) - countPicks(a.picks);
+  });
+
+  const hasScoring = resultsInfo && resultsInfo.completedGames > 0;
+  const gridCols = isMobile
+    ? "28px 1fr 40px 50px"
+    : "40px 1fr 80px 80px 140px";
 
   return (
     <div>
@@ -851,9 +1036,20 @@ function Leaderboard({ entries, currentUid, isMobile }) {
         <div style={{ fontSize: 12, color: "#888" }}>
           {sorted.length} bracket{sorted.length !== 1 ? "s" : ""} submitted
         </div>
-        <div style={{ fontSize: isMobile ? 10 : 11, color: "#555", marginTop: 4 }}>
-          Scoring starts when games begin March 19. Points: R64=1, R32=2, S16=4, E8=8, FF=16, Champ=32
-        </div>
+        {hasScoring ? (
+          <div style={{ fontSize: isMobile ? 10 : 11, color: "#4CAF50", marginTop: 4 }}>
+            🟢 Live scoring — {resultsInfo.completedGames} game{resultsInfo.completedGames !== 1 ? "s" : ""} completed
+          </div>
+        ) : (
+          <div style={{ fontSize: isMobile ? 10 : 11, color: "#555", marginTop: 4 }}>
+            Points: R64=1, R32=2, S16=4, E8=8, FF=16, Champ=32
+          </div>
+        )}
+        {resultsInfo?.lastUpdated && (
+          <div style={{ fontSize: 9, color: "#444", marginTop: 2 }}>
+            Updated: {new Date(resultsInfo.lastUpdated).toLocaleTimeString()}
+          </div>
+        )}
       </div>
 
       {sorted.length === 0 ? (
@@ -870,16 +1066,17 @@ function Leaderboard({ entries, currentUid, isMobile }) {
           }}>
             <div>#</div>
             <div>Player</div>
-            <div style={{ textAlign: "center" }}>Picks</div>
+            <div style={{ textAlign: "center" }}>{isMobile ? "✓" : "Correct"}</div>
             <div style={{ textAlign: "center" }}>Score</div>
+            {!isMobile && <div style={{ textAlign: "center" }}>Breakdown</div>}
           </div>
 
           {sorted.map((entry, i) => {
             const isMe = entry.ownerUid === currentUid;
-            const numPicks = countPicks(entry.picks);
             const champion = entry.picks["champ"] ? TEAM_MAP[entry.picks["champ"]]?.name : "—";
+            const { total, breakdown, correctPicks, possiblePicks } = entry.score;
             return (
-              <div key={entry.uid} style={{
+              <div key={entry.docId} style={{
                 display: "grid", gridTemplateColumns: gridCols,
                 padding: isMobile ? "8px 10px" : "12px 16px", borderBottom: "1px solid #1a1a2e",
                 background: isMe ? "#CC000012" : i % 2 === 0 ? "#0f0f1e" : "transparent",
@@ -908,12 +1105,35 @@ function Leaderboard({ entries, currentUid, isMobile }) {
                     )}
                   </div>
                 </div>
-                <div style={{ textAlign: "center", color: "#888", fontSize: isMobile ? 11 : 13, alignSelf: "center" }}>
-                  {numPicks}/67
+                <div style={{ textAlign: "center", color: hasScoring ? "#4CAF50" : "#888", fontSize: isMobile ? 11 : 13, alignSelf: "center" }}>
+                  {hasScoring ? `${correctPicks}/${possiblePicks}` : `${countPicks(entry.picks)}/67`}
                 </div>
                 <div style={{ textAlign: "center", color: "#FFD700", fontSize: isMobile ? 13 : 15, fontWeight: 700, alignSelf: "center" }}>
-                  0
+                  {total}
                 </div>
+                {!isMobile && hasScoring && (
+                  <div style={{ display: "flex", gap: 4, alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}>
+                    {[1, 2, 3, 4, 5, 6].map((r) => {
+                      const pts = breakdown[r] || 0;
+                      if (!pts) return null;
+                      const labels = { 1: "R64", 2: "R32", 3: "S16", 4: "E8", 5: "FF", 6: "CH" };
+                      return (
+                        <span key={r} style={{
+                          fontSize: 9, padding: "2px 5px", borderRadius: 4,
+                          background: "#FFD70015", color: "#FFD700", whiteSpace: "nowrap",
+                        }}>
+                          {labels[r]}:{pts}
+                        </span>
+                      );
+                    })}
+                    {!Object.values(breakdown).some((v) => v > 0) && (
+                      <span style={{ fontSize: 9, color: "#444" }}>—</span>
+                    )}
+                  </div>
+                )}
+                {!isMobile && !hasScoring && (
+                  <div style={{ textAlign: "center", fontSize: 9, color: "#444", alignSelf: "center" }}>—</div>
+                )}
               </div>
             );
           })}
@@ -1224,6 +1444,8 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
   const [userProfile, setUserProfile] = useState(null);
   const [locked, setLocked] = useState(isBracketLocked());
   const [countdown, setCountdown] = useState(getTimeUntilDeadline());
+  const [actualResults, setActualResults] = useState(null);
+  const [resultsInfo, setResultsInfo] = useState(null);
 
   // Update lock state and countdown every 30 seconds
   useEffect(() => {
@@ -1232,6 +1454,30 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
       setCountdown(getTimeUntilDeadline());
     }, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Fetch tournament results and auto-refresh every 2 minutes
+  useEffect(() => {
+    let cancelled = false;
+    const doFetch = async () => {
+      const data = await fetchTournamentResults();
+      if (data && !cancelled) {
+        const results = buildActualResults(data.games || []);
+        setActualResults(results);
+        setResultsInfo({
+          completedGames: data.completedGames || 0,
+          totalGames: data.totalGames || 0,
+          lastUpdated: data.lastUpdated,
+        });
+      }
+    };
+    // Only poll after the bracket locks (tournament has started)
+    if (isBracketLocked()) {
+      doFetch();
+      const interval = setInterval(doFetch, 120000); // every 2 minutes
+      return () => { cancelled = true; clearInterval(interval); };
+    }
+    return () => { cancelled = true; };
   }, []);
 
   // Load user's Firestore profile
@@ -1485,7 +1731,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
             )}
             {tab === "first4" && <FirstFourView picks={picks} onPick={handlePick} />}
             {tab === "ff" && <FinalFourView picks={picks} onPick={handlePick} />}
-            {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} />}
+            {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} actualResults={actualResults} resultsInfo={resultsInfo} />}
             {tab === "chat" && <BracketChat user={user} isMobile={isMobile} />}
           </>
         )}
