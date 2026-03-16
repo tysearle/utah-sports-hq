@@ -2827,6 +2827,7 @@ export default function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminLoading, setAdminLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -3327,140 +3328,171 @@ export default function App() {
         .ush-logo { width: 48px; height: 48px; }
         .ush-title { font-size: 22px; }
         @media (max-width: 768px) {
-          .ush-header { flex-wrap: wrap !important; gap: 8px !important; padding: 10px 12px !important; align-items: center !important; justify-content: space-between !important; }
-          .ush-header-left { order: 1 !important; }
-          .ush-header-right { order: 2 !important; flex-direction: row !important; gap: 6px !important; align-items: center !important; }
-          .ush-header-nav { order: 3 !important; width: 100% !important; gap: 6px !important; justify-content: center !important; margin-left: 0 !important; }
-          .ush-leaderboard-btn, .ush-chat-btn { padding: 5px 10px !important; font-size: 11px !important; display: inline-flex !important; flex: 1 !important; justify-content: center !important; }
-          .ush-auth-section { gap: 6px !important; flex-wrap: nowrap !important; }
-          .ush-teams-label { display: none !important; }
-          .ush-profile-info { display: none !important; }
-          .ush-admin-btn { padding: 4px 6px !important; font-size: 10px !important; }
-          .ush-header-left { gap: 8px !important; }
-          .ush-logo { width: 32px !important; height: 32px !important; }
-          .ush-title { font-size: 16px !important; }
-          .ush-subtitle { display: none !important; }
+          .ush-header > div { padding: 0 12px !important; }
+          .ush-header-left { gap: 6px !important; margin-right: 12px !important; }
+          .ush-header-nav { gap: 0 !important; }
+          .ush-nav-link { padding: 6px 8px !important; font-size: 11px !important; }
+          .ush-nav-link svg { display: none !important; }
+          .ush-logo { width: 28px !important; height: 28px !important; }
+          .ush-title { font-size: 14px !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
         }
       `}</style>
 
-      {/* Header */}
+      {/* Header - ESPN-style nav */}
       <header className="ush-header" style={{
-        background: "linear-gradient(135deg, #12121f 0%, #1a1a30 100%)",
-        borderBottom: "1px solid #2a2a3e", padding: "16px 28px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)",
+        background: "#0a0a18", borderBottom: "1px solid #2a2a3e",
+        position: "sticky", top: 0, zIndex: 100,
       }}>
-        <div className="ush-header-left" style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <img className="ush-logo" src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ borderRadius: "50%", objectFit: "cover" }} />
-          <div>
-            <h1 className="ush-title" style={{ margin: 0, fontWeight: 800, letterSpacing: -0.5 }}>
-              Salt City <span style={{ color: "#CC0000" }}>Sports</span>
+        <div style={{
+          display: "flex", alignItems: "center", padding: "0 24px", height: 52,
+        }}>
+          {/* Logo */}
+          <div className="ush-header-left" style={{ display: "flex", alignItems: "center", gap: 10, marginRight: 28 }}>
+            <img className="ush-logo" src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} />
+            <h1 className="ush-title" style={{ margin: 0, fontWeight: 800, fontSize: 18, letterSpacing: -0.5 }}>
+              <span style={{ color: "#fff" }}>SCS</span>
             </h1>
-            <p className="ush-subtitle" style={{ margin: 0, fontSize: 11, color: "#666", letterSpacing: 0.5 }}>
-              YOUR UTAH SPORTS HUB | LIVE DATA | AUTO-REFRESHES
-            </p>
           </div>
-        </div>
-        {/* Nav buttons - next to auth on desktop, own row on mobile */}
-        <div className="ush-header-nav" style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
-          {user && (
+
+          {/* Nav links */}
+          <nav className="ush-header-nav" style={{ display: "flex", alignItems: "center", gap: 4, flex: 1 }}>
+            <button onClick={() => setShowTeamPicker(true)}
+              className="ush-nav-link"
+              style={{
+                background: "none", border: "none", color: "#ccc", fontSize: 13, fontWeight: 600,
+                cursor: "pointer", padding: "8px 14px", borderRadius: 6, transition: "all 0.15s",
+                display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#ffffff12"; e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#ccc"; }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+              Teams
+            </button>
             <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
-              className="ush-leaderboard-btn"
+              className="ush-nav-link"
               style={{
-                background: "#FFD70015", border: "1px solid #FFD70044", borderRadius: 8,
-                padding: "8px 14px", color: "#FFD700", fontSize: 12, fontWeight: 600,
-                cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
-                whiteSpace: "nowrap",
+                background: "none", border: "none", color: "#ccc", fontSize: 13, fontWeight: 600,
+                cursor: "pointer", padding: "8px 14px", borderRadius: 6, transition: "all 0.15s",
+                display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#FFD70033")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#FFD70015")}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#ffffff12"; e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#ccc"; }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-              Live Leaderboard
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 21h8m-4-4v4m-4.65-4a8 8 0 118.65-12.27"/><path d="M12 6V2l4 4"/></svg>
+              March Madness
             </button>
-          )}
-          {user && (
-            <button onClick={() => { setBracketEntry(1); setBracketInitialTab("chat"); setShowBracket(true); }}
-              className="ush-chat-btn"
-              style={{
-                background: "#4CAF5015", border: "1px solid #4CAF5044", borderRadius: 8,
-                padding: "8px 14px", color: "#4CAF50", fontSize: 12, fontWeight: 600,
-                cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
-                whiteSpace: "nowrap",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#4CAF5033")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#4CAF5015")}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-              View Chat
-            </button>
-          )}
-        </div>
-        {/* Auth section */}
-        <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <button onClick={() => setShowTeamPicker(true)}
-            title="Customize teams"
-            style={{
-              background: "#ffffff10", border: "1px solid #ffffff22", borderRadius: 8,
-              padding: "6px 10px", color: "#aaa", fontSize: 11, fontWeight: 600,
-              cursor: "pointer", display: "flex", alignItems: "center", gap: 4, transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff22")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff10")}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-            <span className="ush-teams-label">Teams</span>
-          </button>
-          {authLoading ? null : user ? (
-            <div className="ush-auth-section" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {isAdmin && (
-                <button onClick={() => { setShowAdmin(true); loadAdminUsers(); }}
-                  className="ush-admin-btn"
+            {user && (
+              <button onClick={() => { setBracketEntry(1); setBracketInitialTab("chat"); setShowBracket(true); }}
+                className="ush-nav-link"
+                style={{
+                  background: "none", border: "none", color: "#ccc", fontSize: 13, fontWeight: 600,
+                  cursor: "pointer", padding: "8px 14px", borderRadius: 6, transition: "all 0.15s",
+                  display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#ffffff12"; e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#ccc"; }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                Chat Room
+              </button>
+            )}
+            {isAdmin && (
+              <button onClick={() => { setShowAdmin(true); loadAdminUsers(); }}
+                className="ush-nav-link"
+                style={{
+                  background: "none", border: "none", color: "#ccc", fontSize: 13, fontWeight: 600,
+                  cursor: "pointer", padding: "8px 14px", borderRadius: 6, transition: "all 0.15s",
+                  display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#ffffff12"; e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#ccc"; }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197"/></svg>
+                Admin
+              </button>
+            )}
+          </nav>
+
+          {/* Right side - profile */}
+          <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
+            {authLoading ? null : user ? (
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowProfileDropdown((p) => !p)}
                   style={{
-                    background: "#4A90D915", border: "1px solid #4A90D944", borderRadius: 8,
-                    padding: "6px 10px", color: "#4A90D9", fontSize: 11, fontWeight: 600,
-                    cursor: "pointer", display: "flex", alignItems: "center", gap: 4, transition: "all 0.2s",
+                    background: "none", border: "none", cursor: "pointer", padding: 4,
+                    display: "flex", alignItems: "center", gap: 8, borderRadius: 8,
+                    transition: "all 0.15s",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#4A90D933")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "#4A90D915")}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff12")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197"/></svg>
-                  Admin
+                  {profile?.photoURL ? (
+                    <img src={profile.photoURL} alt="" style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #CC0000", objectFit: "cover" }} referrerPolicy="no-referrer" />
+                  ) : (
+                    <div style={{
+                      width: 32, height: 32, borderRadius: "50%", background: "#CC000033",
+                      border: "2px solid #CC0000", display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 14, fontWeight: 700, color: "#CC0000",
+                    }}>
+                      {(profile?.username || user.email || "?")[0].toUpperCase()}
+                    </div>
+                  )}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-              )}
-              <div onClick={() => setShowProfileSettings(true)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }} title="Profile settings">
-                {profile?.photoURL ? (
-                  <img src={profile.photoURL} alt="" style={{ width: 30, height: 30, borderRadius: "50%", border: "2px solid #CC0000", objectFit: "cover" }} referrerPolicy="no-referrer" />
-                ) : (
-                  <div style={{
-                    width: 30, height: 30, borderRadius: "50%", background: "#CC000033",
-                    border: "2px solid #CC0000", display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 13, fontWeight: 700, color: "#CC0000",
-                  }}>
-                    {(profile?.username || user.email || "?")[0].toUpperCase()}
-                  </div>
+                {showProfileDropdown && (
+                  <>
+                    <div style={{ position: "fixed", inset: 0, zIndex: 199 }} onClick={() => setShowProfileDropdown(false)} />
+                    <div style={{
+                      position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 200,
+                      background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 10,
+                      padding: "6px 0", minWidth: 180, boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                    }}>
+                      <div style={{ padding: "10px 16px", borderBottom: "1px solid #2a2a3e" }}>
+                        <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>{profile?.username || profile?.displayName || user.email?.split("@")[0]}</div>
+                        <div style={{ color: "#666", fontSize: 11 }}>{user.email}</div>
+                      </div>
+                      <button onClick={() => { setShowProfileDropdown(false); setShowProfileSettings(true); }} style={{
+                        width: "100%", textAlign: "left", background: "none", border: "none",
+                        padding: "10px 16px", color: "#ccc", fontSize: 13, cursor: "pointer",
+                        display: "flex", alignItems: "center", gap: 10, transition: "background 0.15s",
+                      }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff08")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Settings
+                      </button>
+                      <button onClick={() => { setShowProfileDropdown(false); logout(); }} style={{
+                        width: "100%", textAlign: "left", background: "none", border: "none",
+                        padding: "10px 16px", color: "#CC0000", fontSize: 13, cursor: "pointer",
+                        display: "flex", alignItems: "center", gap: 10, transition: "background 0.15s",
+                      }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff08")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Sign Out
+                      </button>
+                    </div>
+                  </>
                 )}
-                <div className="ush-profile-info">
-                  <div className="ush-username" style={{ fontSize: 11, color: "#ccc", fontWeight: 600, maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{profile?.username || profile?.displayName || user.email?.split("@")[0]}</div>
-                  <div style={{ fontSize: 9, color: "#666" }}>Settings</div>
-                </div>
               </div>
-              <button onClick={logout} style={{ background: "none", border: "none", color: "#888", fontSize: 9, cursor: "pointer", padding: 0, textDecoration: "underline", alignSelf: "flex-end" }}>Sign out</button>
-            </div>
-          ) : (
-            <button onClick={() => setShowAuthModal(true)} style={{
-              background: "#1a1a2e", border: "1px solid #CC000066", borderRadius: 8,
-              padding: "8px 14px", color: "#CC0000", fontSize: 12, fontWeight: 600,
-              cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
-            }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#CC000022")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "#1a1a2e")}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-              Sign in
-            </button>
-          )}
+            ) : (
+              <button onClick={() => setShowAuthModal(true)} style={{
+                background: "none", border: "1px solid #CC000066", borderRadius: 8,
+                padding: "7px 16px", color: "#CC0000", fontSize: 13, fontWeight: 600,
+                cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s",
+              }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#CC000018")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+              >
+                Sign In
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
