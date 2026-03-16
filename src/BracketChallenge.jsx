@@ -334,130 +334,280 @@ export { loadUserEntries };
 
 // ===== COMPONENTS =====
 
-function TeamRow({ team, isSelected, isPicked, onPick, color, disabled, winPct, isFav }) {
-  if (!team) {
-    return (
-      <div style={{
-        padding: "10px 12px", display: "flex", alignItems: "center", gap: 8,
-        color: "#444", fontSize: 13, fontStyle: "italic",
-      }}>
-        <span style={{ width: 24, textAlign: "center", fontSize: 11, color: "#333" }}>—</span>
-        <span>Waiting for pick...</span>
-      </div>
-    );
-  }
+function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled }) {
+  const isSelected1 = picked === team1?.id;
+  const isSelected2 = picked === team2?.id;
 
-  return (
-    <div
-      onClick={() => !disabled && onPick(team.id)}
-      style={{
-        padding: "10px 12px", display: "flex", alignItems: "center", gap: 8,
-        background: isSelected ? (color || "#CC0000") + "22" : "transparent",
-        borderLeft: isSelected ? `3px solid ${color || "#CC0000"}` : "3px solid transparent",
-        cursor: disabled ? "default" : "pointer",
-        transition: "all 0.15s",
-        opacity: isPicked && !isSelected ? 0.4 : 1,
-      }}
-      onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = isSelected ? (color || "#CC0000") + "22" : "#ffffff08"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = isSelected ? (color || "#CC0000") + "22" : "transparent"; }}
-    >
-      <span style={{
-        width: 24, textAlign: "center", fontSize: 11, fontWeight: 700,
-        color: isSelected ? color || "#CC0000" : "#666",
-      }}>
-        {team.seed}
-      </span>
-      <span style={{
-        flex: 1, fontSize: team.isCombo ? 11 : 13, fontWeight: isSelected ? 700 : 500,
-        color: isSelected ? "#fff" : isPicked ? "#555" : team.isCombo ? "#9a9aaa" : "#ccc",
-        fontStyle: team.isCombo ? "italic" : "normal",
-      }}>
-        {team.name}
-      </span>
-      {winPct != null && !isPicked && (
-        <span style={{
-          fontSize: 10, fontWeight: isFav ? 700 : 400,
-          color: isFav ? "#4CAF50" : "#555",
-          minWidth: 32, textAlign: "right",
-        }}>
-          {winPct}%
-        </span>
-      )}
-      {isSelected && (
-        <span style={{ color: color || "#CC0000", fontSize: 14, fontWeight: 700 }}>✓</span>
-      )}
-    </div>
-  );
-}
-
-function MatchupCard({ team1, team2, picked, onPick, color, gameKey, roundPoints }) {
-  const prob = getWinProb(team1, team2);
+  const handleClick = (teamId) => {
+    if (disabled) return;
+    onPick(teamId);
+  };
 
   return (
     <div style={{
-      background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 10,
-      overflow: "hidden", minWidth: 200,
+      background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 6,
+      minWidth: 140, fontSize: 11, overflow: "hidden",
     }}>
-      <TeamRow
-        team={team1} isSelected={picked === team1?.id}
-        isPicked={!!picked} onPick={onPick} color={color}
-        disabled={!team1}
-        winPct={prob?.pct1} isFav={prob?.fav === team1?.id}
-      />
-      {/* Probability bar */}
-      {prob && !picked && team1 && team2 && (
-        <div style={{ display: "flex", height: 3, background: "#1a1a2e" }}>
-          <div style={{
-            width: `${prob.pct1}%`, height: "100%",
-            background: prob.fav === team1?.id ? "#4CAF50" : "#ffffff18",
-            transition: "width 0.3s",
-          }} />
-          <div style={{
-            width: `${prob.pct2}%`, height: "100%",
-            background: prob.fav === team2?.id ? "#4CAF50" : "#ffffff18",
-            transition: "width 0.3s",
-          }} />
-        </div>
-      )}
-      {(picked || !prob || !team1 || !team2) && <div style={{ borderTop: "1px solid #2a2a3e" }} />}
-      <TeamRow
-        team={team2} isSelected={picked === team2?.id}
-        isPicked={!!picked} onPick={onPick} color={color}
-        disabled={!team2}
-        winPct={prob?.pct2} isFav={prob?.fav === team2?.id}
-      />
-      {roundPoints && (
+      {/* Team 1 */}
+      <div
+        onClick={() => handleClick(team1?.id)}
+        style={{
+          padding: "6px 8px", display: "flex", alignItems: "center", gap: 6,
+          borderBottom: "1px solid #2a2a3e",
+          background: isSelected1 ? "#CC000022" : team1 ? "#ffffff04" : "#1a1a2e",
+          cursor: !disabled && team1 ? "pointer" : "default",
+          transition: "all 0.15s",
+        }}
+        onMouseEnter={(e) => {
+          if (!disabled && team1) e.currentTarget.style.background = "#CC000044";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = isSelected1 ? "#CC000022" : team1 ? "#ffffff04" : "#1a1a2e";
+        }}
+      >
+        {/* Radio circle */}
         <div style={{
-          borderTop: "1px solid #2a2a3e", padding: "3px 12px",
-          fontSize: 9, color: "#555", textAlign: "right",
-        }}>
-          {roundPoints} pt{roundPoints > 1 ? "s" : ""}
+          width: 12, height: 12, borderRadius: "50%",
+          border: isSelected1 ? "3px solid #CC0000" : "2px solid #444",
+          background: isSelected1 ? "#CC0000" : "transparent",
+          flexShrink: 0,
+        }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {team1 ? (
+            <>
+              <div style={{ fontSize: 9, color: "#666", fontWeight: 700 }}>
+                {team1.seed}
+              </div>
+              <div style={{
+                fontSize: 10, fontWeight: isSelected1 ? 700 : 500,
+                color: isSelected1 ? "#fff" : team1.isCombo ? "#9a9aaa" : "#ccc",
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                fontStyle: team1.isCombo ? "italic" : "normal",
+              }}>
+                {team1.name}
+              </div>
+            </>
+          ) : (
+            <div style={{ fontSize: 9, color: "#333", fontStyle: "italic" }}>—</div>
+          )}
         </div>
-      )}
+      </div>
+
+      {/* Team 2 */}
+      <div
+        onClick={() => handleClick(team2?.id)}
+        style={{
+          padding: "6px 8px", display: "flex", alignItems: "center", gap: 6,
+          background: isSelected2 ? "#CC000022" : team2 ? "#ffffff04" : "#1a1a2e",
+          cursor: !disabled && team2 ? "pointer" : "default",
+          transition: "all 0.15s",
+        }}
+        onMouseEnter={(e) => {
+          if (!disabled && team2) e.currentTarget.style.background = "#CC000044";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = isSelected2 ? "#CC000022" : team2 ? "#ffffff04" : "#1a1a2e";
+        }}
+      >
+        {/* Radio circle */}
+        <div style={{
+          width: 12, height: 12, borderRadius: "50%",
+          border: isSelected2 ? "3px solid #CC0000" : "2px solid #444",
+          background: isSelected2 ? "#CC0000" : "transparent",
+          flexShrink: 0,
+        }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {team2 ? (
+            <>
+              <div style={{ fontSize: 9, color: "#666", fontWeight: 700 }}>
+                {team2.seed}
+              </div>
+              <div style={{
+                fontSize: 10, fontWeight: isSelected2 ? 700 : 500,
+                color: isSelected2 ? "#fff" : team2.isCombo ? "#9a9aaa" : "#ccc",
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                fontStyle: team2.isCombo ? "italic" : "normal",
+              }}>
+                {team2.name}
+              </div>
+            </>
+          ) : (
+            <div style={{ fontSize: 9, color: "#333", fontStyle: "italic" }}>—</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-function FirstFourTab({ picks, onPick, color }) {
+function RegionalBracketView({ region, picks, onPick }) {
+  const rounds = [1, 2, 3, 4];
+  const matchupsPerRound = [8, 4, 2, 1];
+
+  // Spacing multipliers for vertical alignment
+  const spacingMultipliers = [1, 2, 4, 8];
+
+  const MATCHUP_HEIGHT = 64;
+  const VERTICAL_GAP = 8;
+
   return (
-    <div>
-      <div style={{ ...sectionHeader }}>First Four — Dayton, OH</div>
-      <div style={{ color: "#888", fontSize: 12, marginBottom: 16 }}>
-        Pick the winner of each play-in game. Winners advance to the main bracket.
+    <div style={{
+      background: "#0a0a16", borderRadius: 12, border: "1px solid #2a2a3e",
+      padding: 16, marginBottom: 16, overflowX: "auto",
+    }}>
+      {/* Region Header */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 10, marginBottom: 20,
+      }}>
+        <div style={{
+          width: 6, height: 24, borderRadius: 3, background: region.color,
+        }} />
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>
+            {region.name} Region
+          </div>
+          <div style={{ fontSize: 11, color: "#888" }}>
+            {region.location}
+          </div>
+        </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+
+      {/* Bracket Grid */}
+      <div style={{
+        display: "flex", gap: 24, minWidth: "min-content",
+        alignItems: "flex-start", paddingBottom: 16,
+      }}>
+        {rounds.map((round, roundIdx) => {
+          const numMatchups = matchupsPerRound[roundIdx];
+          const spacing = spacingMultipliers[roundIdx];
+          const totalHeight = numMatchups * MATCHUP_HEIGHT * spacing + (numMatchups - 1) * VERTICAL_GAP;
+
+          return (
+            <div key={round} style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+            }}>
+              {/* Round Header */}
+              <div style={{
+                textAlign: "center", marginBottom: 12, minWidth: 140,
+              }}>
+                <div style={{
+                  fontSize: 10, fontWeight: 700, color: region.color,
+                  textTransform: "uppercase", letterSpacing: 0.5,
+                }}>
+                  {ROUND_NAMES[round]}
+                </div>
+                <div style={{
+                  fontSize: 8, color: "#666", marginTop: 2,
+                }}>
+                  {SCORING[round]} pts
+                </div>
+              </div>
+
+              {/* Matchups Container */}
+              <div style={{
+                display: "flex", flexDirection: "column", gap: `${VERTICAL_GAP}px`,
+                height: totalHeight,
+                justifyContent: "space-around",
+              }}>
+                {Array.from({ length: numMatchups }, (_, gameIdx) => {
+                  const [t1, t2] = getGameTeams(region.id, round, gameIdx, picks);
+                  const gameKey = `${region.id}_${round}_${gameIdx}`;
+                  return (
+                    <MatchupBox
+                      key={gameKey}
+                      team1={t1}
+                      team2={t2}
+                      picked={picks[gameKey]}
+                      onPick={(teamId) => onPick(gameKey, teamId)}
+                      gameKey={gameKey}
+                      disabled={!t1 || !t2}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Region Winner Display */}
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          justifyContent: "center", minWidth: 140,
+        }}>
+          <div style={{
+            fontSize: 9, color: "#666", textTransform: "uppercase",
+            letterSpacing: 0.5, marginBottom: 12, textAlign: "center",
+          }}>
+            Champion
+          </div>
+          {(() => {
+            const winner = getRegionWinner(region.id, picks);
+            return winner ? (
+              <div style={{
+                background: region.color + "15", border: `2px solid ${region.color}`,
+                borderRadius: 6, padding: "8px 12px", textAlign: "center",
+              }}>
+                <div style={{ fontSize: 8, color: region.color, fontWeight: 700 }}>
+                  {winner.seed}
+                </div>
+                <div style={{
+                  fontSize: 10, fontWeight: 700, color: region.color,
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                }}>
+                  {winner.name}
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                width: 140, height: 24, background: "#1a1a2e",
+                borderRadius: 4, border: "1px solid #2a2a3e",
+              }} />
+            );
+          })()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FirstFourView({ picks, onPick }) {
+  return (
+    <div style={{
+      background: "#0a0a16", borderRadius: 12, border: "1px solid #2a2a3e",
+      padding: 16,
+    }}>
+      <div style={{
+        fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4,
+      }}>
+        First Four
+      </div>
+      <div style={{
+        fontSize: 12, color: "#888", marginBottom: 20,
+      }}>
+        Pick the winner of each play-in game (Dayton, OH). Winners advance to the main bracket.
+      </div>
+
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+        gap: 16,
+      }}>
         {FIRST_FOUR.map((ff) => {
           const regionName = REGIONS.find((r) => r.id === ff.region)?.name || ff.region;
           return (
             <div key={ff.id}>
-              <div style={{ fontSize: 10, color: "#666", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                {regionName} Region — {ff.teams[0].seed} Seed
+              <div style={{
+                fontSize: 9, color: "#666", marginBottom: 8,
+                textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 700,
+              }}>
+                {regionName} — {ff.teams[0].seed} Seed
               </div>
-              <MatchupCard
-                team1={ff.teams[0]} team2={ff.teams[1]}
+              <MatchupBox
+                team1={ff.teams[0]}
+                team2={ff.teams[1]}
                 picked={picks[ff.id]}
                 onPick={(teamId) => onPick(ff.id, teamId)}
-                color={color}
+                gameKey={ff.id}
+                disabled={false}
               />
             </div>
           );
@@ -467,153 +617,116 @@ function FirstFourTab({ picks, onPick, color }) {
   );
 }
 
-function RegionTab({ region, picks, onPick }) {
-  const rounds = [1, 2, 3, 4];
-  const gamesPerRound = [8, 4, 2, 1];
-
+function FinalFourView({ picks, onPick }) {
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+      {/* Final Four Semifinals */}
+      <div style={{
+        background: "#0a0a16", borderRadius: 12, border: "1px solid #2a2a3e",
+        padding: 16, marginBottom: 24,
+      }}>
         <div style={{
-          width: 6, height: 24, borderRadius: 3,
-          background: region.color,
-        }} />
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{region.name} Region</div>
-          <div style={{ fontSize: 11, color: "#888" }}>{region.location}</div>
+          fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4,
+        }}>
+          Final Four Semifinals
+        </div>
+        <div style={{
+          fontSize: 12, color: "#888", marginBottom: 20,
+        }}>
+          Lucas Oil Stadium — Indianapolis, IN | 16 pts each
+        </div>
+
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+          gap: 16,
+        }}>
+          {FF_PAIRS.map((pair, i) => {
+            const [t1, t2] = getFinalFourTeams(i, picks);
+            const r1 = REGIONS.find((r) => r.id === pair[0]);
+            const r2 = REGIONS.find((r) => r.id === pair[1]);
+            return (
+              <div key={i}>
+                <div style={{
+                  fontSize: 9, color: "#666", marginBottom: 8,
+                  textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 700,
+                }}>
+                  {r1.name} vs {r2.name}
+                </div>
+                <MatchupBox
+                  team1={t1}
+                  team2={t2}
+                  picked={picks[`ff_${i}`]}
+                  onPick={(teamId) => onPick(`ff_${i}`, teamId)}
+                  gameKey={`ff_${i}`}
+                  disabled={!t1 || !t2}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {rounds.map((round) => {
-        const numGames = gamesPerRound[round - 1];
-        return (
-          <div key={round} style={{ marginBottom: 20 }}>
-            <div style={{ ...sectionHeader, color: region.color }}>
-              {ROUND_NAMES[round]}
-              <span style={{ fontSize: 10, color: "#555", marginLeft: 8, fontWeight: 400 }}>
-                {SCORING[round]} pt{SCORING[round] > 1 ? "s" : ""} each
-              </span>
+      {/* Championship */}
+      <div style={{
+        background: "#0a0a16", borderRadius: 12, border: "1px solid #2a2a3e",
+        padding: 16, marginBottom: 24,
+      }}>
+        <div style={{
+          fontSize: 16, fontWeight: 700, color: "#FFD700", marginBottom: 4,
+        }}>
+          National Championship
+        </div>
+        <div style={{
+          fontSize: 12, color: "#888", marginBottom: 20,
+        }}>
+          32 pts
+        </div>
+
+        {(() => {
+          const [t1, t2] = getChampTeams(picks);
+          return (
+            <div style={{ maxWidth: 300 }}>
+              <MatchupBox
+                team1={t1}
+                team2={t2}
+                picked={picks["champ"]}
+                onPick={(teamId) => onPick("champ", teamId)}
+                gameKey="champ"
+                disabled={!t1 || !t2}
+              />
+            </div>
+          );
+        })()}
+
+        {/* Champion Display */}
+        {picks["champ"] && TEAM_MAP[picks["champ"]] && (
+          <div style={{
+            background: "linear-gradient(135deg, #FFD70022, #CC000022)",
+            border: "1px solid #FFD70044", borderRadius: 12,
+            padding: 16, textAlign: "center", marginTop: 16,
+          }}>
+            <div style={{ fontSize: 28, marginBottom: 4 }}>🏆</div>
+            <div style={{
+              fontSize: 10, color: "#888", textTransform: "uppercase",
+              letterSpacing: 1, marginBottom: 4,
+            }}>
+              Your National Champion
             </div>
             <div style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(auto-fill, minmax(${round <= 2 ? "220px" : "260px"}, 1fr))`,
-              gap: 10,
+              fontSize: 18, fontWeight: 900, color: "#FFD700", marginBottom: 2,
             }}>
-              {Array.from({ length: numGames }, (_, gi) => {
-                const [t1, t2] = getGameTeams(region.id, round, gi, picks);
-                const gameKey = `${region.id}_${round}_${gi}`;
-                return (
-                  <MatchupCard
-                    key={gameKey}
-                    team1={t1} team2={t2}
-                    picked={picks[gameKey]}
-                    onPick={(teamId) => onPick(gameKey, teamId)}
-                    color={region.color}
-                    roundPoints={SCORING[round]}
-                  />
-                );
-              })}
+              {TEAM_MAP[picks["champ"]].name}
+            </div>
+            <div style={{ fontSize: 11, color: "#ccc" }}>
+              ({TEAM_MAP[picks["champ"]].seed} seed)
             </div>
           </div>
-        );
-      })}
-
-      {/* Region Winner */}
-      {(() => {
-        const winner = getRegionWinner(region.id, picks);
-        return winner ? (
-          <div style={{
-            background: region.color + "15", border: `1px solid ${region.color}44`,
-            borderRadius: 12, padding: 16, textAlign: "center",
-          }}>
-            <div style={{ fontSize: 11, color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>
-              {region.name} Region Champion
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: region.color }}>
-              ({winner.seed}) {winner.name}
-            </div>
-          </div>
-        ) : null;
-      })()}
+        )}
+      </div>
     </div>
   );
 }
 
-function FinalFourTab({ picks, onPick }) {
-  return (
-    <div>
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "#fff" }}>Final Four</div>
-        <div style={{ fontSize: 12, color: "#888" }}>Lucas Oil Stadium — Indianapolis, IN</div>
-      </div>
-
-      <div style={{ ...sectionHeader, color: "#CC0000" }}>
-        National Semifinals
-        <span style={{ fontSize: 10, color: "#555", marginLeft: 8, fontWeight: 400 }}>16 pts each</span>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12, marginBottom: 24 }}>
-        {FF_PAIRS.map((pair, i) => {
-          const [t1, t2] = getFinalFourTeams(i, picks);
-          const r1 = REGIONS.find((r) => r.id === pair[0]);
-          const r2 = REGIONS.find((r) => r.id === pair[1]);
-          return (
-            <div key={i}>
-              <div style={{ fontSize: 10, color: "#666", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                {r1.name} vs {r2.name}
-              </div>
-              <MatchupCard
-                team1={t1} team2={t2}
-                picked={picks[`ff_${i}`]}
-                onPick={(teamId) => onPick(`ff_${i}`, teamId)}
-                color="#CC0000"
-                roundPoints={16}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{ ...sectionHeader, color: "#FFD700" }}>
-        National Championship
-        <span style={{ fontSize: 10, color: "#555", marginLeft: 8, fontWeight: 400 }}>32 pts</span>
-      </div>
-      {(() => {
-        const [t1, t2] = getChampTeams(picks);
-        return (
-          <div style={{ maxWidth: 300, margin: "0 auto" }}>
-            <MatchupCard
-              team1={t1} team2={t2}
-              picked={picks["champ"]}
-              onPick={(teamId) => onPick("champ", teamId)}
-              color="#FFD700"
-              roundPoints={32}
-            />
-          </div>
-        );
-      })()}
-
-      {/* Champion Display */}
-      {picks["champ"] && TEAM_MAP[picks["champ"]] && (
-        <div style={{
-          background: "linear-gradient(135deg, #FFD70022, #CC000022)",
-          border: "1px solid #FFD70044", borderRadius: 16, padding: 24,
-          textAlign: "center", marginTop: 24,
-        }}>
-          <div style={{ fontSize: 32, marginBottom: 4 }}>🏆</div>
-          <div style={{ fontSize: 11, color: "#888", textTransform: "uppercase", letterSpacing: 2, marginBottom: 4 }}>
-            Your National Champion
-          </div>
-          <div style={{ fontSize: 28, fontWeight: 900, color: "#FFD700" }}>
-            {TEAM_MAP[picks["champ"]].name}
-          </div>
-          <div style={{ fontSize: 13, color: "#ccc", marginTop: 4 }}>
-            ({TEAM_MAP[picks["champ"]].seed} seed)
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function Leaderboard({ entries, currentUid }) {
   // Sort by number of picks for now (score will be 0 until games are played)
@@ -707,7 +820,7 @@ const sectionHeader = {
 // ===== MAIN COMPONENT =====
 export default function BracketChallenge({ user, onBack, initialEntry }) {
   const [picks, setPicks] = useState({});
-  const [tab, setTab] = useState("east");
+  const [tab, setTab] = useState("bracket");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -773,9 +886,9 @@ export default function BracketChallenge({ user, onBack, initialEntry }) {
 
   const totalPicks = countPicks(picks);
 
-  const tabs = [
+  const viewTabs = [
+    { id: "bracket", label: "Bracket" },
     { id: "first4", label: "First Four" },
-    ...REGIONS.map((r) => ({ id: r.id, label: r.name })),
     { id: "ff", label: "Final Four" },
     { id: "lb", label: "Leaderboard" },
   ];
@@ -884,10 +997,9 @@ export default function BracketChallenge({ user, onBack, initialEntry }) {
         background: "#0d0d1a", borderBottom: "1px solid #1a1a2e",
         overflowX: "auto", whiteSpace: "nowrap",
       }}>
-        {tabs.map((t) => {
+        {viewTabs.map((t) => {
           const isActive = tab === t.id;
-          const region = REGIONS.find((r) => r.id === t.id);
-          const color = region?.color || (t.id === "ff" ? "#CC0000" : t.id === "lb" ? "#FFD700" : "#888");
+          const color = t.id === "ff" ? "#CC0000" : t.id === "lb" ? "#FFD700" : "#4A90D9";
           return (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               background: isActive ? color + "15" : "transparent",
@@ -906,14 +1018,20 @@ export default function BracketChallenge({ user, onBack, initialEntry }) {
       </div>
 
       {/* Content */}
-      <main style={{ padding: "20px", maxWidth: 1100, margin: "0 auto" }}>
+      <main style={{ padding: "20px" }}>
         {!loaded ? (
           <div style={{ textAlign: "center", padding: 60, color: "#555" }}>Loading bracket...</div>
         ) : (
           <>
-            {tab === "first4" && <FirstFourTab picks={picks} onPick={handlePick} color="#CC0000" />}
-            {REGIONS.map((r) => tab === r.id && <RegionTab key={r.id} region={r} picks={picks} onPick={handlePick} />)}
-            {tab === "ff" && <FinalFourTab picks={picks} onPick={handlePick} />}
+            {tab === "bracket" && (
+              <div>
+                {REGIONS.map((r) => (
+                  <RegionalBracketView key={r.id} region={r} picks={picks} onPick={handlePick} />
+                ))}
+              </div>
+            )}
+            {tab === "first4" && <FirstFourView picks={picks} onPick={handlePick} />}
+            {tab === "ff" && <FinalFourView picks={picks} onPick={handlePick} />}
             {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} />}
           </>
         )}
