@@ -2224,7 +2224,7 @@ export default function App() {
         position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <img src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} />
+          <img src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }} />
           <div>
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>
               Salt City <span style={{ color: "#CC0000" }}>Sports</span>
