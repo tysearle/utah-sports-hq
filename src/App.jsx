@@ -2219,7 +2219,7 @@ export default function App() {
           .ush-header { flex-wrap: wrap !important; gap: 8px !important; padding: 10px 12px !important; align-items: center !important; justify-content: space-between !important; }
           .ush-header-left { order: 1 !important; }
           .ush-header-right { order: 2 !important; flex-direction: row !important; gap: 6px !important; align-items: center !important; }
-          .ush-header-nav { order: 3 !important; width: 100% !important; gap: 6px !important; justify-content: center !important; }
+          .ush-header-nav { order: 3 !important; width: 100% !important; gap: 6px !important; justify-content: center !important; margin-left: 0 !important; }
           .ush-leaderboard-btn, .ush-chat-btn { padding: 5px 10px !important; font-size: 11px !important; display: inline-flex !important; flex: 1 !important; justify-content: center !important; }
           .ush-auth-section { gap: 6px !important; flex-wrap: nowrap !important; }
           .ush-auth-section .ush-username { max-width: 80px !important; }
@@ -2251,8 +2251,8 @@ export default function App() {
             </p>
           </div>
         </div>
-        {/* Nav buttons - between logo and auth on desktop, own row on mobile */}
-        <div className="ush-header-nav" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Nav buttons - next to auth on desktop, own row on mobile */}
+        <div className="ush-header-nav" style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
           {user && (
             <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
               className="ush-leaderboard-btn"
