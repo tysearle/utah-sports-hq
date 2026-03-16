@@ -907,8 +907,24 @@ function BracketChat({ user, isMobile }) {
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState("");
   const [sending, setSending] = useState(false);
+  const [username, setUsername] = useState("");
+  const [usernameSet, setUsernameSet] = useState(false);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [editingUsername, setEditingUsername] = useState(false);
   const bottomRef = useRef(null);
   const chatRef = useRef(null);
+
+  // Load username from Firestore on mount
+  useEffect(() => {
+    if (!user) return;
+    getDoc(doc(db, "users", user.uid)).then((snap) => {
+      if (snap.exists() && snap.data().chatUsername) {
+        setUsername(snap.data().chatUsername);
+        setUsernameSet(true);
+      }
+    });
+  }, [user]);
 
   // Real-time listener for chat messages
   useEffect(() => {
@@ -929,15 +945,31 @@ function BracketChat({ user, isMobile }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const saveUsername = async () => {
+    if (!user || !usernameInput.trim()) return;
+    setSavingUsername(true);
+    try {
+      await setDoc(doc(db, "users", user.uid), {
+        chatUsername: usernameInput.trim(),
+      }, { merge: true });
+      setUsername(usernameInput.trim());
+      setUsernameSet(true);
+      setEditingUsername(false);
+    } catch (err) {
+      console.error("Username save failed:", err);
+    }
+    setSavingUsername(false);
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!user || !newMsg.trim() || sending) return;
+    if (!user || !newMsg.trim() || sending || !usernameSet) return;
     setSending(true);
     try {
       await addDoc(collection(db, "bracketChat"), {
         text: newMsg.trim(),
         uid: user.uid,
-        displayName: user.displayName || "Anonymous",
+        username: username,
         photoURL: user.photoURL || null,
         createdAt: serverTimestamp(),
       });
@@ -959,6 +991,52 @@ function BracketChat({ user, isMobile }) {
     grouped.push(msg);
   });
 
+  // Username setup / edit prompt
+  const usernamePrompt = (isEdit) => (
+    <div style={{
+      padding: "14px 16px", borderTop: isEdit ? "none" : "1px solid #2a2a3e",
+      background: isEdit ? "transparent" : "#12121f",
+    }}>
+      {!isEdit && (
+        <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>
+          Pick a username to start chatting
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <input
+          type="text"
+          value={usernameInput}
+          onChange={(e) => setUsernameInput(e.target.value.slice(0, 20))}
+          placeholder="Choose a username..."
+          maxLength={20}
+          style={{
+            flex: 1, background: "#0a0a16", border: "1px solid #2a2a3e",
+            borderRadius: 8, padding: "10px 14px", color: "#ccc",
+            fontSize: 13, outline: "none",
+          }}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveUsername(); } }}
+          onFocus={(e) => (e.target.style.borderColor = "#4CAF5066")}
+          onBlur={(e) => (e.target.style.borderColor = "#2a2a3e")}
+        />
+        <button onClick={saveUsername} disabled={!usernameInput.trim() || savingUsername} style={{
+          background: usernameInput.trim() ? "#4CAF50" : "#1a1a2e",
+          border: "none", borderRadius: 8, padding: "10px 16px",
+          color: usernameInput.trim() ? "#fff" : "#444",
+          fontSize: 12, fontWeight: 700, cursor: usernameInput.trim() ? "pointer" : "default",
+          transition: "all 0.2s", flexShrink: 0,
+        }}>
+          {savingUsername ? "..." : isEdit ? "Update" : "Set Username"}
+        </button>
+        {isEdit && (
+          <button onClick={() => setEditingUsername(false)} style={{
+            background: "transparent", border: "1px solid #2a2a3e", borderRadius: 8,
+            padding: "10px 12px", color: "#888", fontSize: 12, cursor: "pointer",
+          }}>Cancel</button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div style={{
       display: "flex", flexDirection: "column",
@@ -969,13 +1047,29 @@ function BracketChat({ user, isMobile }) {
       {/* Chat Header */}
       <div style={{
         padding: "12px 16px", borderBottom: "1px solid #2a2a3e",
-        background: "#12121f",
+        background: "#12121f", display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Bracket Talk</div>
-        <div style={{ fontSize: 11, color: "#888" }}>
-          Chat with other bracket challengers — trash talk encouraged
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>Bracket Talk</div>
+          <div style={{ fontSize: 11, color: "#888" }}>
+            Chat with other bracket challengers — trash talk encouraged
+          </div>
         </div>
+        {user && usernameSet && (
+          <button onClick={() => { setUsernameInput(username); setEditingUsername(!editingUsername); }}
+            style={{
+              background: "#ffffff08", border: "1px solid #2a2a3e", borderRadius: 8,
+              padding: "4px 10px", color: "#888", fontSize: 10, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 4,
+            }}>
+            <span style={{ color: "#4CAF50", fontWeight: 700 }}>@{username}</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        )}
       </div>
+
+      {/* Username edit area */}
+      {editingUsername && usernamePrompt(true)}
 
       {/* Messages */}
       <div ref={chatRef} style={{
@@ -990,6 +1084,7 @@ function BracketChat({ user, isMobile }) {
         ) : (
           grouped.map((msg) => {
             const isMe = msg.uid === user?.uid;
+            const displayName = msg.username || msg.displayName || "Anonymous";
             return (
               <div key={msg.id} style={{
                 marginTop: msg._showHeader ? 12 : 1,
@@ -999,28 +1094,20 @@ function BracketChat({ user, isMobile }) {
                     display: "flex", alignItems: "center", gap: 8,
                     marginBottom: 4,
                   }}>
-                    {msg.photoURL ? (
-                      <img src={msg.photoURL} alt="" referrerPolicy="no-referrer"
-                        style={{
-                          width: 22, height: 22, borderRadius: "50%",
-                          border: isMe ? "2px solid #CC0000" : "1px solid #333",
-                          flexShrink: 0,
-                        }}
-                      />
-                    ) : (
-                      <div style={{
-                        width: 22, height: 22, borderRadius: "50%", background: "#2a2a3e",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 10, color: "#888", fontWeight: 700, flexShrink: 0,
-                      }}>
-                        {(msg.displayName || "?")[0].toUpperCase()}
-                      </div>
-                    )}
+                    <div style={{
+                      width: 22, height: 22, borderRadius: "50%",
+                      background: isMe ? "#CC000033" : "#2a2a3e",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 10, color: isMe ? "#CC0000" : "#888", fontWeight: 700, flexShrink: 0,
+                      border: isMe ? "1px solid #CC000066" : "1px solid #333",
+                    }}>
+                      {displayName[0].toUpperCase()}
+                    </div>
                     <span style={{
                       fontSize: 11, fontWeight: 700,
                       color: isMe ? "#CC0000" : "#ccc",
                     }}>
-                      {msg.displayName}
+                      {displayName}
                     </span>
                     <span style={{ fontSize: 9, color: "#444" }}>
                       {msg.createdAt?.seconds
@@ -1050,8 +1137,17 @@ function BracketChat({ user, isMobile }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      {user ? (
+      {/* Input area */}
+      {!user ? (
+        <div style={{
+          padding: "14px 16px", borderTop: "1px solid #2a2a3e",
+          textAlign: "center", color: "#555", fontSize: 12, background: "#12121f",
+        }}>
+          Sign in to join the conversation
+        </div>
+      ) : !usernameSet ? (
+        usernamePrompt(false)
+      ) : (
         <form onSubmit={sendMessage} style={{
           display: "flex", gap: 8, padding: "10px 12px",
           borderTop: "1px solid #2a2a3e", background: "#12121f",
@@ -1080,13 +1176,6 @@ function BracketChat({ user, isMobile }) {
             {sending ? "..." : "Send"}
           </button>
         </form>
-      ) : (
-        <div style={{
-          padding: "14px 16px", borderTop: "1px solid #2a2a3e",
-          textAlign: "center", color: "#555", fontSize: 12, background: "#12121f",
-        }}>
-          Sign in to join the conversation
-        </div>
       )}
     </div>
   );
