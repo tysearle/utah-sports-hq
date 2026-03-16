@@ -2668,6 +2668,12 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
   const [picked, setPicked] = useState(selectedTeams || []);
   const [activeTab, setActiveTab] = useState("NFL");
   const [search, setSearch] = useState("");
+  const [confFilter, setConfFilter] = useState("All");
+
+  // Get unique conferences for the active tab
+  const conferences = ["All", ...Array.from(new Set(
+    TEAMS_CONFIG.filter((t) => t.leagueTag === activeTab).map((t) => t.conference).filter(Boolean)
+  )).sort()];
 
   const toggle = (id) => {
     setPicked((prev) => {
@@ -2681,7 +2687,8 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
   const filteredTeams = TEAMS_CONFIG.filter((t) => {
     const matchesTab = t.leagueTag === activeTab;
     const matchesSearch = search.trim() === "" || t.name.toLowerCase().includes(search.toLowerCase()) || t.shortName.toLowerCase().includes(search.toLowerCase()) || t.venue.toLowerCase().includes(search.toLowerCase());
-    return matchesTab && matchesSearch;
+    const matchesConf = confFilter === "All" || t.conference === confFilter;
+    return matchesTab && matchesSearch && matchesConf;
   });
 
   return (
@@ -2712,7 +2719,7 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
 
         <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
           {PICKER_TABS.map((tab) => (
-            <button key={tab.key} onClick={() => { setActiveTab(tab.key); setSearch(""); }} style={{
+            <button key={tab.key} onClick={() => { setActiveTab(tab.key); setSearch(""); setConfFilter("All"); }} style={{
               padding: "5px 12px", borderRadius: 8, border: "none", cursor: "pointer",
               fontSize: 12, fontWeight: 600, transition: "all 0.2s",
               background: activeTab === tab.key ? "#fff" : "#2a2a3e",
@@ -2727,11 +2734,28 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
-            width: "100%", padding: "8px 12px", marginBottom: 12, borderRadius: 8,
+            width: "100%", padding: "8px 12px", marginBottom: 8, borderRadius: 8,
             border: "1px solid #2a2a3e", background: "#1a1a2e", color: "#eee",
             fontSize: 13, outline: "none", boxSizing: "border-box",
           }}
         />
+
+        {conferences.length > 2 && (
+          <select
+            value={confFilter}
+            onChange={(e) => setConfFilter(e.target.value)}
+            style={{
+              width: "100%", padding: "7px 10px", marginBottom: 12, borderRadius: 8,
+              border: "1px solid #2a2a3e", background: "#1a1a2e", color: "#ccc",
+              fontSize: 12, outline: "none", boxSizing: "border-box",
+              appearance: "auto", cursor: "pointer",
+            }}
+          >
+            {conferences.map((c) => (
+              <option key={c} value={c}>{c === "All" ? "All Conferences" : c}</option>
+            ))}
+          </select>
+        )}
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {filteredTeams.map((team) => {
@@ -2745,10 +2769,10 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
                 background: isSelected ? team.accent + "15" : "#1a1a2e",
                 opacity: isDisabled ? 0.4 : 1, transition: "all 0.2s",
               }}>
-                <img src={team.logo} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: "contain", background: "#222", padding: 2 }} />
+                <img src={team.logo} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: "contain", background: "#fff", padding: 2 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ color: isSelected ? team.accent : "#ccc", fontSize: 13, fontWeight: 600 }}>{team.shortName}</div>
-                  <div style={{ color: "#666", fontSize: 10 }}>{team.league} • {team.venue}</div>
+                  <div style={{ color: "#666", fontSize: 10 }}>{team.league} • {team.venue || team.conference}</div>
                 </div>
                 <div style={{
                   width: 22, height: 22, borderRadius: 6,
