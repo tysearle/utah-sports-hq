@@ -1341,8 +1341,6 @@ export default function App() {
           .ush-header-right { width: 100% !important; flex-direction: row !important; justify-content: space-between !important; }
           .ush-leaderboard-btn { padding: 6px 10px !important; font-size: 11px !important; }
           .ush-subtitle { display: none !important; }
-          .ush-pills { padding: 10px 14px 0 !important; gap: 6px !important; }
-          .ush-pills button { padding: 5px 10px !important; font-size: 11px !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
         }
       `}</style>
@@ -1494,24 +1492,6 @@ export default function App() {
       </div>
 
       {/* Team Pills */}
-      <div className="ush-pills" style={{ padding: "10px 28px 0", display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {TEAMS_CONFIG.map((team) => (
-          <button key={team.id}
-            onClick={() => document.getElementById(`widget-${team.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
-            style={{
-              background: team.accent + "15", border: `1px solid ${team.accent}44`, borderRadius: 20,
-              padding: "6px 16px", color: team.accent, fontSize: 12, fontWeight: 600,
-              cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = team.accent + "33")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = team.accent + "15")}
-          >
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: team.accent, display: "inline-block" }} />
-            {team.shortName}
-          </button>
-        ))}
-      </div>
-
       {/* Widget Grid */}
       <main className="ush-grid" style={{
         padding: "20px 28px 40px", display: "grid",
