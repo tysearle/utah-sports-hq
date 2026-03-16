@@ -1277,19 +1277,6 @@ function Tabs({ tabs, accent }) {
 
 // --- Schedule Tab---
 function ScheduleTab({ schedule, accent }) {
-  const scrollRef = useRef(null);
-  const dividerRef = useRef(null);
-
-  useEffect(() => {
-    // Auto-scroll so the divider between recent & upcoming is visible near top
-    if (dividerRef.current && scrollRef.current) {
-      const container = scrollRef.current;
-      const divider = dividerRef.current;
-      const offset = divider.offsetTop - container.offsetTop - 8;
-      container.scrollTop = Math.max(0, offset - 40);
-    }
-  }, [schedule]);
-
   if (!schedule || schedule.length === 0)
     return <div style={{ color: "#777", padding: 12 }}>No schedule data available</div>;
   const live = schedule.filter((g) => g.status === "live");
@@ -1297,7 +1284,7 @@ function ScheduleTab({ schedule, accent }) {
   const upcoming = schedule.filter((g) => g.status === "pre");
 
   return (
-    <div ref={scrollRef} style={{ maxHeight: 320, overflowY: "auto" }}>
+    <div style={{ maxHeight: 320, overflowY: "auto" }}>
       {/* LIVE GAMES */}
       {live.length > 0 && (
         <div style={{ marginBottom: 14 }}>
@@ -1340,6 +1327,26 @@ function ScheduleTab({ schedule, accent }) {
           ))}
         </div>
       )}
+      {upcoming.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={subheaderStyle}>Upcoming Games</div>
+          {upcoming.map((g, i) => (
+            <div key={i} style={rowStyle(i)}>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: "#999", fontSize: 11 }}>{formatDayDate(g.date)}</div>
+                <div>
+                  <span style={{ color: "#555", fontSize: 11 }}>{g.home ? "vs" : "@"}</span>{" "}
+                  <span style={{ color: "#eee", fontSize: 13, fontWeight: 500 }}>{g.opponent}</span>
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ color: accent, fontSize: 12, fontWeight: 600 }}>{formatTime(g.date)}</div>
+                <div style={{ color: "#888", fontSize: 11 }}>TV: {g.broadcast}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {recent.length > 0 && (
         <div style={{ marginBottom: 14 }}>
           <div style={subheaderStyle}>Recent Results</div>
@@ -1359,27 +1366,6 @@ function ScheduleTab({ schedule, accent }) {
                 }}>
                   {g.result}
                 </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      <div ref={dividerRef} />
-      {upcoming.length > 0 && (
-        <div>
-          <div style={subheaderStyle}>Upcoming Games</div>
-          {upcoming.map((g, i) => (
-            <div key={i} style={rowStyle(i)}>
-              <div style={{ flex: 1 }}>
-                <div style={{ color: "#999", fontSize: 11 }}>{formatDayDate(g.date)}</div>
-                <div>
-                  <span style={{ color: "#555", fontSize: 11 }}>{g.home ? "vs" : "@"}</span>{" "}
-                  <span style={{ color: "#eee", fontSize: 13, fontWeight: 500 }}>{g.opponent}</span>
-                </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ color: accent, fontSize: 12, fontWeight: 600 }}>{formatTime(g.date)}</div>
-                <div style={{ color: "#888", fontSize: 11 }}>TV: {g.broadcast}</div>
               </div>
             </div>
           ))}
