@@ -3333,6 +3333,8 @@ export default function App() {
           .ush-header-nav { gap: 0 !important; }
           .ush-nav-link { padding: 6px 8px !important; font-size: 11px !important; }
           .ush-nav-link svg { display: none !important; }
+          .ush-teams-label { display: none !important; }
+          .ush-customize-teams { padding: 6px !important; border: none !important; }
           .ush-logo { width: 28px !important; height: 28px !important; }
           .ush-title { font-size: 14px !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
@@ -3357,19 +3359,6 @@ export default function App() {
 
           {/* Nav links */}
           <nav className="ush-header-nav" style={{ display: "flex", alignItems: "center", gap: 4, flex: 1 }}>
-            <button onClick={() => setShowTeamPicker(true)}
-              className="ush-nav-link"
-              style={{
-                background: "none", border: "none", color: "#ccc", fontSize: 13, fontWeight: 600,
-                cursor: "pointer", padding: "8px 14px", borderRadius: 6, transition: "all 0.15s",
-                display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "#ffffff12"; e.currentTarget.style.color = "#fff"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#ccc"; }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-              Teams
-            </button>
             <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
               className="ush-nav-link"
               style={{
@@ -3380,7 +3369,7 @@ export default function App() {
               onMouseEnter={(e) => { e.currentTarget.style.background = "#ffffff12"; e.currentTarget.style.color = "#fff"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#ccc"; }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 21h8m-4-4v4m-4.65-4a8 8 0 118.65-12.27"/><path d="M12 6V2l4 4"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93c4.08 2.14 6.16 4.22 10.14 10.14"/><path d="M19.07 4.93c-4.08 2.14-6.16 4.22-10.14 10.14"/><path d="M2 12h20"/></svg>
               March Madness
             </button>
             {user && (
@@ -3415,8 +3404,21 @@ export default function App() {
             )}
           </nav>
 
-          {/* Right side - profile */}
-          <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
+          {/* Right side - customize teams + profile */}
+          <div className="ush-header-right" style={{ display: "flex", alignItems: "center", gap: 6, position: "relative" }}>
+            <button onClick={() => setShowTeamPicker(true)}
+              className="ush-nav-link ush-customize-teams"
+              style={{
+                background: "none", border: "1px solid #ffffff18", color: "#aaa", fontSize: 12, fontWeight: 600,
+                cursor: "pointer", padding: "6px 12px", borderRadius: 6, transition: "all 0.15s",
+                display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#ffffff12"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#ffffff33"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#aaa"; e.currentTarget.style.borderColor = "#ffffff18"; }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span className="ush-teams-label">Customize Teams</span>
+            </button>
             {authLoading ? null : user ? (
               <div style={{ position: "relative" }}>
                 <button
@@ -3497,7 +3499,7 @@ export default function App() {
       </header>
 
       {/* March Madness Banner */}
-      <div style={{ padding: "14px 28px 0" }}>
+      <div style={{ padding: "14px 28px 0", maxWidth: 1400, margin: "0 auto" }}>
         {user && hasAnyBracket ? (
           /* Returning user banner — show entries & stats */
           <div className="mm-banner" style={{ cursor: "default" }}>
