@@ -2213,6 +2213,8 @@ export default function App() {
         ::-webkit-scrollbar-track { background: #0a0a16; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         a:hover { filter: brightness(1.2); }
+        .ush-logo { width: 48px; height: 48px; }
+        .ush-title { font-size: 22px; }
         @media (max-width: 768px) {
           .ush-header { flex-wrap: wrap !important; gap: 8px !important; padding: 10px 12px !important; align-items: center !important; justify-content: space-between !important; }
           .ush-header-right { order: 2 !important; flex-direction: row !important; gap: 6px !important; align-items: center !important; }
@@ -2238,9 +2240,9 @@ export default function App() {
         position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)",
       }}>
         <div className="ush-header-left" style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <img className="ush-logo" src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }} />
+          <img className="ush-logo" src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ borderRadius: "50%", objectFit: "cover" }} />
           <div>
-            <h1 className="ush-title" style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: -0.5 }}>
+            <h1 className="ush-title" style={{ margin: 0, fontWeight: 800, letterSpacing: -0.5 }}>
               Salt City <span style={{ color: "#CC0000" }}>Sports</span>
             </h1>
             <p className="ush-subtitle" style={{ margin: 0, fontSize: 11, color: "#666", letterSpacing: 0.5 }}>
