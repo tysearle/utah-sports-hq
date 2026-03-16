@@ -3332,9 +3332,10 @@ export default function App() {
           .ush-header-left { gap: 6px !important; margin-right: 12px !important; }
           .ush-header-nav { gap: 0 !important; }
           .ush-nav-link { padding: 6px 8px !important; font-size: 11px !important; }
-          .ush-nav-link svg { display: none !important; }
+          .ush-header-nav .ush-nav-link svg { display: none !important; }
           .ush-teams-label { display: none !important; }
           .ush-customize-teams { padding: 6px !important; border: none !important; }
+          .ush-customize-teams svg { display: inline-block !important; }
           .ush-logo { width: 28px !important; height: 28px !important; }
           .ush-title { font-size: 14px !important; }
           .ush-grid { padding: 12px 10px 30px !important; grid-template-columns: 1fr !important; gap: 14px !important; }
