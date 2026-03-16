@@ -94,6 +94,36 @@ for (const ff of FIRST_FOUR) {
   for (const t of ff.teams) TEAM_MAP[t.id] = t;
 }
 
+// ===== WIN PROBABILITY (historical seed-based) =====
+// Historical R64 win rates for the higher seed (1985-2025)
+const SEED_MATCHUP_PCT = {
+  "1_16": 99, "2_15": 94, "3_14": 85, "4_13": 79,
+  "5_12": 65, "6_11": 63, "7_10": 61, "8_9": 51,
+};
+
+function getWinProb(team1, team2) {
+  if (!team1 || !team2) return null;
+  const s1 = team1.seed, s2 = team2.seed;
+  if (s1 === s2) return { fav: null, pct1: 50, pct2: 50 };
+
+  // Direct lookup for standard R64 matchups
+  const lo = Math.min(s1, s2), hi = Math.max(s1, s2);
+  const key = `${lo}_${hi}`;
+  if (SEED_MATCHUP_PCT[key]) {
+    const favPct = SEED_MATCHUP_PCT[key];
+    return s1 < s2
+      ? { fav: team1.id, pct1: favPct, pct2: 100 - favPct }
+      : { fav: team2.id, pct1: 100 - favPct, pct2: favPct };
+  }
+
+  // For non-standard matchups (later rounds), use log5 formula with seed strength
+  // Lower seed = stronger. Use a simple model: strength = (17 - seed) / 16
+  const str1 = (17 - s1) / 16, str2 = (17 - s2) / 16;
+  const p1 = Math.round((str1 / (str1 + str2)) * 100);
+  const p2 = 100 - p1;
+  return { fav: p1 >= p2 ? team1.id : team2.id, pct1: p1, pct2: p2 };
+}
+
 // ===== HELPERS =====
 function resolveTeam(team, picks) {
   if (!team) return null;
@@ -250,7 +280,7 @@ async function loadLeaderboard() {
 
 // ===== COMPONENTS =====
 
-function TeamRow({ team, isSelected, isPicked, onPick, color, disabled }) {
+function TeamRow({ team, isSelected, isPicked, onPick, color, disabled, winPct, isFav }) {
   if (!team) {
     return (
       <div style={{
@@ -289,6 +319,15 @@ function TeamRow({ team, isSelected, isPicked, onPick, color, disabled }) {
       }}>
         {team.name}
       </span>
+      {winPct != null && !isPicked && (
+        <span style={{
+          fontSize: 10, fontWeight: isFav ? 700 : 400,
+          color: isFav ? "#4CAF50" : "#555",
+          minWidth: 32, textAlign: "right",
+        }}>
+          {winPct}%
+        </span>
+      )}
       {isSelected && (
         <span style={{ color: color || "#CC0000", fontSize: 14, fontWeight: 700 }}>✓</span>
       )}
@@ -297,6 +336,8 @@ function TeamRow({ team, isSelected, isPicked, onPick, color, disabled }) {
 }
 
 function MatchupCard({ team1, team2, picked, onPick, color, gameKey, roundPoints }) {
+  const prob = getWinProb(team1, team2);
+
   return (
     <div style={{
       background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 10,
@@ -306,12 +347,29 @@ function MatchupCard({ team1, team2, picked, onPick, color, gameKey, roundPoints
         team={team1} isSelected={picked === team1?.id}
         isPicked={!!picked} onPick={onPick} color={color}
         disabled={!team1 || !team2}
+        winPct={prob?.pct1} isFav={prob?.fav === team1?.id}
       />
-      <div style={{ borderTop: "1px solid #2a2a3e" }} />
+      {/* Probability bar */}
+      {prob && !picked && team1 && team2 && (
+        <div style={{ display: "flex", height: 3, background: "#1a1a2e" }}>
+          <div style={{
+            width: `${prob.pct1}%`, height: "100%",
+            background: prob.fav === team1?.id ? "#4CAF50" : "#ffffff18",
+            transition: "width 0.3s",
+          }} />
+          <div style={{
+            width: `${prob.pct2}%`, height: "100%",
+            background: prob.fav === team2?.id ? "#4CAF50" : "#ffffff18",
+            transition: "width 0.3s",
+          }} />
+        </div>
+      )}
+      {(picked || !prob || !team1 || !team2) && <div style={{ borderTop: "1px solid #2a2a3e" }} />}
       <TeamRow
         team={team2} isSelected={picked === team2?.id}
         isPicked={!!picked} onPick={onPick} color={color}
         disabled={!team1 || !team2}
+        winPct={prob?.pct2} isFav={prob?.fav === team2?.id}
       />
       {roundPoints && (
         <div style={{
