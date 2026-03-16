@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { auth, db, googleProvider, signInWithPopup, signOut } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, setDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
+import { doc, setDoc, deleteDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
 import BracketChallenge, { loadUserEntries } from "./BracketChallenge";
 
 // --- Admin Config ---
@@ -1124,10 +1124,21 @@ export default function App() {
               <p style={{ margin: 0, fontSize: 10, color: "#666" }}>USER MANAGEMENT</p>
             </div>
           </div>
-          <button onClick={loadAdminUsers} style={{
-            background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
-            padding: "6px 12px", color: "#888", fontSize: 11, cursor: "pointer",
-          }}>Refresh</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={async () => {
+              if (!window.confirm("Delete ALL chat messages? This cannot be undone.")) return;
+              const snap = await getDocs(collection(db, "bracketChat"));
+              for (const d of snap.docs) await deleteDoc(doc(db, "bracketChat", d.id));
+              alert(`Deleted ${snap.size} messages.`);
+            }} style={{
+              background: "#CC000015", border: "1px solid #CC000044", borderRadius: 8,
+              padding: "6px 12px", color: "#CC0000", fontSize: 11, cursor: "pointer",
+            }}>Clear Chat</button>
+            <button onClick={loadAdminUsers} style={{
+              background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
+              padding: "6px 12px", color: "#888", fontSize: 11, cursor: "pointer",
+            }}>Refresh</button>
+          </div>
         </header>
 
         <main style={{ padding: 20, maxWidth: 1000, margin: "0 auto" }}>
