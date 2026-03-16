@@ -1,4 +1,38 @@
 import { useState, useEffect, useCallback } from "react";
+import { auth, googleProvider, signInWithPopup, signOut } from "./firebase";
+import { onAuthStateChanged } from "firebase/auth";
+
+// --- Auth Hook ---
+function useAuth() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setAuthLoading(false);
+    });
+    return unsub;
+  }, []);
+
+  const login = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (e) {
+      console.error("Sign-in error:", e);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.error("Sign-out error:", e);
+    }
+  };
+
+  return { user, authLoading, login, logout };
+}
 
 // --- Team Configuration ---
 // ESPN team IDs and API paths for each Utah team
@@ -721,6 +755,7 @@ const tdStyle = { padding: "6px", color: "#ccc", textAlign: "center" };
 
 // --- Main Dashboard---
 export default function App() {
+  const { user, authLoading, login, logout } = useAuth();
   const [order, setOrder] = useState(() => TEAMS_CONFIG.map((t) => t.id));
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
@@ -812,6 +847,28 @@ export default function App() {
             <div style={{ fontSize: 10, color: "#555" }}>Auto-refresh</div>
             <div style={{ fontSize: 12, color: "#888", fontFamily: "monospace" }}>{lastRefresh.toLocaleTimeString()}</div>
           </div>
+          {/* Auth */}
+          {authLoading ? null : user ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <img src={user.photoURL} alt="" style={{ width: 30, height: 30, borderRadius: "50%", border: "2px solid #CC0000" }} referrerPolicy="no-referrer" />
+              <div>
+                <div style={{ fontSize: 11, color: "#ccc", fontWeight: 600, maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.displayName?.split(" ")[0]}</div>
+                <button onClick={logout} style={{ background: "none", border: "none", color: "#888", fontSize: 9, cursor: "pointer", padding: 0, textDecoration: "underline" }}>Sign out</button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={login} style={{
+              background: "#1a1a2e", border: "1px solid #CC000066", borderRadius: 8,
+              padding: "8px 14px", color: "#CC0000", fontSize: 12, fontWeight: 600,
+              cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
+            }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#CC000022")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#1a1a2e")}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              Sign in
+            </button>
+          )}
         </div>
       </header>
 
