@@ -1,7 +1,27 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { auth, googleProvider, signInWithPopup, signOut } from "./firebase";
+import { auth, db, googleProvider, signInWithPopup, signOut } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { doc, setDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
 import BracketChallenge, { loadUserEntries } from "./BracketChallenge";
+
+// --- Admin Config ---
+const ADMIN_EMAILS = ["t.m.searle@gmail.com"];
+
+// --- Register user in Firestore on sign-in ---
+async function registerUser(u) {
+  if (!u) return;
+  try {
+    await setDoc(doc(db, "users", u.uid), {
+      uid: u.uid,
+      displayName: u.displayName || "Anonymous",
+      email: u.email || null,
+      photoURL: u.photoURL || null,
+      lastLogin: new Date().toISOString(),
+    }, { merge: true });
+  } catch (e) {
+    console.error("User registration error:", e);
+  }
+}
 
 // --- Auth Hook ---
 function useAuth() {
@@ -12,13 +32,15 @@ function useAuth() {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setAuthLoading(false);
+      if (u) registerUser(u);
     });
     return unsub;
   }, []);
 
   const login = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result.user) registerUser(result.user);
     } catch (e) {
       console.error("Sign-in error:", e);
     }
@@ -32,7 +54,9 @@ function useAuth() {
     }
   };
 
-  return { user, authLoading, login, logout };
+  const isAdmin = user && ADMIN_EMAILS.includes(user.email);
+
+  return { user, authLoading, login, logout, isAdmin };
 }
 
 // --- Team Configuration ---
@@ -948,7 +972,7 @@ const tdStyle = { padding: "6px", color: "#ccc", textAlign: "center" };
 
 // --- Main Dashboard---
 export default function App() {
-  const { user, authLoading, login, logout } = useAuth();
+  const { user, authLoading, login, logout, isAdmin } = useAuth();
   const [showBracket, setShowBracket] = useState(false);
   const [bracketEntry, setBracketEntry] = useState(1);
   const [userEntries, setUserEntries] = useState([null, null]);
@@ -956,6 +980,9 @@ export default function App() {
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [adminLoading, setAdminLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
   // Load user bracket entries for banner display
@@ -988,9 +1015,121 @@ export default function App() {
   }, [draggedId]);
   const handleDragEnd = useCallback(() => { setDraggedId(null); setDragOverId(null); }, []);
 
+  // Load admin users
+  const loadAdminUsers = async () => {
+    setAdminLoading(true);
+    try {
+      const q = query(collection(db, "users"), orderBy("lastLogin", "desc"));
+      const snap = await getDocs(q);
+      const users = snap.docs.map((d) => d.data());
+      setAdminUsers(users);
+    } catch (e) {
+      console.error("Admin load error:", e);
+    }
+    setAdminLoading(false);
+  };
+
   // Show Bracket Challenge if active
   if (showBracket) {
     return <BracketChallenge user={user} onBack={() => { setShowBracket(false); setShowLeaderboard(false); }} initialEntry={bracketEntry} initialTab={showLeaderboard ? "lb" : "bracket"} />;
+  }
+
+  // Show Admin Panel
+  if (showAdmin && isAdmin) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #0a0a16 0%, #0f0f1e 50%, #0a0a16 100%)",
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        color: "#fff",
+      }}>
+        <header style={{
+          background: "linear-gradient(135deg, #12121f 0%, #1a1a30 100%)",
+          borderBottom: "1px solid #2a2a3e", padding: "14px 20px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={() => setShowAdmin(false)} style={{
+              background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
+              padding: "6px 12px", color: "#888", fontSize: 12, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 4,
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              Back
+            </button>
+            <div>
+              <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: -0.5 }}>
+                Salt City Sports <span style={{ color: "#CC0000" }}>Admin</span>
+              </h1>
+              <p style={{ margin: 0, fontSize: 10, color: "#666" }}>USER MANAGEMENT</p>
+            </div>
+          </div>
+          <div style={{ fontSize: 12, color: "#888" }}>{adminUsers.length} registered users</div>
+        </header>
+
+        <main style={{ padding: 20, maxWidth: 900, margin: "0 auto" }}>
+          {adminLoading ? (
+            <div style={{ textAlign: "center", padding: 60, color: "#555" }}>Loading users...</div>
+          ) : adminUsers.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 60, color: "#555" }}>No users registered yet.</div>
+          ) : (
+            <div style={{ background: "#12121f", borderRadius: 12, overflow: "hidden", border: "1px solid #2a2a3e" }}>
+              {/* Table Header */}
+              <div style={{
+                display: "grid", gridTemplateColumns: "40px 1fr 1fr 160px",
+                padding: "10px 16px", borderBottom: "1px solid #2a2a3e",
+                fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 700,
+              }}>
+                <div>#</div>
+                <div>User</div>
+                <div>Email</div>
+                <div>Last Login</div>
+              </div>
+
+              {adminUsers.map((u, i) => (
+                <div key={u.uid} style={{
+                  display: "grid", gridTemplateColumns: "40px 1fr 1fr 160px",
+                  padding: "12px 16px", borderBottom: "1px solid #1a1a2e",
+                  background: i % 2 === 0 ? "#0f0f1e" : "transparent",
+                  alignItems: "center",
+                }}>
+                  <div style={{ color: "#888", fontWeight: 700, fontSize: 13 }}>{i + 1}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    {u.photoURL ? (
+                      <img src={u.photoURL} alt="" referrerPolicy="no-referrer"
+                        style={{ width: 28, height: 28, borderRadius: "50%", border: "1px solid #333", flexShrink: 0 }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: 28, height: 28, borderRadius: "50%", background: "#2a2a3e",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 12, color: "#888", fontWeight: 700, flexShrink: 0,
+                      }}>
+                        {(u.displayName || "?")[0].toUpperCase()}
+                      </div>
+                    )}
+                    <div style={{ fontSize: 13, fontWeight: 500, color: "#ccc", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {u.displayName || "Anonymous"}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 12, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {u.email || "—"}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#666" }}>
+                    {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString("en-US", {
+                      month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
+                    }) : "—"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
+    );
   }
 
   const hasAnyBracket = userEntries.some((e) => e && Object.keys(e.picks || {}).length > 0);
@@ -1098,6 +1237,20 @@ export default function App() {
           {/* Auth */}
           {authLoading ? null : user ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {isAdmin && (
+                <button onClick={() => { setShowAdmin(true); loadAdminUsers(); }}
+                  style={{
+                    background: "#4A90D915", border: "1px solid #4A90D944", borderRadius: 8,
+                    padding: "6px 10px", color: "#4A90D9", fontSize: 11, fontWeight: 600,
+                    cursor: "pointer", display: "flex", alignItems: "center", gap: 4, transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#4A90D933")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#4A90D915")}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197"/></svg>
+                  Admin
+                </button>
+              )}
               <img src={user.photoURL} alt="" style={{ width: 30, height: 30, borderRadius: "50%", border: "2px solid #CC0000" }} referrerPolicy="no-referrer" />
               <div>
                 <div style={{ fontSize: 11, color: "#ccc", fontWeight: 600, maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.displayName?.split(" ")[0]}</div>
