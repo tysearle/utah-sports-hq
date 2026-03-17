@@ -1655,10 +1655,10 @@ function useTeamData(team) {
               comp?.geoBroadcasts?.[0]?.media?.shortName ||
               "--";
             const statusName = comp?.status?.type?.name || ev.status?.type?.name || "";
-            const isFinal = statusName.includes("FINAL") || statusName === "post";
+            const isFinal = statusName.includes("FINAL") || statusName === "post" || statusName === "STATUS_FINAL";
             // Check both schedule status AND scoreboard — schedule can lag behind
             const thisOppAbbr = them?.team?.abbreviation || "";
-            const scoreboardMatchesThisGame = liveScoreMap.detail && liveScoreMap.oppAbbr && thisOppAbbr === liveScoreMap.oppAbbr;
+            const scoreboardMatchesThisGame = !isFinal && liveScoreMap.detail && liveScoreMap.oppAbbr && thisOppAbbr === liveScoreMap.oppAbbr;
             const isLive = statusName.includes("IN_PROGRESS") || statusName === "STATUS_IN_PROGRESS" || statusName === "in" || (us && scoreboardMatchesThisGame);
             const statusDetail = comp?.status?.type?.shortDetail || comp?.status?.shortDetail || ev.status?.type?.shortDetail || "";
 
