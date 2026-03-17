@@ -65,8 +65,37 @@ function evictOldestIfNeeded() {
   }
 }
 
+// --------------- Origin Checking ---------------
+const ALLOWED_ORIGINS = [
+  "https://saltcitysportsutah.com",
+  "https://www.saltcitysportsutah.com",
+];
+
+function getAllowedOrigin(req) {
+  const origin = req.headers.origin || "";
+  if (ALLOWED_ORIGINS.includes(origin)) return origin;
+  // Allow localhost for development
+  if (origin.startsWith("http://localhost:")) return origin;
+  // Allow Vercel preview deployments
+  if (origin.includes(".vercel.app")) return origin;
+  return null;
+}
+
 // --------------- Handler ---------------
 export default async function handler(req, res) {
+  const allowedOrigin = getAllowedOrigin(req);
+  // For GET requests without Origin header (direct browser navigation, server-side), allow through
+  // but set CORS to our domain so browsers from other sites can't use the response
+  const corsOrigin = allowedOrigin || "https://www.saltcitysportsutah.com";
+
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Origin", corsOrigin);
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    return res.status(200).end();
+  }
+
   const { path, v2, web, core, ...extra } = req.query;
 
   if (!path) {
@@ -97,7 +126,7 @@ export default async function handler(req, res) {
     if (isFresh) {
       // Serve fresh cache immediately
       res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=120");
-      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Origin", corsOrigin);
       res.setHeader("X-Cache", "HIT");
       return res.status(200).json(cached.data);
     }
@@ -105,7 +134,7 @@ export default async function handler(req, res) {
     if (isStale) {
       // Serve stale cache immediately, revalidate in background
       res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=120");
-      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Origin", corsOrigin);
       res.setHeader("X-Cache", "STALE");
 
       // Fire-and-forget background revalidation
@@ -121,7 +150,7 @@ export default async function handler(req, res) {
     const data = await fetchAndCache(url, cacheKey, ttl);
 
     res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=120");
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Origin", corsOrigin);
     res.setHeader("X-Cache", "MISS");
 
     return res.status(200).json(data);
@@ -129,7 +158,7 @@ export default async function handler(req, res) {
     // If we have stale/expired data and the fetch fails, serve it as fallback
     if (cached) {
       res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=60");
-      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Origin", corsOrigin);
       res.setHeader("X-Cache", "FALLBACK");
       return res.status(200).json(cached.data);
     }

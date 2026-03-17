@@ -36,8 +36,23 @@ const ESPN_TO_BRACKET = {
 const NAME_TO_BRACKET = {};
 // We'll build this dynamically from the response
 
+// --------------- Origin Checking ---------------
+const ALLOWED_ORIGINS = [
+  "https://saltcitysportsutah.com",
+  "https://www.saltcitysportsutah.com",
+];
+
+function getAllowedOrigin(req) {
+  const origin = req.headers.origin || "";
+  if (ALLOWED_ORIGINS.includes(origin)) return origin;
+  if (origin.startsWith("http://localhost:")) return origin;
+  if (origin.includes(".vercel.app")) return origin;
+  return null;
+}
+
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const corsOrigin = getAllowedOrigin(req) || "https://www.saltcitysportsutah.com";
+  res.setHeader("Access-Control-Allow-Origin", corsOrigin);
   res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=30");
 
   try {

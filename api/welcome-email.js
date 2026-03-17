@@ -2,16 +2,76 @@
 // Uses Resend API (free tier: 100 emails/day)
 // Set RESEND_API_KEY in Vercel environment variables
 
+// --------------- Rate Limiting ---------------
+// Simple in-memory rate limiter per IP (persists across warm function instances)
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX = 5; // max 5 emails per IP per hour
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW) {
+    rateLimitMap.set(ip, { windowStart: now, count: 1 });
+    return false;
+  }
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX) return true;
+  return false;
+}
+
+// Periodic cleanup to prevent memory growth
+function cleanupRateLimit() {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimitMap) {
+    if (now - entry.windowStart > RATE_LIMIT_WINDOW) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}
+
+// --------------- Origin Checking ---------------
+const ALLOWED_ORIGINS = [
+  "https://saltcitysportsutah.com",
+  "https://www.saltcitysportsutah.com",
+];
+
+function getAllowedOrigin(req) {
+  const origin = req.headers.origin || "";
+  if (ALLOWED_ORIGINS.includes(origin)) return origin;
+  // Allow localhost for development
+  if (origin.startsWith("http://localhost:")) return origin;
+  return null;
+}
+
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const allowedOrigin = getAllowedOrigin(req);
+  res.setHeader("Access-Control-Allow-Origin", allowedOrigin || "https://www.saltcitysportsutah.com");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
+  // Check origin - reject requests from unknown origins
+  if (!allowedOrigin) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  // Rate limiting
+  const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket?.remoteAddress || "unknown";
+  if (isRateLimited(ip)) {
+    return res.status(429).json({ error: "Too many requests. Please try again later." });
+  }
+  cleanupRateLimit();
+
   const { email, username } = req.body;
   if (!email) return res.status(400).json({ error: "Missing email" });
+
+  // Basic email format validation
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Invalid email format" });
+  }
 
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
   if (!RESEND_API_KEY) {
