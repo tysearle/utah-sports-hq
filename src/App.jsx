@@ -178,6 +178,9 @@ function AuthModal({ onClose, onLoginGoogle, onSignupEmail, onLoginEmail }) {
   const [profilePicPreview, setProfilePicPreview] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [showTos, setShowTos] = useState(false);
+  const [showPrivacyInAuth, setShowPrivacyInAuth] = useState(false);
 
   const handlePicChange = (e) => {
     const file = e.target.files[0];
@@ -209,6 +212,7 @@ function AuthModal({ onClose, onLoginGoogle, onSignupEmail, onLoginEmail }) {
       if (!username.trim()) { setError("Username is required"); setLoading(false); return; }
       if (username.trim().length < 3) { setError("Username must be at least 3 characters"); setLoading(false); return; }
       if (password.length < 6) { setError("Password must be at least 6 characters"); setLoading(false); return; }
+      if (!ageConfirmed) { setError("You must confirm you are 18+ and agree to the Terms of Service"); setLoading(false); return; }
       const result = await onSignupEmail(email, password, username.trim(), profilePic);
       if (!result.success) setError(result.error?.replace("Firebase: ", "") || "Signup failed");
       else onClose();
@@ -333,6 +337,19 @@ function AuthModal({ onClose, onLoginGoogle, onSignupEmail, onLoginEmail }) {
             </div>
           )}
 
+          {/* Age & Terms checkbox (signup only) */}
+          {mode === "signup" && (
+            <label style={{
+              display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 14,
+              cursor: "pointer", fontSize: 11, color: "#aaa", lineHeight: 1.5,
+            }}>
+              <input type="checkbox" checked={ageConfirmed} onChange={(e) => setAgeConfirmed(e.target.checked)}
+                style={{ marginTop: 2, accentColor: "#CC0000", flexShrink: 0 }}
+              />
+              <span>I confirm I am at least 18 years old and agree to the <button type="button" onClick={() => setShowTos(true)} style={{ background: "none", border: "none", color: "#CC0000", fontSize: 11, cursor: "pointer", padding: 0, textDecoration: "underline" }}>Terms of Service</button> and <button type="button" onClick={() => setShowPrivacyInAuth(true)} style={{ background: "none", border: "none", color: "#CC0000", fontSize: 11, cursor: "pointer", padding: 0, textDecoration: "underline" }}>Privacy Policy</button>.</span>
+            </label>
+          )}
+
           {error && (
             <div style={{ background: "#CC000015", border: "1px solid #CC000044", borderRadius: 8, padding: "8px 12px", marginBottom: 12, fontSize: 11, color: "#CC0000" }}>
               {error}
@@ -390,6 +407,63 @@ function AuthModal({ onClose, onLoginGoogle, onSignupEmail, onLoginEmail }) {
           )}
         </div>
       </div>
+
+      {/* Terms of Service overlay inside Auth */}
+      {showTos && (
+        <div onClick={() => setShowTos(false)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 10001,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "#12121f", borderRadius: 16, border: "1px solid #2a2a3e",
+            maxWidth: 600, width: "100%", maxHeight: "80vh", overflowY: "auto", padding: "24px 20px",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#fff" }}>Terms of Service</h3>
+              <button onClick={() => setShowTos(false)} style={{ background: "#2a2a3e", border: "none", borderRadius: 8, color: "#aaa", width: 30, height: 30, fontSize: 16, cursor: "pointer" }}>&times;</button>
+            </div>
+            <div style={{ fontSize: 12, color: "#ccc", lineHeight: 1.75 }}>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>1. Acceptance.</strong> By creating an account on Salt City Sports (saltcitysportsutah.com), you agree to these Terms of Service. If you do not agree, do not create an account or use the site.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>2. Eligibility.</strong> You must be at least 18 years of age to create an account. By registering, you represent that you are 18 or older and that all information you provide is truthful and accurate.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>3. Accounts.</strong> You are responsible for maintaining the security of your account. You agree not to share your login credentials. We reserve the right to suspend or terminate accounts that violate these Terms.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>4. User Content.</strong> You are responsible for all content you post, including chat messages, display names, and profile pictures. You agree not to post content that is abusive, threatening, defamatory, obscene, or illegal. We reserve the right to remove content and suspend accounts that violate this policy.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>5. Sports Data.</strong> Scores, schedules, standings, statistics, and news displayed on this site are sourced from third-party providers and are for entertainment and informational purposes only. We do not guarantee the accuracy, completeness, or timeliness of this data. Do not rely on it for betting, financial, or other decisions.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>6. Contests.</strong> Participation in contests (such as bracket challenges) is subject to the Official Contest Rules posted on the relevant page. Contests are skill-based, free to enter, and not gambling.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>7. Intellectual Property.</strong> Salt City Sports is an independent fan site. Team names, logos, and league marks are the property of their respective owners. "March Madness" is a registered trademark of the NCAA. We are not affiliated with, endorsed by, or sponsored by any professional or collegiate sports league, team, or ESPN.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>8. Affiliate Links.</strong> Some links on this site (such as ticket purchase links) are affiliate links. We may earn a small commission from purchases made through these links at no additional cost to you.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>9. Limitation of Liability.</strong> Salt City Sports is provided "as is" without warranties of any kind. We are not liable for any damages arising from your use of the site, including data loss, service interruptions, or inaccurate sports data.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>10. Changes.</strong> We may update these Terms at any time. Continued use of the site after changes constitutes acceptance. Material changes will be communicated via a notice on the site.</p>
+              <p style={{ marginBottom: 0, color: "#888" }}><strong style={{ color: "#aaa" }}>11. Governing Law.</strong> These Terms are governed by the laws of the State of Utah. Contact: t.m.searle@gmail.com</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Privacy Policy overlay inside Auth */}
+      {showPrivacyInAuth && (
+        <div onClick={() => setShowPrivacyInAuth(false)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 10001,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "#12121f", borderRadius: 16, border: "1px solid #2a2a3e",
+            maxWidth: 600, width: "100%", maxHeight: "80vh", overflowY: "auto", padding: "24px 20px",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#fff" }}>Privacy Policy</h3>
+              <button onClick={() => setShowPrivacyInAuth(false)} style={{ background: "#2a2a3e", border: "none", borderRadius: 8, color: "#aaa", width: 30, height: 30, fontSize: 16, cursor: "pointer" }}>&times;</button>
+            </div>
+            <div style={{ fontSize: 12, color: "#ccc", lineHeight: 1.75 }}>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>What We Collect.</strong> Email address, display name, profile photos, bracket picks, chat messages, and anonymous usage data via Google Analytics (GA4).</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>How We Use It.</strong> To provide our services — team preferences, bracket entries, leaderboards, and chat. Analytics help us improve the site. We do not sell or share your data.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>Cookies.</strong> Essential cookies for authentication (Firebase Auth) and anonymous analytics (Google Analytics). No advertising cookies.</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>Third Parties.</strong> Firebase (authentication/database), Google Analytics, and affiliate partners (SeatGeek via Impact.com).</p>
+              <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>Your Rights.</strong> You can request account and data deletion at any time. CCPA and GDPR rights apply where applicable.</p>
+              <p style={{ marginBottom: 0, color: "#888" }}><strong style={{ color: "#aaa" }}>Contact.</strong> t.m.searle@gmail.com &nbsp;|&nbsp; Full policy available in the site footer.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2995,6 +3069,7 @@ export default function App() {
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTosModal, setShowTosModal] = useState(false);
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminLoading, setAdminLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -3816,8 +3891,10 @@ export default function App() {
           {/* Bottom row */}
           <div style={{ textAlign: "center", fontSize: 10, color: "#fff" }}>
             <span>&copy; {new Date().getFullYear()} Salt City Sports. Not affiliated with ESPN or any league.</span>
-            <div style={{ marginTop: 8, display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ marginTop: 8, display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
               <button onClick={() => setShowPrivacy(true)} style={{ background: "none", border: "none", color: "#888", fontSize: 10, cursor: "pointer", textDecoration: "underline", padding: 0 }}>Privacy Policy</button>
+              <span style={{ color: "#333" }}>|</span>
+              <button onClick={() => setShowTosModal(true)} style={{ background: "none", border: "none", color: "#888", fontSize: 10, cursor: "pointer", textDecoration: "underline", padding: 0 }}>Terms of Service</button>
               <span style={{ color: "#333" }}>|</span>
               <span style={{ color: "#888", fontSize: 10 }}>Affiliate Disclosure: We may earn a commission from ticket purchases through our partner links.</span>
             </div>
@@ -3913,6 +3990,45 @@ export default function App() {
               <p style={{ marginBottom: 0, color: "#888" }}>
                 <strong style={{ color: "#aaa" }}>Contact.</strong> For questions about this Privacy Policy or to request data deletion, email us at t.m.searle@gmail.com.
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Terms of Service Modal */}
+      {showTosModal && (
+        <div onClick={() => setShowTosModal(false)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 9999,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          backdropFilter: "blur(4px)",
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "#12121f", borderRadius: 16, border: "1px solid #2a2a3e",
+            maxWidth: 650, width: "100%", maxHeight: "85vh", overflowY: "auto",
+            padding: "28px 24px", position: "relative",
+          }}>
+            <button onClick={() => setShowTosModal(false)} style={{
+              position: "sticky", top: 0, float: "right",
+              background: "#2a2a3e", border: "none", borderRadius: 8,
+              color: "#aaa", width: 32, height: 32, fontSize: 18, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>&times;</button>
+
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", marginBottom: 6, marginTop: 0 }}>Terms of Service</h2>
+            <p style={{ fontSize: 11, color: "#666", marginBottom: 20 }}>Last updated: March 16, 2026</p>
+
+            <div style={{ fontSize: 13, color: "#ccc", lineHeight: 1.75 }}>
+              <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>1. Acceptance.</strong> By creating an account on Salt City Sports (saltcitysportsutah.com), you agree to these Terms of Service. If you do not agree, do not create an account or use the site.</p>
+              <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>2. Eligibility.</strong> You must be at least 18 years of age to create an account. By registering, you represent that you are 18 or older and that all information you provide is truthful and accurate.</p>
+              <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>3. Accounts.</strong> You are responsible for maintaining the security of your account. You agree not to share your login credentials. We reserve the right to suspend or terminate accounts that violate these Terms.</p>
+              <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>4. User Content.</strong> You are responsible for all content you post, including chat messages, display names, and profile pictures. You agree not to post content that is abusive, threatening, defamatory, obscene, or illegal. We reserve the right to remove content and suspend accounts that violate this policy.</p>
+              <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>5. Sports Data.</strong> Scores, schedules, standings, statistics, and news displayed on this site are sourced from third-party providers and are for entertainment and informational purposes only. We do not guarantee the accuracy, completeness, or timeliness of this data. Do not rely on it for betting, financial, or other decisions.</p>
+              <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>6. Contests.</strong> Participation in contests (such as bracket challenges) is subject to the Official Contest Rules posted on the relevant page. Contests are skill-based, free to enter, and not gambling.</p>
+              <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>7. Intellectual Property.</strong> Salt City Sports is an independent fan site. Team names, logos, and league marks are the property of their respective owners. "March Madness" is a registered trademark of the NCAA. We are not affiliated with, endorsed by, or sponsored by any professional or collegiate sports league, team, or ESPN.</p>
+              <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>8. Affiliate Links.</strong> Some links on this site (such as ticket purchase links) are affiliate links. We may earn a small commission from purchases made through these links at no additional cost to you.</p>
+              <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>9. Limitation of Liability.</strong> Salt City Sports is provided "as is" without warranties of any kind. We are not liable for any damages arising from your use of the site, including data loss, service interruptions, or inaccurate sports data.</p>
+              <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>10. Changes.</strong> We may update these Terms at any time. Continued use of the site after changes constitutes acceptance. Material changes will be communicated via a notice on the site.</p>
+              <p style={{ marginBottom: 0, color: "#888" }}><strong style={{ color: "#aaa" }}>11. Governing Law.</strong> These Terms are governed by the laws of the State of Utah. For questions, contact t.m.searle@gmail.com.</p>
             </div>
           </div>
         </div>
