@@ -1589,6 +1589,7 @@ function useTeamData(team) {
                 liveScoreMap.them = parseInt(opp?.score || "0");
                 liveScoreMap.detail = comp.status?.type?.shortDetail || "";
                 liveScoreMap.oppName = opp?.team?.displayName || "";
+                liveScoreMap.oppAbbr = opp?.team?.abbreviation || "";
               }
             }
           }
@@ -1656,7 +1657,9 @@ function useTeamData(team) {
             const statusName = comp?.status?.type?.name || ev.status?.type?.name || "";
             const isFinal = statusName.includes("FINAL") || statusName === "post";
             // Check both schedule status AND scoreboard — schedule can lag behind
-            const isLive = statusName.includes("IN_PROGRESS") || statusName === "STATUS_IN_PROGRESS" || statusName === "in" || (us && liveScoreMap.detail);
+            const thisOppAbbr = them?.team?.abbreviation || "";
+            const scoreboardMatchesThisGame = liveScoreMap.detail && liveScoreMap.oppAbbr && thisOppAbbr === liveScoreMap.oppAbbr;
+            const isLive = statusName.includes("IN_PROGRESS") || statusName === "STATUS_IN_PROGRESS" || statusName === "in" || (us && scoreboardMatchesThisGame);
             const statusDetail = comp?.status?.type?.shortDetail || comp?.status?.shortDetail || ev.status?.type?.shortDetail || "";
 
             let result = "";
