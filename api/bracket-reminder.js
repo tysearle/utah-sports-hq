@@ -42,7 +42,7 @@ function getEmail1(username) {
 <p><a href="https://saltcitysportsutah.com" style="color:#CC0000;font-weight:bold;">Fill out your bracket here</a></p>
 
 <p>Good luck!<br>
-— Tyler, Salt City Sports</p>
+— Salt City Sports</p>
 
 <p style="color:#999;font-size:12px;margin-top:24px;">saltcitysportsutah.com</p>
 </div>`,
@@ -64,7 +64,7 @@ function getEmail2(username) {
 
 <p><a href="https://saltcitysportsutah.com" style="color:#CC0000;font-weight:bold;">Lock in your bracket now</a></p>
 
-<p>— Tyler, Salt City Sports</p>
+<p>— Salt City Sports</p>
 
 <p style="color:#999;font-size:12px;margin-top:24px;">saltcitysportsutah.com</p>
 </div>`,
@@ -86,7 +86,7 @@ function getEmail3(username) {
 
 <p><a href="https://saltcitysportsutah.com" style="color:#CC0000;font-weight:bold;">Submit your bracket before it's too late</a></p>
 
-<p>— Tyler</p>
+<p>— Salt City Sports</p>
 
 <p style="color:#999;font-size:12px;margin-top:24px;">saltcitysportsutah.com</p>
 </div>`,
@@ -162,7 +162,7 @@ export default async function handler(req, res) {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "Tyler from Salt City Sports <hello@saltcitysportsutah.com>",
+            from: "Salt City Sports <hello@saltcitysportsutah.com>",
             to: [user.email],
             reply_to: "saltcitysportsutah@gmail.com",
             subject,
