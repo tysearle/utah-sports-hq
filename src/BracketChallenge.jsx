@@ -1712,19 +1712,22 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
             display: "flex", alignItems: "center", gap: 8,
             ...(isMobile ? { marginTop: 4 } : {}),
           }}>
-            <input
-              type="text"
-              value={entryName}
-              onChange={(e) => { if (!locked) { setEntryName(e.target.value); setSaved(false); } }}
-              placeholder={userProfile?.username || user.displayName || "Entry name"}
-              disabled={locked}
-              style={{
-                background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
-                padding: isMobile ? "6px 10px" : "8px 12px", color: locked ? "#666" : "#ccc",
-                fontSize: isMobile ? 11 : 12, flex: 1, minWidth: 0,
-                outline: "none", opacity: locked ? 0.6 : 1,
-              }}
-            />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+              <label style={{ fontSize: isMobile ? 9 : 10, color: "#666", whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 600 }}>Entry Name</label>
+              <input
+                type="text"
+                value={entryName}
+                onChange={(e) => { if (!locked) { setEntryName(e.target.value); setSaved(false); } }}
+                placeholder={userProfile?.username || user.displayName || "Entry name"}
+                disabled={locked}
+                style={{
+                  background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 8,
+                  padding: isMobile ? "6px 10px" : "8px 12px", color: locked ? "#666" : "#ccc",
+                  fontSize: isMobile ? 11 : 12, flex: 1, minWidth: 0,
+                  outline: "none", opacity: locked ? 0.6 : 1,
+                }}
+              />
+            </div>
             <button onClick={handleSave} disabled={saving || locked} style={{
               background: locked ? "#44444422" : saved ? "#4CAF5022" : "#CC000022",
               border: `1px solid ${locked ? "#44444466" : saved ? "#4CAF5066" : "#CC000066"}`,
