@@ -50,7 +50,8 @@ export default async function handler(req, res) {
       <h2 style="color:#ffffff;margin:0 0 8px;font-size:20px;font-weight:800;">March Madness Bracket Challenge</h2>
       <p style="color:#ffffffcc;font-size:13px;line-height:1.5;margin:0 0 20px;">
         Fill out your bracket and compete against other fans!
-        Entries are due <strong>Tuesday, March 17th at 11:30 AM MDT</strong> — don't miss it!
+        Win <strong>$75 cash</strong> — free to enter!
+        Entries are due <strong>Thursday, March 19th at 12:15 PM ET</strong> — don't miss it!
       </p>
       <a href="https://saltcitysportsutah.com" style="display:inline-block;background:#ffffff;color:#CC0000;font-size:14px;font-weight:800;padding:12px 32px;border-radius:10px;text-decoration:none;">
         Fill Out Your Bracket →
