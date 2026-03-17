@@ -546,9 +546,13 @@ export { loadUserEntries };
 
 // ===== COMPONENTS =====
 
-function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled }) {
+function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact }) {
   const isSelected1 = picked === team1?.id;
   const isSelected2 = picked === team2?.id;
+  const pad = compact ? "6px 8px" : "7px 10px";
+  const nameSize = compact ? 10 : 12;
+  const seedSize = compact ? 9 : 10;
+  const radioSize = compact ? 12 : 14;
 
   const handleClick = (teamId) => {
     if (disabled) return;
@@ -558,13 +562,13 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled }) {
   return (
     <div style={{
       background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 6,
-      minWidth: 140, fontSize: 11, overflow: "hidden",
+      minWidth: compact ? 140 : 165, fontSize: 11, overflow: "hidden",
     }}>
       {/* Team 1 */}
       <div
         onClick={() => handleClick(team1?.id)}
         style={{
-          padding: "6px 8px", display: "flex", alignItems: "center", gap: 6,
+          padding: pad, display: "flex", alignItems: "center", gap: 6,
           borderBottom: "1px solid #2a2a3e",
           background: isSelected1 ? "#CC000022" : team1 ? "#ffffff04" : "#1a1a2e",
           cursor: !disabled && team1 ? "pointer" : "default",
@@ -579,7 +583,7 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled }) {
       >
         {/* Radio circle */}
         <div style={{
-          width: 12, height: 12, borderRadius: "50%",
+          width: radioSize, height: radioSize, borderRadius: "50%",
           border: isSelected1 ? "3px solid #CC0000" : "2px solid #444",
           background: isSelected1 ? "#CC0000" : "transparent",
           flexShrink: 0,
@@ -587,11 +591,11 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           {team1 ? (
             <>
-              <div style={{ fontSize: 9, color: "#666", fontWeight: 700 }}>
+              <div style={{ fontSize: seedSize, color: "#666", fontWeight: 700 }}>
                 {team1.seed}
               </div>
               <div style={{
-                fontSize: 10, fontWeight: isSelected1 ? 700 : 500,
+                fontSize: nameSize, fontWeight: isSelected1 ? 700 : 500,
                 color: isSelected1 ? "#fff" : team1.isCombo ? "#9a9aaa" : "#ccc",
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                 fontStyle: team1.isCombo ? "italic" : "normal",
@@ -609,7 +613,7 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled }) {
       <div
         onClick={() => handleClick(team2?.id)}
         style={{
-          padding: "6px 8px", display: "flex", alignItems: "center", gap: 6,
+          padding: pad, display: "flex", alignItems: "center", gap: 6,
           background: isSelected2 ? "#CC000022" : team2 ? "#ffffff04" : "#1a1a2e",
           cursor: !disabled && team2 ? "pointer" : "default",
           transition: "all 0.15s",
@@ -623,7 +627,7 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled }) {
       >
         {/* Radio circle */}
         <div style={{
-          width: 12, height: 12, borderRadius: "50%",
+          width: radioSize, height: radioSize, borderRadius: "50%",
           border: isSelected2 ? "3px solid #CC0000" : "2px solid #444",
           background: isSelected2 ? "#CC0000" : "transparent",
           flexShrink: 0,
@@ -631,11 +635,11 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           {team2 ? (
             <>
-              <div style={{ fontSize: 9, color: "#666", fontWeight: 700 }}>
+              <div style={{ fontSize: seedSize, color: "#666", fontWeight: 700 }}>
                 {team2.seed}
               </div>
               <div style={{
-                fontSize: 10, fontWeight: isSelected2 ? 700 : 500,
+                fontSize: nameSize, fontWeight: isSelected2 ? 700 : 500,
                 color: isSelected2 ? "#fff" : team2.isCombo ? "#9a9aaa" : "#ccc",
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                 fontStyle: team2.isCombo ? "italic" : "normal",
@@ -779,6 +783,7 @@ function MobileRegionView({ region, picks, onPick }) {
               onPick={(teamId) => onPick(gameKey, teamId)}
               gameKey={gameKey}
               disabled={!t1 || !t2}
+              compact
             />
           );
         })}
@@ -844,7 +849,7 @@ function RegionalBracketView({ region, picks, onPick }) {
             }}>
               {/* Round Header */}
               <div style={{
-                textAlign: "center", marginBottom: 12, minWidth: 140,
+                textAlign: "center", marginBottom: 12, minWidth: 165,
               }}>
                 <div style={{
                   fontSize: 10, fontWeight: 700, color: region.color,
@@ -888,7 +893,7 @@ function RegionalBracketView({ region, picks, onPick }) {
         {/* Region Winner Display */}
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", minWidth: 140,
+          justifyContent: "center", minWidth: 165,
         }}>
           <div style={{
             fontSize: 9, color: "#666", textTransform: "uppercase",
