@@ -3568,8 +3568,8 @@ export default function App() {
         ::-webkit-scrollbar-track { background: #0a0a16; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         a:hover { filter: brightness(1.2); }
-        .ush-logo { width: 48px; height: 48px; }
-        .ush-title { font-size: 22px; }
+        .ush-logo { width: 52px; height: 52px; }
+        .ush-title { font-size: 24px; }
         @media (max-width: 768px) {
           .ush-header > div { padding: 0 12px !important; }
           .ush-header-left { gap: 6px !important; margin-right: 12px !important; }
@@ -3597,18 +3597,18 @@ export default function App() {
         }}>
           {/* Logo */}
           <div className="ush-header-left" style={{ display: "flex", alignItems: "center", gap: 10, marginRight: 28 }}>
-            <img className="ush-logo" src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} />
-            <h1 className="ush-title" style={{ margin: 0, fontWeight: 800, fontSize: 18, letterSpacing: -0.5 }}>
+            <img className="ush-logo" src="/salt-city-sports-logo.png" alt="Salt City Sports" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} />
+            <h1 className="ush-title" style={{ margin: 0, fontWeight: 800, fontSize: 20, letterSpacing: -0.5 }}>
               <span style={{ color: "#fff" }}>Salt City </span><span style={{ color: "#CC0000" }}>Sports</span>
             </h1>
           </div>
 
           {/* Nav links */}
           <nav className="ush-header-nav" style={{ display: "flex", alignItems: "center", gap: 4, flex: 1 }}>
-            <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
+            <button onClick={() => { setBracketEntry(1); setBracketInitialTab("bracket"); setShowBracket(true); }}
               className="ush-nav-link"
               style={{
-                background: "none", border: "none", color: "#ccc", fontSize: 13, fontWeight: 600,
+                background: "none", border: "none", color: "#ccc", fontSize: 16, fontWeight: 600,
                 cursor: "pointer", padding: "8px 14px", borderRadius: 6, transition: "all 0.15s",
                 display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
               }}
@@ -3618,11 +3618,24 @@ export default function App() {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93c4.08 2.14 6.16 4.22 10.14 10.14"/><path d="M19.07 4.93c-4.08 2.14-6.16 4.22-10.14 10.14"/><path d="M2 12h20"/></svg>
               March Madness
             </button>
+            <button onClick={() => { setBracketEntry(1); setBracketInitialTab("lb"); setShowBracket(true); }}
+              className="ush-nav-link"
+              style={{
+                background: "none", border: "none", color: "#ccc", fontSize: 16, fontWeight: 600,
+                cursor: "pointer", padding: "8px 14px", borderRadius: 6, transition: "all 0.15s",
+                display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#ffffff12"; e.currentTarget.style.color = "#fff"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#ccc"; }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 21v-2a4 4 0 00-4-4H3"/><path d="M12 3v7l3-3"/><path d="M12 3v7l-3-3"/><circle cx="12" cy="17" r="4"/><path d="M12 13v4"/></svg>
+              Leaderboard
+            </button>
             {user && (
               <button onClick={() => { setBracketEntry(1); setBracketInitialTab("chat"); setShowBracket(true); }}
                 className="ush-nav-link"
                 style={{
-                  background: "none", border: "none", color: "#ccc", fontSize: 13, fontWeight: 600,
+                  background: "none", border: "none", color: "#ccc", fontSize: 16, fontWeight: 600,
                   cursor: "pointer", padding: "8px 14px", borderRadius: 6, transition: "all 0.15s",
                   display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
                 }}
@@ -3637,7 +3650,7 @@ export default function App() {
               <button onClick={() => { setShowAdmin(true); loadAdminUsers(); }}
                 className="ush-nav-link"
                 style={{
-                  background: "none", border: "none", color: "#ccc", fontSize: 13, fontWeight: 600,
+                  background: "none", border: "none", color: "#ccc", fontSize: 16, fontWeight: 600,
                   cursor: "pointer", padding: "8px 14px", borderRadius: 6, transition: "all 0.15s",
                   display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
                 }}
@@ -3655,8 +3668,8 @@ export default function App() {
             <button onClick={() => setShowTeamPicker(true)}
               className="ush-nav-link ush-customize-teams"
               style={{
-                background: "none", border: "1px solid #ffffff18", color: "#aaa", fontSize: 12, fontWeight: 600,
-                cursor: "pointer", padding: "6px 12px", borderRadius: 6, transition: "all 0.15s",
+                background: "none", border: "1px solid #ffffff18", color: "#aaa", fontSize: 14, fontWeight: 600,
+                cursor: "pointer", padding: "7px 14px", borderRadius: 6, transition: "all 0.15s",
                 display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "#ffffff12"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#ffffff33"; }}
@@ -3678,12 +3691,12 @@ export default function App() {
                   onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
                 >
                   {profile?.photoURL ? (
-                    <img src={profile.photoURL} alt="" style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #CC0000", objectFit: "cover" }} referrerPolicy="no-referrer" />
+                    <img src={profile.photoURL} alt="" style={{ width: 36, height: 36, borderRadius: "50%", border: "2px solid #CC0000", objectFit: "cover" }} referrerPolicy="no-referrer" />
                   ) : (
                     <div style={{
-                      width: 32, height: 32, borderRadius: "50%", background: "#CC000033",
+                      width: 36, height: 36, borderRadius: "50%", background: "#CC000033",
                       border: "2px solid #CC0000", display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 14, fontWeight: 700, color: "#CC0000",
+                      fontSize: 15, fontWeight: 700, color: "#CC0000",
                     }}>
                       {(profile?.username || user.email || "?")[0].toUpperCase()}
                     </div>
@@ -3696,15 +3709,15 @@ export default function App() {
                     <div style={{
                       position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 200,
                       background: "#1a1a2e", border: "1px solid #2a2a3e", borderRadius: 10,
-                      padding: "6px 0", minWidth: 180, boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                      padding: "6px 0", minWidth: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                     }}>
                       <div style={{ padding: "10px 16px", borderBottom: "1px solid #2a2a3e" }}>
-                        <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>{profile?.username || profile?.displayName || user.email?.split("@")[0]}</div>
-                        <div style={{ color: "#666", fontSize: 11 }}>{user.email}</div>
+                        <div style={{ color: "#fff", fontSize: 14, fontWeight: 600 }}>{profile?.username || profile?.displayName || user.email?.split("@")[0]}</div>
+                        <div style={{ color: "#666", fontSize: 12 }}>{user.email}</div>
                       </div>
                       <button onClick={() => { setShowProfileDropdown(false); setShowProfileSettings(true); }} style={{
                         width: "100%", textAlign: "left", background: "none", border: "none",
-                        padding: "10px 16px", color: "#ccc", fontSize: 13, cursor: "pointer",
+                        padding: "10px 16px", color: "#ccc", fontSize: 14, cursor: "pointer",
                         display: "flex", alignItems: "center", gap: 10, transition: "background 0.15s",
                       }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff08")}
@@ -3715,7 +3728,7 @@ export default function App() {
                       </button>
                       <button onClick={() => { setShowProfileDropdown(false); logout(); }} style={{
                         width: "100%", textAlign: "left", background: "none", border: "none",
-                        padding: "10px 16px", color: "#CC0000", fontSize: 13, cursor: "pointer",
+                        padding: "10px 16px", color: "#CC0000", fontSize: 14, cursor: "pointer",
                         display: "flex", alignItems: "center", gap: 10, transition: "background 0.15s",
                       }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff08")}
@@ -3731,7 +3744,7 @@ export default function App() {
             ) : (
               <button onClick={() => setShowAuthModal(true)} style={{
                 background: "none", border: "1px solid #ffffff66", borderRadius: 8,
-                padding: "7px 16px", color: "#fff", fontSize: 13, fontWeight: 600,
+                padding: "8px 18px", color: "#fff", fontSize: 16, fontWeight: 600,
                 cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s",
               }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#ffffff18")}
