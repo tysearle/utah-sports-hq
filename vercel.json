@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/api/bracket-reminder",
+      "destination": "/api/bracket-reminder"
+    },
+    {
+      "source": "/api/welcome-email",
+      "destination": "/api/welcome-email"
+    },
+    {
+      "source": "/api/ncaa-results",
+      "destination": "/api/ncaa-results"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/espn?path=:path*"
     }
