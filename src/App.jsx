@@ -1859,7 +1859,7 @@ function Tabs({ tabs, accent }) {
   const [active, setActive] = useState(0);
   return (
     <div>
-      <div style={{ display: "flex", gap: 2, marginBottom: 12, borderBottom: `1px solid ${accent}33` }}>
+      <div style={{ display: "flex", gap: 2, marginBottom: 12, borderBottom: `1px solid ${accent}33`, overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
         {tabs.map((tab, i) => (
           <button
             key={tab.label}
@@ -1869,10 +1869,11 @@ function Tabs({ tabs, accent }) {
               color: active === i ? accent : "#aaa",
               border: "none",
               borderBottom: active === i ? `2px solid ${accent}` : "2px solid transparent",
-              padding: "8px 14px", fontSize: 12,
+              padding: "8px 10px", fontSize: 11,
               fontWeight: active === i ? 700 : 500,
               cursor: "pointer", transition: "all 0.2s",
               letterSpacing: 0.3, textTransform: "uppercase",
+              whiteSpace: "nowrap", flexShrink: 0,
             }}
           >
             {tab.label}
@@ -2539,6 +2540,156 @@ function PlayoffOddsTab({ team, accent }) {
   );
 }
 
+// --- News Tab ---
+function NewsTab({ team, accent }) {
+  const [articles, setArticles] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Derive league news path from apiTeam: "sports/hockey/nhl/teams/uta" -> "sports/hockey/nhl/news"
+        const newsPath = team.apiTeam.replace(/\/teams\/.*$/, "/news");
+        const res = await fetchESPN(newsPath, false, { limit: 50 });
+        if (!res.ok) throw new Error("Failed to fetch news");
+        const data = await res.json();
+        const allArticles = data?.articles || [];
+
+        // Filter articles that mention this team by teamId in categories
+        const teamId = String(team.teamId);
+        const teamName = team.name.toLowerCase();
+        const shortName = (team.shortName || "").toLowerCase();
+        const filtered = allArticles.filter((article) => {
+          // Check categories for team match
+          const cats = article.categories || [];
+          for (const cat of cats) {
+            if (cat.type === "team" && String(cat.teamId) === teamId) return true;
+            // Also check athlete categories that reference the team
+            if (cat.team && String(cat.team.id) === teamId) return true;
+          }
+          // Fallback: check headline/description for team name
+          const headline = (article.headline || "").toLowerCase();
+          const desc = (article.description || "").toLowerCase();
+          if (shortName && shortName.length > 3 && (headline.includes(shortName) || desc.includes(shortName))) return true;
+          return false;
+        });
+
+        if (!cancelled) {
+          setArticles(filtered.slice(0, 10));
+          setLoading(false);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(e.message);
+          setLoading(false);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [team.apiTeam, team.teamId, team.name, team.shortName]);
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, gap: 10 }}>
+        <div style={{
+          width: 20, height: 20,
+          border: `3px solid ${accent}33`, borderTop: `3px solid ${accent}`,
+          borderRadius: "50%", animation: "spin 1s linear infinite",
+        }} />
+        <span style={{ color: "#888", fontSize: 13 }}>Loading news...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div style={{ color: "#f44336", padding: 16, textAlign: "center", fontSize: 13 }}>Unable to load news</div>;
+  }
+
+  if (!articles || articles.length === 0) {
+    return <div style={{ color: "#777", padding: 16, textAlign: "center", fontSize: 13 }}>No recent news for {team.shortName || team.name}</div>;
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      {articles.map((article, i) => {
+        const img = article.images?.[0]?.url;
+        const published = article.published ? new Date(article.published) : null;
+        const timeAgo = published ? getTimeAgo(published) : "";
+        const link = article.links?.web?.href || article.links?.api?.news?.href || "#";
+
+        return (
+          <a
+            key={article.headline + i}
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "flex", alignItems: "flex-start", gap: 12,
+              padding: "10px 8px",
+              background: i % 2 === 0 ? "#1a1a2e" : "transparent",
+              borderRadius: 8, textDecoration: "none",
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = accent + "18"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = i % 2 === 0 ? "#1a1a2e" : "transparent"; }}
+          >
+            {img && (
+              <img
+                src={img}
+                alt=""
+                style={{
+                  width: 72, height: 48, borderRadius: 6,
+                  objectFit: "cover", flexShrink: 0,
+                  background: "#2a2a3e",
+                }}
+                onError={(e) => { e.target.style.display = "none"; }}
+              />
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                color: "#eee", fontSize: 13, fontWeight: 600,
+                lineHeight: 1.35, marginBottom: 4,
+                display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}>
+                {article.headline}
+              </div>
+              {article.description && (
+                <div style={{
+                  color: "#888", fontSize: 11, lineHeight: 1.4,
+                  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}>
+                  {article.description}
+                </div>
+              )}
+              {timeAgo && (
+                <div style={{ color: "#666", fontSize: 10, marginTop: 4 }}>{timeAgo}</div>
+              )}
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
+function getTimeAgo(date) {
+  const now = new Date();
+  const diff = now - date;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 // --- Quick Links---
 function QuickLinks({ team, accent }) {
   const btnBase = {
@@ -2575,6 +2726,7 @@ function TeamWidget({ team, isDragging, dragHandlers }) {
     <RosterTab roster={roster} accent={team.accent} team={team} />
   });
   tabs.push({ label: "Stats", content: <StatsTab team={team} accent={team.accent} /> });
+  tabs.push({ label: "News", content: <NewsTab team={team} accent={team.accent} /> });
   if (team.showPlayoffOdds) {
     tabs.push({ label: "Playoff Odds", content: <PlayoffOddsTab team={team} accent={team.accent} /> });
   }

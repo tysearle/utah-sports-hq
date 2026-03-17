@@ -26,6 +26,8 @@ const MAX_CACHE_SIZE = 500;
 
 // TTL config in seconds based on path patterns
 function getTTL(path) {
+  // News updates periodically
+  if (path.includes("/news")) return { fresh: 600, stale: 1800 }; // 10 min fresh, 30 min stale
   // Schedule data changes frequently (scores, game status)
   if (path.includes("/schedule")) return { fresh: 120, stale: 300 }; // 2 min fresh, 5 min stale
   // Standings update after games
