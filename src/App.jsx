@@ -2782,6 +2782,7 @@ function TeamPickerModal({ selectedTeams, onSave, onClose, isFirstTime }) {
                   border: isSelected ? `2px solid ${team.accent}` : "2px solid #2a2a3e",
                   background: isSelected ? team.accent + "15" : "#1a1a2e",
                   opacity: isDisabled ? 0.4 : 1, transition: "all 0.2s",
+                  minWidth: 0, overflow: "hidden",
                 }}>
                   <img src={team.logo} alt="" style={{ width: 30, height: 30, borderRadius: 5, objectFit: "contain", background: "#fff", padding: 2, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
