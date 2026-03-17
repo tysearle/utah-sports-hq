@@ -1983,19 +1983,38 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
 
       {/* Deadline Banner */}
       <div style={{
-        background: locked ? "#CC000015" : "#FFD70010",
+        background: locked
+          ? "linear-gradient(90deg, #CC000020, #CC000010, #CC000020)"
+          : "linear-gradient(90deg, #FFD70015, #FFD70008, #FFD70015)",
         borderBottom: `1px solid ${locked ? "#CC000033" : "#FFD70033"}`,
-        padding: "6px 20px",
-        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-        fontSize: 11, fontWeight: 600,
+        padding: isMobile ? "8px 12px" : "10px 20px",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+        fontSize: isMobile ? 11 : 13, fontWeight: 600,
       }}>
         {locked ? (
-          <span style={{ color: "#CC0000" }}>🔒 Brackets are locked — entries were due Thu, Mar 19 at 12:15 PM ET</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 8, color: "#CC0000" }}>
+            <span style={{ fontSize: 14 }}>🔒</span>
+            <span>Brackets are locked — entries were due Thu, Mar 19 at 12:15 PM ET</span>
+          </span>
         ) : (
-          <>
-            <span style={{ color: "#FFD700" }}>⏰ Entries due: Thu, Mar 19 at 12:15 PM ET</span>
-            {countdown && <span style={{ color: "#888", fontSize: 10 }}>({countdown})</span>}
-          </>
+          <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+            <span style={{
+              background: "#FFD70020", border: "1px solid #FFD70040", borderRadius: 6,
+              padding: "3px 8px", fontSize: isMobile ? 10 : 11, color: "#FFD700",
+              fontWeight: 700, letterSpacing: 0.3, display: "inline-flex", alignItems: "center", gap: 4,
+            }}>
+              🏀 LIVE
+            </span>
+            <span style={{ color: "#fff" }}>Entries due: <span style={{ color: "#FFD700" }}>Thu, Mar 19 at 12:15 PM ET</span></span>
+            {countdown && (
+              <span style={{
+                background: "#ffffff10", borderRadius: 6, padding: "3px 8px",
+                fontSize: isMobile ? 10 : 11, color: "#FF6B6B", fontWeight: 700,
+              }}>
+                {countdown}
+              </span>
+            )}
+          </span>
         )}
       </div>
 
