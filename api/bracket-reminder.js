@@ -152,7 +152,10 @@ export default async function handler(req, res) {
     let sent = 0;
     let failed = 0;
 
-    for (const user of needsReminder) {
+    for (let idx = 0; idx < needsReminder.length; idx++) {
+      const user = needsReminder[idx];
+      // Delay 250ms between sends to avoid Resend rate limit (5/sec)
+      if (idx > 0) await new Promise((r) => setTimeout(r, 250));
       const { subject, html } = templateFn(user.username);
       try {
         const resp = await fetch("https://api.resend.com/emails", {
