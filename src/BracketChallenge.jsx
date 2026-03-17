@@ -808,7 +808,7 @@ function RegionalBracketView({ region, picks, onPick }) {
   const rounds = [1, 2, 3, 4];
   const matchupsPerRound = [8, 4, 2, 1];
   const spacingMultipliers = [1, 2, 4, 8];
-  const MATCHUP_HEIGHT = 64;
+  const MATCHUP_HEIGHT = 76;
   const VERTICAL_GAP = 8;
 
   return (
