@@ -1640,7 +1640,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
       <header style={{
         background: "linear-gradient(135deg, #12121f 0%, #1a1a30 100%)",
         borderBottom: "1px solid #2a2a3e",
-        padding: isMobile ? "10px 12px" : "14px 20px",
+        padding: isMobile ? "12px 14px" : "14px 20px",
         position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)",
       }}>
         {/* Top row: Back, title, entry switcher */}
@@ -1710,7 +1710,9 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
         {user ? (
           <div style={{
             display: "flex", alignItems: "center", gap: 8,
-            ...(isMobile ? { marginTop: 4 } : {}),
+            marginTop: isMobile ? 10 : 8,
+            paddingTop: isMobile ? 10 : 8,
+            borderTop: "1px solid #1a1a2e",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
               <label style={{ fontSize: isMobile ? 9 : 10, color: "#666", whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 600 }}>Entry Name</label>
