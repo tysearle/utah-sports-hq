@@ -562,7 +562,7 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact }
   return (
     <div style={{
       background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 6,
-      minWidth: compact ? 140 : 155, fontSize: 11, overflow: "hidden",
+      minWidth: compact ? 140 : 170, fontSize: 11, overflow: "hidden",
     }}>
       {/* Team 1 */}
       <div
@@ -849,7 +849,7 @@ function RegionalBracketView({ region, picks, onPick }) {
             }}>
               {/* Round Header */}
               <div style={{
-                textAlign: "center", marginBottom: 12, minWidth: 155,
+                textAlign: "center", marginBottom: 12, minWidth: 170,
               }}>
                 <div style={{
                   fontSize: 10, fontWeight: 700, color: region.color,
@@ -893,7 +893,7 @@ function RegionalBracketView({ region, picks, onPick }) {
         {/* Region Winner Display */}
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", minWidth: 155,
+          justifyContent: "center", minWidth: 170,
         }}>
           <div style={{
             fontSize: 9, color: "#666", textTransform: "uppercase",
