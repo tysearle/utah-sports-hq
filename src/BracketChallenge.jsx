@@ -15,8 +15,8 @@ import {
 } from "firebase/firestore";
 
 // ===== BRACKET DEADLINE =====
-// Tuesday March 17, 2026 at 11:30 AM MDT (UTC-6)
-const BRACKET_DEADLINE = new Date("2026-03-17T11:30:00-06:00");
+// Thursday March 19, 2026 at 12:15 PM ET (UTC-4)
+const BRACKET_DEADLINE = new Date("2026-03-19T12:15:00-04:00");
 
 function isBracketLocked() {
   return Date.now() >= BRACKET_DEADLINE.getTime();
@@ -1750,10 +1750,10 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
         fontSize: 11, fontWeight: 600,
       }}>
         {locked ? (
-          <span style={{ color: "#CC0000" }}>🔒 Brackets are locked — entries were due Tue, Mar 17 at 11:30 AM MDT</span>
+          <span style={{ color: "#CC0000" }}>🔒 Brackets are locked — entries were due Thu, Mar 19 at 12:15 PM ET</span>
         ) : (
           <>
-            <span style={{ color: "#FFD700" }}>⏰ Entries due: Tue, Mar 17 at 11:30 AM MDT</span>
+            <span style={{ color: "#FFD700" }}>⏰ Entries due: Thu, Mar 19 at 12:15 PM ET</span>
             {countdown && <span style={{ color: "#888", fontSize: 10 }}>({countdown})</span>}
           </>
         )}
