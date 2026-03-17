@@ -3070,6 +3070,8 @@ export default function App() {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTosModal, setShowTosModal] = useState(false);
+  const [showBracketCTA, setShowBracketCTA] = useState(false);
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminLoading, setAdminLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -3134,6 +3136,7 @@ export default function App() {
           // First-time user — show team picker
           setSelectedTeams([]);
           setShowTeamPicker(true);
+          setIsFirstTimeUser(true);
         }
       } catch (e) {
         console.error("Failed to load team prefs:", e);
@@ -3957,9 +3960,109 @@ export default function App() {
         <TeamPickerModal
           selectedTeams={selectedTeams || []}
           isFirstTime={!selectedTeams || selectedTeams.length === 0}
-          onSave={(teams) => { saveTeamPrefs(teams); setShowTeamPicker(false); }}
+          onSave={(teams) => {
+            saveTeamPrefs(teams);
+            setShowTeamPicker(false);
+            if (isFirstTimeUser) {
+              setIsFirstTimeUser(false);
+              setShowBracketCTA(true);
+            }
+          }}
           onClose={() => setShowTeamPicker(false)}
         />
+      )}
+
+      {/* March Madness Bracket Challenge CTA Modal */}
+      {showBracketCTA && (
+        <div onClick={() => setShowBracketCTA(false)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 9999,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "linear-gradient(180deg, #1a1a2e 0%, #12121f 100%)",
+            border: "1px solid #2a2a3e", borderRadius: 16, overflow: "hidden",
+            maxWidth: 420, width: "100%", position: "relative",
+          }}>
+            {/* Close button */}
+            <button onClick={() => setShowBracketCTA(false)} style={{
+              position: "absolute", top: 12, right: 12, zIndex: 1, width: 28, height: 28,
+              borderRadius: "50%", background: "rgba(0,0,0,0.3)", border: "none",
+              color: "#ffffffcc", fontSize: 16, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>✕</button>
+
+            {/* Hero Banner */}
+            <div style={{
+              background: "linear-gradient(135deg, #CC0000, #ff4444)",
+              padding: "28px 24px", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 48, marginBottom: 8 }}>🏀</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#fff" }}>March Madness 2026</div>
+              <div style={{ fontSize: 14, color: "#ffffffcc", marginTop: 4 }}>Bracket Challenge</div>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: "24px" }}>
+              {/* Prize */}
+              <div style={{ textAlign: "center", marginBottom: 20 }}>
+                <div style={{ fontSize: 36, fontWeight: 800, color: "#FFD700" }}>Win $75</div>
+                <div style={{ fontSize: 13, color: "#888" }}>Free to enter — best bracket wins cash</div>
+              </div>
+
+              {/* Deadline */}
+              <div style={{
+                background: "#FFD70012", border: "1px solid #FFD70030", borderRadius: 8,
+                padding: 10, textAlign: "center", marginBottom: 20,
+              }}>
+                <div style={{ fontSize: 11, color: "#FFD700", fontWeight: 600 }}>⏰ ENTRIES DUE: THU MAR 19, 12:15 PM ET</div>
+              </div>
+
+              {/* Features */}
+              <div style={{ marginBottom: 20 }}>
+                {[
+                  { icon: "📊", bold: "Pick every game", text: " from Round of 64 to the Championship" },
+                  { icon: "🏆", bold: "Compete on the leaderboard", text: " against other fans in real time" },
+                  { icon: "💬", bold: "Talk trash in the chat", text: " during every game" },
+                ].map(({ icon, bold, text }) => (
+                  <div key={icon} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    <span style={{ fontSize: 20, flexShrink: 0, width: 32, textAlign: "center" }}>{icon}</span>
+                    <span style={{ fontSize: 13, color: "#ccc", lineHeight: 1.4 }}>
+                      <strong style={{ color: "#fff" }}>{bold}</strong>{text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA Button */}
+              <button onClick={() => {
+                setShowBracketCTA(false);
+                setBracketEntry(1);
+                setBracketInitialTab("bracket");
+                setShowBracket(true);
+              }} style={{
+                width: "100%", padding: 14, background: "#CC0000", color: "#fff",
+                fontWeight: 700, fontSize: 16, border: "none", borderRadius: 10,
+                cursor: "pointer", transition: "opacity 0.15s",
+              }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+              >
+                Fill Out My Bracket →
+              </button>
+
+              {/* Skip link */}
+              <div onClick={() => setShowBracketCTA(false)} style={{
+                textAlign: "center", marginTop: 12, fontSize: 12, color: "#555",
+                cursor: "pointer",
+              }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#888")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#555")}
+              >
+                Maybe later
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Privacy Policy Modal */}
