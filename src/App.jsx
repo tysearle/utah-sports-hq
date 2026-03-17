@@ -1579,7 +1579,8 @@ function useTeamData(team) {
           for (const ev of sbEvents) {
             const comp = ev.competitions?.[0];
             const statusName = comp?.status?.type?.name || "";
-            if (statusName.includes("IN_PROGRESS")) {
+            const sbState = comp?.status?.type?.state || "";
+            if (statusName.includes("IN_PROGRESS") || statusName.includes("END_PERIOD") || statusName.includes("HALFTIME") || sbState === "in") {
               const teamComp = comp?.competitors?.find(
                 (c) => String(c.team?.id) === String(team.teamId) || c.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase() || c.team?.abbreviation === team.espnAbbr
               );
@@ -1659,7 +1660,8 @@ function useTeamData(team) {
             // Check both schedule status AND scoreboard — schedule can lag behind
             const thisOppAbbr = them?.team?.abbreviation || "";
             const scoreboardMatchesThisGame = !isFinal && liveScoreMap.detail && liveScoreMap.oppAbbr && thisOppAbbr === liveScoreMap.oppAbbr;
-            const isLive = statusName.includes("IN_PROGRESS") || statusName === "STATUS_IN_PROGRESS" || statusName === "in" || (us && scoreboardMatchesThisGame);
+            const schedState = comp?.status?.type?.state || ev.status?.type?.state || "";
+            const isLive = statusName.includes("IN_PROGRESS") || statusName.includes("END_PERIOD") || statusName.includes("HALFTIME") || schedState === "in" || (us && scoreboardMatchesThisGame);
             const statusDetail = comp?.status?.type?.shortDetail || comp?.status?.shortDetail || ev.status?.type?.shortDetail || "";
 
             let result = "";
