@@ -549,10 +549,10 @@ export { loadUserEntries };
 function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact }) {
   const isSelected1 = picked === team1?.id;
   const isSelected2 = picked === team2?.id;
-  const pad = compact ? "6px 8px" : "7px 10px";
-  const nameSize = compact ? 10 : 12;
-  const seedSize = compact ? 9 : 10;
-  const radioSize = compact ? 12 : 14;
+  const pad = compact ? "6px 8px" : "6px 10px";
+  const nameSize = compact ? 10 : 11;
+  const seedSize = 9;
+  const radioSize = 12;
 
   const handleClick = (teamId) => {
     if (disabled) return;
@@ -562,7 +562,7 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact }
   return (
     <div style={{
       background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 6,
-      minWidth: compact ? 140 : 165, fontSize: 11, overflow: "hidden",
+      minWidth: compact ? 140 : 155, fontSize: 11, overflow: "hidden",
     }}>
       {/* Team 1 */}
       <div
@@ -849,7 +849,7 @@ function RegionalBracketView({ region, picks, onPick }) {
             }}>
               {/* Round Header */}
               <div style={{
-                textAlign: "center", marginBottom: 12, minWidth: 165,
+                textAlign: "center", marginBottom: 12, minWidth: 155,
               }}>
                 <div style={{
                   fontSize: 10, fontWeight: 700, color: region.color,
@@ -893,7 +893,7 @@ function RegionalBracketView({ region, picks, onPick }) {
         {/* Region Winner Display */}
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", minWidth: 165,
+          justifyContent: "center", minWidth: 155,
         }}>
           <div style={{
             fontSize: 9, color: "#666", textTransform: "uppercase",
