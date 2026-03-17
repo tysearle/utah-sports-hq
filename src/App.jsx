@@ -2554,22 +2554,29 @@ function NewsTab({ team, accent }) {
       try {
         // Derive league news path from apiTeam: "sports/hockey/nhl/teams/uta" -> "sports/hockey/nhl/news"
         const newsPath = team.apiTeam.replace(/\/teams\/.*$/, "/news");
-        const res = await fetchESPN(newsPath, false, { limit: 50 });
-        if (!res.ok) throw new Error("Failed to fetch news");
-        const data = await res.json();
+        const data = await fetchESPN(newsPath, false, { limit: 50 });
         const allArticles = data?.articles || [];
 
-        // Filter articles that mention this team by teamId in categories
+        // Filter articles that mention this team by teamId or name in categories
         const teamId = String(team.teamId);
         const teamName = team.name.toLowerCase();
         const shortName = (team.shortName || "").toLowerCase();
+        const espnAbbr = (team.espnAbbr || "").toLowerCase();
         const filtered = allArticles.filter((article) => {
-          // Check categories for team match
           const cats = article.categories || [];
           for (const cat of cats) {
-            if (cat.type === "team" && String(cat.teamId) === teamId) return true;
-            // Also check athlete categories that reference the team
-            if (cat.team && String(cat.team.id) === teamId) return true;
+            if (cat.type === "team") {
+              // Match by numeric teamId (works for most teams)
+              if (String(cat.teamId) === teamId) return true;
+              // Match by team.id inside the category (covers both numeric and string IDs)
+              if (cat.team && String(cat.team.id) === teamId) return true;
+              // Match by team description (handles cases like Mammoth where config teamId is "uta" but ESPN uses 129764)
+              const catDesc = (cat.description || "").toLowerCase();
+              if (shortName && shortName.length > 2 && catDesc.includes(shortName)) return true;
+              // Match by ESPN abbreviation in the team links URL
+              const teamUrl = cat.team?.links?.web?.teams?.href || "";
+              if (espnAbbr && teamUrl.toLowerCase().includes(`/name/${espnAbbr.toLowerCase()}/`)) return true;
+            }
           }
           // Fallback: check headline/description for team name
           const headline = (article.headline || "").toLowerCase();
