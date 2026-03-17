@@ -1581,7 +1581,7 @@ function useTeamData(team) {
             const statusName = comp?.status?.type?.name || "";
             if (statusName.includes("IN_PROGRESS")) {
               const teamComp = comp?.competitors?.find(
-                (c) => String(c.team?.id) === String(team.teamId) || c.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase()
+                (c) => String(c.team?.id) === String(team.teamId) || c.team?.abbreviation?.toLowerCase() === team.teamId?.toLowerCase() || c.team?.abbreviation === team.espnAbbr
               );
               if (teamComp) {
                 const opp = comp.competitors.find((c) => c !== teamComp);
@@ -1655,7 +1655,8 @@ function useTeamData(team) {
               "--";
             const statusName = comp?.status?.type?.name || ev.status?.type?.name || "";
             const isFinal = statusName.includes("FINAL") || statusName === "post";
-            const isLive = statusName.includes("IN_PROGRESS") || statusName === "STATUS_IN_PROGRESS" || statusName === "in";
+            // Check both schedule status AND scoreboard — schedule can lag behind
+            const isLive = statusName.includes("IN_PROGRESS") || statusName === "STATUS_IN_PROGRESS" || statusName === "in" || (us && liveScoreMap.detail);
             const statusDetail = comp?.status?.type?.shortDetail || comp?.status?.shortDetail || ev.status?.type?.shortDetail || "";
 
             let result = "";
@@ -1663,7 +1664,7 @@ function useTeamData(team) {
             if ((isFinal || isLive) && us && them) {
               const usS = parseInt(us.score?.displayValue || us.score || "0");
               const thS = parseInt(them.score?.displayValue || them.score || "0");
-              if (isFinal) {
+              if (isFinal && !isLive) {
                 result = usS > thS ? `W ${usS}-${thS}` : usS < thS ? `L ${usS}-${thS}` : `T ${usS}-${thS}`;
               }
               if (isLive) {
