@@ -3269,7 +3269,19 @@ export default function App() {
 
   // Show Bracket Challenge if active
   if (showBracket) {
-    return <BracketChallenge user={user} onBack={() => { setShowBracket(false); setBracketInitialTab("bracket"); }} initialEntry={bracketEntry} initialTab={bracketInitialTab} onSignIn={() => setShowAuthModal(true)} />;
+    return (
+      <>
+        <BracketChallenge user={user} onBack={() => { setShowBracket(false); setBracketInitialTab("bracket"); }} initialEntry={bracketEntry} initialTab={bracketInitialTab} onSignIn={() => setShowAuthModal(true)} />
+        {showAuthModal && (
+          <AuthModal
+            onClose={() => setShowAuthModal(false)}
+            onLoginGoogle={loginWithGoogle}
+            onSignupEmail={signupWithEmail}
+            onLoginEmail={loginWithEmail}
+          />
+        )}
+      </>
+    );
   }
 
   // Show Admin Panel
