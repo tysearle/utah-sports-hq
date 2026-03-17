@@ -1503,6 +1503,61 @@ const sectionHeader = {
   display: "flex", alignItems: "center",
 };
 
+// ===== CONTEST RULES =====
+function ContestRules({ isMobile }) {
+  const sectionStyle = {
+    background: "#12121f", borderRadius: 12, border: "1px solid #2a2a3e",
+    padding: isMobile ? 16 : 24, marginBottom: 16,
+  };
+  const headingStyle = {
+    fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 12,
+    borderBottom: "1px solid #2a2a3e", paddingBottom: 8,
+  };
+  const paraStyle = { fontSize: 13, color: "#ccc", lineHeight: 1.7, marginBottom: 10 };
+  const labelStyle = { fontWeight: 600, color: "#fff" };
+
+  return (
+    <div style={{ maxWidth: 700, margin: "0 auto" }}>
+      <div style={sectionStyle}>
+        <div style={headingStyle}>Official Contest Rules — March Madness Bracket Challenge 2026</div>
+        <p style={paraStyle}>
+          <span style={labelStyle}>1. Sponsor.</span> This contest ("Contest") is operated by Salt City Sports ("Sponsor"), an independent sports fan website located at saltcitysportsutah.com. This Contest is not affiliated with, endorsed by, or sponsored by the NCAA, ESPN, or any collegiate athletic program.
+        </p>
+        <p style={paraStyle}>
+          <span style={labelStyle}>2. Eligibility.</span> The Contest is open to legal residents of the United States who are 18 years of age or older at the time of entry. Employees of Salt City Sports and their immediate family members are not eligible. Void where prohibited by law.
+        </p>
+        <p style={paraStyle}>
+          <span style={labelStyle}>3. Entry Period.</span> The Contest entry period begins when the bracket form is made available on saltcitysportsutah.com and ends on <span style={{ color: "#FFD700" }}>Thursday, March 19, 2026 at 12:15 PM Eastern Time</span>. All entries must be submitted before this deadline. Late entries will not be accepted. Each registered user may submit up to two (2) bracket entries.
+        </p>
+        <p style={paraStyle}>
+          <span style={labelStyle}>4. How to Enter.</span> To enter, you must create a free account on saltcitysportsutah.com and complete a bracket by selecting predicted winners for all 67 games of the 2026 NCAA Division I Men's Basketball Tournament. No purchase is necessary. Entry is free.
+        </p>
+        <p style={paraStyle}>
+          <span style={labelStyle}>5. Scoring & Winner Determination.</span> Brackets are scored using a standard points system based on correct predictions in each round. The entry with the highest total score at the conclusion of the tournament's Championship Game will be declared the winner. In the event of a tie, the prize will be split equally among tied participants.
+        </p>
+        <p style={paraStyle}>
+          <span style={labelStyle}>6. Prize.</span> One (1) Grand Prize of <span style={{ color: "#22c55e", fontWeight: 700 }}>$75.00 USD</span> will be awarded to the winning participant. The prize will be delivered via Venmo or PayPal within 14 days of the Championship Game. The winner is responsible for any applicable taxes. No prize substitution or transfer is permitted.
+        </p>
+        <p style={paraStyle}>
+          <span style={labelStyle}>7. Winner Notification.</span> The winner will be notified via the email address associated with their Salt City Sports account. If the winner does not respond within 7 days of notification, the prize may be forfeited and awarded to the next highest-scoring participant.
+        </p>
+        <p style={paraStyle}>
+          <span style={labelStyle}>8. Privacy.</span> Personal information collected during this Contest (name, email, payment details for prize fulfillment) will be used solely for the purpose of administering the Contest and delivering the prize. See our Privacy Policy for more information.
+        </p>
+        <p style={paraStyle}>
+          <span style={labelStyle}>9. Limitation of Liability.</span> Sponsor is not responsible for technical failures, errors, or interruptions that may affect Contest participation. Sponsor reserves the right to modify, suspend, or cancel the Contest at any time for any reason, including if fraud or technical issues compromise the integrity of the Contest.
+        </p>
+        <p style={paraStyle}>
+          <span style={labelStyle}>10. General.</span> By entering, participants agree to be bound by these Official Rules and the decisions of the Sponsor, which are final and binding. This Contest is governed by the laws of the State of Utah.
+        </p>
+        <p style={{ fontSize: 11, color: "#666", marginTop: 16, textAlign: "center" }}>
+          Last updated: March 16, 2026 &nbsp;|&nbsp; Questions? Contact t.m.searle@gmail.com
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ===== MAIN COMPONENT =====
 export default function BracketChallenge({ user, onBack, initialEntry, initialTab }) {
   const isMobile = useIsMobile();
@@ -1627,6 +1682,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
     { id: "ff", label: "Final Four" },
     { id: "lb", label: "Leaderboard" },
     { id: "chat", label: "Chat" },
+    { id: "rules", label: "Rules" },
   ];
 
   return (
@@ -1772,7 +1828,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
       }}>
         {viewTabs.map((t) => {
           const isActive = tab === t.id;
-          const color = t.id === "ff" ? "#CC0000" : t.id === "lb" ? "#FFD700" : t.id === "chat" ? "#4CAF50" : "#4A90D9";
+          const color = t.id === "ff" ? "#CC0000" : t.id === "lb" ? "#FFD700" : t.id === "chat" ? "#4CAF50" : t.id === "rules" ? "#aaa" : "#4A90D9";
           return (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               background: isActive ? color + "15" : "transparent",
@@ -1878,6 +1934,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
             {tab === "ff" && <FinalFourView picks={picks} onPick={handlePick} />}
             {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} actualResults={actualResults} resultsInfo={resultsInfo} />}
             {tab === "chat" && <BracketChat user={user} isMobile={isMobile} />}
+            {tab === "rules" && <ContestRules isMobile={isMobile} />}
           </>
         )}
       </main>

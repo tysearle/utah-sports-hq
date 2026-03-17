@@ -2994,6 +2994,7 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminLoading, setAdminLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -3815,6 +3816,11 @@ export default function App() {
           {/* Bottom row */}
           <div style={{ textAlign: "center", fontSize: 10, color: "#fff" }}>
             <span>&copy; {new Date().getFullYear()} Salt City Sports. Not affiliated with ESPN or any league.</span>
+            <div style={{ marginTop: 8, display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
+              <button onClick={() => setShowPrivacy(true)} style={{ background: "none", border: "none", color: "#888", fontSize: 10, cursor: "pointer", textDecoration: "underline", padding: 0 }}>Privacy Policy</button>
+              <span style={{ color: "#333" }}>|</span>
+              <span style={{ color: "#888", fontSize: 10 }}>Affiliate Disclosure: We may earn a commission from ticket purchases through our partner links.</span>
+            </div>
           </div>
         </div>
       </footer>
@@ -3852,6 +3858,64 @@ export default function App() {
           onSave={(teams) => { saveTeamPrefs(teams); setShowTeamPicker(false); }}
           onClose={() => setShowTeamPicker(false)}
         />
+      )}
+
+      {/* Privacy Policy Modal */}
+      {showPrivacy && (
+        <div onClick={() => setShowPrivacy(false)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 9999,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          backdropFilter: "blur(4px)",
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: "#12121f", borderRadius: 16, border: "1px solid #2a2a3e",
+            maxWidth: 650, width: "100%", maxHeight: "85vh", overflowY: "auto",
+            padding: "28px 24px", position: "relative",
+          }}>
+            <button onClick={() => setShowPrivacy(false)} style={{
+              position: "sticky", top: 0, float: "right",
+              background: "#2a2a3e", border: "none", borderRadius: 8,
+              color: "#aaa", width: 32, height: 32, fontSize: 18, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>&times;</button>
+
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", marginBottom: 6, marginTop: 0 }}>Privacy Policy</h2>
+            <p style={{ fontSize: 11, color: "#666", marginBottom: 20 }}>Last updated: March 16, 2026</p>
+
+            <div style={{ fontSize: 13, color: "#ccc", lineHeight: 1.75 }}>
+              <p style={{ marginBottom: 14 }}>
+                <strong style={{ color: "#fff" }}>What We Collect.</strong> Salt City Sports ("we", "us") collects the following information when you use our site at saltcitysportsutah.com: your email address and display name when you create an account, profile photos you upload, bracket picks you submit, and chat messages you post. We also collect anonymous usage data through Google Analytics (GA4), including pages visited, session duration, device type, and general geographic location.
+              </p>
+              <p style={{ marginBottom: 14 }}>
+                <strong style={{ color: "#fff" }}>How We Use It.</strong> We use your account information to provide our services — managing your team preferences, bracket entries, leaderboard standings, and chat functionality. Google Analytics data helps us understand how people use the site so we can improve it. We do not sell, rent, or share your personal information with third parties except as required by law.
+              </p>
+              <p style={{ marginBottom: 14 }}>
+                <strong style={{ color: "#fff" }}>Cookies & Tracking.</strong> We use essential cookies for authentication (Firebase Auth) and anonymous analytics cookies (Google Analytics). We do not use advertising cookies or third-party tracking pixels. Google Analytics may set cookies to distinguish unique users and sessions.
+              </p>
+              <p style={{ marginBottom: 14 }}>
+                <strong style={{ color: "#fff" }}>Third-Party Services.</strong> We use the following third-party services: Firebase (Google) for authentication and database, Google Analytics for usage analytics, and affiliate partner links (such as SeatGeek via Impact.com) for ticket purchases. These services have their own privacy policies. When you click an affiliate link, the partner site's privacy policy applies to data collected on their site.
+              </p>
+              <p style={{ marginBottom: 14 }}>
+                <strong style={{ color: "#fff" }}>Affiliate Disclosure.</strong> Some links on this site are affiliate links. If you purchase tickets through our partner links (such as SeatGeek), we may earn a small commission at no additional cost to you. This helps support the site.
+              </p>
+              <p style={{ marginBottom: 14 }}>
+                <strong style={{ color: "#fff" }}>Data Storage & Security.</strong> Your data is stored securely using Google Firebase (Firestore). We use industry-standard security measures to protect your information. However, no method of electronic storage is 100% secure, and we cannot guarantee absolute security.
+              </p>
+              <p style={{ marginBottom: 14 }}>
+                <strong style={{ color: "#fff" }}>Your Rights.</strong> You can delete your account and associated data at any time by contacting us. You can clear your browser cookies to remove analytics tracking. California residents (CCPA) and EU residents (GDPR) may have additional rights regarding their personal data — contact us to exercise these rights.
+              </p>
+              <p style={{ marginBottom: 14 }}>
+                <strong style={{ color: "#fff" }}>Children's Privacy.</strong> Salt City Sports is not intended for children under 13. We do not knowingly collect personal information from children under 13. If you believe we have collected such information, please contact us immediately.
+              </p>
+              <p style={{ marginBottom: 14 }}>
+                <strong style={{ color: "#fff" }}>Changes.</strong> We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated "Last updated" date.
+              </p>
+              <p style={{ marginBottom: 0, color: "#888" }}>
+                <strong style={{ color: "#aaa" }}>Contact.</strong> For questions about this Privacy Policy or to request data deletion, email us at t.m.searle@gmail.com.
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
