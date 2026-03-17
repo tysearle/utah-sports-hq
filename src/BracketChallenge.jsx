@@ -1084,7 +1084,7 @@ function FinalFourView({ picks, onPick }) {
 }
 
 
-function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo }) {
+function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo, onSwitchTab }) {
   // Score each entry against actual results
   const scored = entries.map((entry) => {
     const score = actualResults ? scoreBracket(entry.picks, actualResults) : { total: 0, breakdown: {}, correctPicks: 0, possiblePicks: 0 };
@@ -1099,120 +1099,282 @@ function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo
   });
 
   const hasScoring = resultsInfo && resultsInfo.completedGames > 0;
+  const totalPicks = hasScoring ? (sorted[0]?.score.possiblePicks || 63) : 67;
   const gridCols = isMobile
-    ? "28px 1fr 40px 50px"
-    : "40px 1fr 80px 80px 140px";
+    ? "32px 1fr 44px 50px"
+    : "44px 1fr 90px 80px 150px";
+
+  const medalIcons = ["🥇", "🥈", "🥉"];
+  const medalColors = ["#FFD700", "#C0C0C0", "#CD7F32"];
+  const top3 = sorted.slice(0, 3);
+  const rest = sorted.slice(3);
+
+  // ─── Empty State ───
+  if (sorted.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: isMobile ? "40px 20px" : "60px 20px" }}>
+        <div style={{ fontSize: 56, marginBottom: 12 }}>🏀</div>
+        <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: "#fff", marginBottom: 6 }}>No Brackets Yet</div>
+        <div style={{ fontSize: isMobile ? 12 : 14, color: "#888", marginBottom: 20, maxWidth: 340, margin: "0 auto 20px" }}>
+          Be the first to fill out your bracket and claim the top spot!
+        </div>
+        {onSwitchTab && (
+          <button onClick={() => onSwitchTab("bracket")} style={{
+            padding: "10px 28px", background: "#CC0000", color: "#fff", fontWeight: 700,
+            fontSize: 14, borderRadius: 8, border: "none", cursor: "pointer",
+            transition: "opacity 0.15s",
+          }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          >
+            Fill Out Your Bracket
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: "#fff" }}>Leaderboard</div>
-        <div style={{ fontSize: 12, color: "#888" }}>
-          {sorted.length} bracket{sorted.length !== 1 ? "s" : ""} submitted
+      {/* ─── Podium (top 3) ─── */}
+      {!isMobile && top3.length >= 2 && (
+        <div style={{
+          padding: "24px 16px 20px",
+          background: "linear-gradient(180deg, #1a1a35 0%, #12121f 100%)",
+          borderRadius: "12px 12px 0 0", border: "1px solid #2a2a3e", borderBottom: "none",
+        }}>
+          <div style={{ textAlign: "center", fontSize: 11, color: "#888", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 16 }}>
+            March Madness 2026
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 12 }}>
+            {[1, 0, 2].map((podiumIdx) => {
+              const entry = top3[podiumIdx];
+              if (!entry) return <div key={podiumIdx} style={{ minWidth: 100 }} />;
+              const isFirst = podiumIdx === 0;
+              const medal = medalIcons[podiumIdx];
+              const color = medalColors[podiumIdx];
+              const champion = entry.picks["champ"] ? TEAM_MAP[entry.picks["champ"]]?.name : "—";
+              const isMe = entry.ownerUid === currentUid;
+              const avatarSize = isFirst ? 48 : 40;
+              return (
+                <div key={entry.docId} style={{
+                  textAlign: "center", borderRadius: 12,
+                  padding: isFirst ? "12px 16px 20px" : "12px 10px 14px",
+                  minWidth: isFirst ? 120 : 100,
+                  background: `linear-gradient(180deg, ${color}18, ${color}05)`,
+                  border: `1px solid ${color}40`,
+                }}>
+                  <div style={{ fontSize: isFirst ? 28 : 22, marginBottom: 4 }}>{isFirst ? "👑" : medal}</div>
+                  {entry.photoURL ? (
+                    <img src={entry.photoURL} alt="" referrerPolicy="no-referrer" style={{
+                      width: avatarSize, height: avatarSize, borderRadius: "50%",
+                      border: `2px solid ${color}`, objectFit: "cover", display: "block", margin: "0 auto 6px",
+                    }} />
+                  ) : (
+                    <div style={{
+                      width: avatarSize, height: avatarSize, borderRadius: "50%",
+                      background: "#CC000033", border: `2px solid ${color}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: isFirst ? 18 : 14, fontWeight: 700, color: "#CC0000",
+                      margin: "0 auto 6px",
+                    }}>
+                      {(entry.entryName || entry.displayName || "?")[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 12, fontWeight: 600, color: isMe ? "#fff" : "#ccc", marginBottom: 2 }}>
+                    {entry.entryName || entry.displayName}
+                    {isMe && <span style={{ fontSize: 8, color: "#CC0000" }}> (you)</span>}
+                  </div>
+                  <div style={{ fontSize: isFirst ? 24 : 20, fontWeight: 800, color }}>
+                    {entry.score.total}
+                  </div>
+                  <div style={{ fontSize: 9, color: "#666", marginTop: 2 }}>🏆 {champion}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-        {hasScoring ? (
-          <div style={{ fontSize: isMobile ? 10 : 11, color: "#4CAF50", marginTop: 4 }}>
-            🟢 Live scoring — {resultsInfo.completedGames} game{resultsInfo.completedGames !== 1 ? "s" : ""} completed
+      )}
+
+      {/* ─── Prize Banner ─── */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        padding: isMobile ? "8px 10px" : "10px 16px",
+        background: "linear-gradient(90deg, #CC000015, #CC000005)",
+        border: "1px solid #2a2a3e",
+        borderTop: !isMobile && top3.length >= 2 ? "none" : undefined,
+        borderRadius: !isMobile && top3.length >= 2 ? 0 : "12px 12px 0 0",
+      }}>
+        <span style={{ fontSize: 16 }}>💰</span>
+        <span style={{ fontSize: isMobile ? 11 : 12, color: "#CC0000", fontWeight: 600 }}>Prize:</span>
+        <span style={{ fontSize: isMobile ? 13 : 14, color: "#FFD700", fontWeight: 800 }}>$75 Cash</span>
+        {!isMobile && <span style={{ color: "#555", fontSize: 11 }}> · Best score wins · Free entry</span>}
+      </div>
+
+      {/* ─── Stats Bar ─── */}
+      <div style={{
+        display: "flex", justifyContent: "center", gap: isMobile ? 16 : 28,
+        padding: isMobile ? "10px" : "12px 16px",
+        border: "1px solid #2a2a3e", borderTop: "none",
+        background: "#12121f",
+      }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#fff" }}>{sorted.length}</div>
+          <div style={{ fontSize: isMobile ? 9 : 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5 }}>Brackets</div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: hasScoring ? "#4CAF50" : "#555" }}>
+            {hasScoring ? resultsInfo.completedGames : 0}
           </div>
-        ) : (
-          <div style={{ fontSize: isMobile ? 10 : 11, color: "#555", marginTop: 4 }}>
-            Points: R64=1, R32=2, S16=4, E8=8, FF=16, Champ=32
-          </div>
-        )}
-        {resultsInfo?.lastUpdated && (
-          <div style={{ fontSize: 9, color: "#444", marginTop: 2 }}>
-            Updated: {new Date(resultsInfo.lastUpdated).toLocaleTimeString()}
+          <div style={{ fontSize: isMobile ? 9 : 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5 }}>Games Played</div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#FFD700" }}>192</div>
+          <div style={{ fontSize: isMobile ? 9 : 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5 }}>Max Points</div>
+        </div>
+        {hasScoring && resultsInfo?.lastUpdated && (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: "#4CAF50" }}>🟢</div>
+            <div style={{ fontSize: isMobile ? 9 : 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5 }}>Live</div>
           </div>
         )}
       </div>
 
-      {sorted.length === 0 ? (
-        <div style={{ textAlign: "center", padding: 40, color: "#555" }}>
-          No brackets submitted yet. Be the first!
-        </div>
-      ) : (
-        <div style={{ background: "#12121f", borderRadius: 12, overflow: "hidden", border: "1px solid #2a2a3e" }}>
-          {/* Header */}
-          <div style={{
-            display: "grid", gridTemplateColumns: gridCols,
-            padding: isMobile ? "8px 10px" : "10px 16px", borderBottom: "1px solid #2a2a3e",
-            fontSize: isMobile ? 9 : 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5,
+      {/* ─── Scoring Legend ─── */}
+      <div style={{
+        display: "flex", justifyContent: "center", gap: isMobile ? 4 : 8,
+        padding: isMobile ? "8px 6px" : "10px 16px",
+        border: "1px solid #2a2a3e", borderTop: "none",
+        background: "#12121f", flexWrap: "wrap",
+      }}>
+        {[
+          { label: "R64", pts: 1 }, { label: "R32", pts: 2 }, { label: "S16", pts: 4 },
+          { label: "E8", pts: 8 }, { label: "FF", pts: 16 }, { label: "Champ", pts: 32 },
+        ].map(({ label, pts }) => (
+          <span key={label} style={{
+            fontSize: isMobile ? 9 : 10, padding: isMobile ? "2px 6px" : "3px 8px",
+            borderRadius: 6, background: "#ffffff08", color: "#888",
           }}>
-            <div>#</div>
-            <div>Player</div>
-            <div style={{ textAlign: "center" }}>{isMobile ? "✓" : "Correct"}</div>
-            <div style={{ textAlign: "center" }}>Score</div>
-            {!isMobile && <div style={{ textAlign: "center" }}>Breakdown</div>}
-          </div>
+            {label} <span style={{ color: "#FFD700", fontWeight: 600 }}>+{pts}</span>
+          </span>
+        ))}
+      </div>
 
-          {sorted.map((entry, i) => {
-            const isMe = entry.ownerUid === currentUid;
-            const champion = entry.picks["champ"] ? TEAM_MAP[entry.picks["champ"]]?.name : "—";
-            const { total, breakdown, correctPicks, possiblePicks } = entry.score;
-            return (
-              <div key={entry.docId} style={{
-                display: "grid", gridTemplateColumns: gridCols,
-                padding: isMobile ? "8px 10px" : "12px 16px", borderBottom: "1px solid #1a1a2e",
-                background: isMe ? "#CC000012" : i % 2 === 0 ? "#0f0f1e" : "transparent",
-                borderLeft: isMe ? "3px solid #CC0000" : "3px solid transparent",
+      {/* ─── Table ─── */}
+      <div style={{ background: "#12121f", borderRadius: "0 0 12px 12px", overflow: "hidden", border: "1px solid #2a2a3e", borderTop: "none" }}>
+        {/* Header */}
+        <div style={{
+          display: "grid", gridTemplateColumns: gridCols,
+          padding: isMobile ? "8px 10px" : "10px 16px", borderBottom: "1px solid #2a2a3e",
+          fontSize: isMobile ? 9 : 10, color: "#666", textTransform: "uppercase", letterSpacing: 0.5,
+        }}>
+          <div>#</div>
+          <div>Player</div>
+          <div style={{ textAlign: "center" }}>{isMobile ? "✓" : "Correct"}</div>
+          <div style={{ textAlign: "center" }}>Score</div>
+          {!isMobile && <div style={{ textAlign: "center" }}>Breakdown</div>}
+        </div>
+
+        {sorted.map((entry, i) => {
+          const isMe = entry.ownerUid === currentUid;
+          const champion = entry.picks["champ"] ? TEAM_MAP[entry.picks["champ"]]?.name : "—";
+          const { total, breakdown, correctPicks, possiblePicks } = entry.score;
+          const pickCount = hasScoring ? correctPicks : countPicks(entry.picks);
+          const pickMax = hasScoring ? possiblePicks : 67;
+          const pickPct = pickMax > 0 ? (pickCount / pickMax) * 100 : 0;
+          return (
+            <div key={entry.docId} style={{
+              display: "grid", gridTemplateColumns: gridCols,
+              padding: isMobile ? "8px 10px" : "14px 16px", borderBottom: "1px solid #1a1a2e",
+              background: isMe ? "#CC000012" : i % 2 === 0 ? "#0f0f1e" : "transparent",
+              borderLeft: isMe ? "3px solid #CC0000" : "3px solid transparent",
+              transition: "background 0.15s",
+            }}
+              onMouseEnter={(e) => { if (!isMe) e.currentTarget.style.background = i % 2 === 0 ? "#14142a" : "#0c0c1a"; }}
+              onMouseLeave={(e) => { if (!isMe) e.currentTarget.style.background = isMe ? "#CC000012" : i % 2 === 0 ? "#0f0f1e" : "transparent"; }}
+            >
+              <div style={{
+                fontWeight: 700, fontSize: isMobile ? 12 : 14, alignSelf: "center",
+                color: i < 3 ? medalColors[i] : "#888",
               }}>
-                <div style={{ color: i < 3 ? "#FFD700" : "#888", fontWeight: 700, fontSize: isMobile ? 12 : 14, alignSelf: "center" }}>
-                  {i + 1}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, minWidth: 0 }}>
-                  {entry.photoURL && !isMobile && (
+                {i < 3 ? medalIcons[i] : i + 1}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 10, minWidth: 0 }}>
+                {!isMobile && (
+                  entry.photoURL ? (
                     <img src={entry.photoURL} alt="" referrerPolicy="no-referrer"
-                      style={{ width: 24, height: 24, borderRadius: "50%", border: isMe ? "2px solid #CC0000" : "1px solid #333", flexShrink: 0 }}
+                      style={{ width: 28, height: 28, borderRadius: "50%", border: isMe ? "2px solid #CC0000" : `1px solid ${i < 3 ? medalColors[i] + "66" : "#333"}`, flexShrink: 0, objectFit: "cover" }}
                     />
-                  )}
-                  <div style={{ minWidth: 0 }}>
+                  ) : (
                     <div style={{
-                      fontSize: isMobile ? 11 : 13, fontWeight: isMe ? 700 : 500, color: isMe ? "#fff" : "#ccc",
-                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                      width: 28, height: 28, borderRadius: "50%", background: "#CC000022",
+                      border: isMe ? "2px solid #CC0000" : `1px solid ${i < 3 ? medalColors[i] + "66" : "#333"}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 12, fontWeight: 700, color: "#CC0000", flexShrink: 0,
                     }}>
-                      {entry.entryName || entry.displayName} {isMe && <span style={{ fontSize: 9, color: "#CC0000" }}>(you)</span>}
+                      {(entry.entryName || entry.displayName || "?")[0].toUpperCase()}
                     </div>
-                    {!isMobile && (
-                      <div style={{ fontSize: 10, color: "#555" }}>
-                        Champion: {champion}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div style={{ textAlign: "center", color: hasScoring ? "#4CAF50" : "#888", fontSize: isMobile ? 11 : 13, alignSelf: "center" }}>
-                  {hasScoring ? `${correctPicks}/${possiblePicks}` : `${countPicks(entry.picks)}/67`}
-                </div>
-                <div style={{ textAlign: "center", color: "#FFD700", fontSize: isMobile ? 13 : 15, fontWeight: 700, alignSelf: "center" }}>
-                  {total}
-                </div>
-                {!isMobile && hasScoring && (
-                  <div style={{ display: "flex", gap: 4, alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}>
-                    {[1, 2, 3, 4, 5, 6].map((r) => {
-                      const pts = breakdown[r] || 0;
-                      if (!pts) return null;
-                      const labels = { 1: "R64", 2: "R32", 3: "S16", 4: "E8", 5: "FF", 6: "CH" };
-                      return (
-                        <span key={r} style={{
-                          fontSize: 9, padding: "2px 5px", borderRadius: 4,
-                          background: "#FFD70015", color: "#FFD700", whiteSpace: "nowrap",
-                        }}>
-                          {labels[r]}:{pts}
-                        </span>
-                      );
-                    })}
-                    {!Object.values(breakdown).some((v) => v > 0) && (
-                      <span style={{ fontSize: 9, color: "#444" }}>—</span>
-                    )}
-                  </div>
+                  )
                 )}
-                {!isMobile && !hasScoring && (
-                  <div style={{ textAlign: "center", fontSize: 9, color: "#444", alignSelf: "center" }}>—</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{
+                    fontSize: isMobile ? 11 : 13, fontWeight: isMe ? 700 : 500, color: isMe ? "#fff" : "#ccc",
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>
+                    {entry.entryName || entry.displayName} {isMe && <span style={{ fontSize: 9, color: "#CC0000" }}>(you)</span>}
+                  </div>
+                  {!isMobile && (
+                    <div style={{ fontSize: 10, color: "#555", display: "flex", alignItems: "center", gap: 4 }}>
+                      🏆 {champion}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{ textAlign: "center", alignSelf: "center" }}>
+                <div style={{ color: hasScoring ? "#4CAF50" : "#888", fontSize: isMobile ? 11 : 13 }}>
+                  {pickCount}/{pickMax}
+                </div>
+                {!isMobile && (
+                  <div style={{ width: 44, height: 3, background: "#ffffff10", borderRadius: 2, margin: "3px auto 0" }}>
+                    <div style={{ height: "100%", borderRadius: 2, background: hasScoring ? "#4CAF50" : "#555", width: `${Math.min(pickPct, 100)}%`, transition: "width 0.3s" }} />
+                  </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-      )}
+              <div style={{ textAlign: "center", color: "#FFD700", fontSize: isMobile ? 14 : 16, fontWeight: 700, alignSelf: "center" }}>
+                {total}
+              </div>
+              {!isMobile && hasScoring && (
+                <div style={{ display: "flex", gap: 4, alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}>
+                  {[1, 2, 3, 4, 5, 6].map((r) => {
+                    const pts = breakdown[r] || 0;
+                    if (!pts) return null;
+                    const labels = { 1: "R64", 2: "R32", 3: "S16", 4: "E8", 5: "FF", 6: "CH" };
+                    return (
+                      <span key={r} style={{
+                        fontSize: 9, padding: "2px 5px", borderRadius: 4,
+                        background: "#FFD70015", color: "#FFD700", whiteSpace: "nowrap",
+                      }}>
+                        {labels[r]}:{pts}
+                      </span>
+                    );
+                  })}
+                  {!Object.values(breakdown).some((v) => v > 0) && (
+                    <span style={{ fontSize: 9, color: "#444" }}>—</span>
+                  )}
+                </div>
+              )}
+              {!isMobile && !hasScoring && (
+                <div style={{ textAlign: "center", fontSize: 9, color: "#444", alignSelf: "center" }}>—</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ─── Footer ─── */}
+      <div style={{ textAlign: "center", padding: "12px", fontSize: 10, color: "#444" }}>
+        Salt City Sports — March Madness 2026 Bracket Challenge | Max possible: 192 pts
+      </div>
     </div>
   );
 }
@@ -1932,7 +2094,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
             )}
             {tab === "first4" && <FirstFourView picks={picks} onPick={handlePick} />}
             {tab === "ff" && <FinalFourView picks={picks} onPick={handlePick} />}
-            {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} actualResults={actualResults} resultsInfo={resultsInfo} />}
+            {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} actualResults={actualResults} resultsInfo={resultsInfo} onSwitchTab={setTab} />}
             {tab === "chat" && <BracketChat user={user} isMobile={isMobile} />}
             {tab === "rules" && <ContestRules isMobile={isMobile} />}
           </>
