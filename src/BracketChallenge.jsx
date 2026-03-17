@@ -1084,7 +1084,7 @@ function FinalFourView({ picks, onPick }) {
 }
 
 
-function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo, onSwitchTab }) {
+function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo, onSwitchTab, user, onSignIn }) {
   // Score each entry against actual results
   const scored = entries.map((entry) => {
     const score = actualResults ? scoreBracket(entry.picks, actualResults) : { total: 0, breakdown: {}, correctPicks: 0, possiblePicks: 0 };
@@ -1116,19 +1116,36 @@ function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo
         <div style={{ fontSize: 56, marginBottom: 12 }}>🏀</div>
         <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 700, color: "#fff", marginBottom: 6 }}>No Brackets Yet</div>
         <div style={{ fontSize: isMobile ? 12 : 14, color: "#888", marginBottom: 20, maxWidth: 340, margin: "0 auto 20px" }}>
-          Be the first to fill out your bracket and claim the top spot!
+          {user
+            ? "Be the first to fill out your bracket and claim the top spot!"
+            : "Sign in to fill out your bracket, compete against other fans, and win $75 cash!"}
         </div>
-        {onSwitchTab && (
-          <button onClick={() => onSwitchTab("bracket")} style={{
-            padding: "10px 28px", background: "#CC0000", color: "#fff", fontWeight: 700,
-            fontSize: 14, borderRadius: 8, border: "none", cursor: "pointer",
-            transition: "opacity 0.15s",
-          }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-          >
-            Fill Out Your Bracket
-          </button>
+        {user ? (
+          onSwitchTab && (
+            <button onClick={() => onSwitchTab("bracket")} style={{
+              padding: "10px 28px", background: "#CC0000", color: "#fff", fontWeight: 700,
+              fontSize: 14, borderRadius: 8, border: "none", cursor: "pointer",
+              transition: "opacity 0.15s",
+            }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              Fill Out Your Bracket
+            </button>
+          )
+        ) : (
+          onSignIn && (
+            <button onClick={onSignIn} style={{
+              padding: "12px 32px", background: "#CC0000", color: "#fff", fontWeight: 700,
+              fontSize: 15, borderRadius: 8, border: "none", cursor: "pointer",
+              transition: "opacity 0.15s",
+            }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              Sign In & Play
+            </button>
+          )
         )}
       </div>
     );
@@ -1721,7 +1738,7 @@ function ContestRules({ isMobile }) {
 }
 
 // ===== MAIN COMPONENT =====
-export default function BracketChallenge({ user, onBack, initialEntry, initialTab }) {
+export default function BracketChallenge({ user, onBack, initialEntry, initialTab, onSignIn }) {
   const isMobile = useIsMobile();
   const [picks, setPicks] = useState({});
   const [tab, setTab] = useState(initialTab || "bracket");
@@ -2094,7 +2111,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
             )}
             {tab === "first4" && <FirstFourView picks={picks} onPick={handlePick} />}
             {tab === "ff" && <FinalFourView picks={picks} onPick={handlePick} />}
-            {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} actualResults={actualResults} resultsInfo={resultsInfo} onSwitchTab={setTab} />}
+            {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} actualResults={actualResults} resultsInfo={resultsInfo} onSwitchTab={setTab} user={user} onSignIn={onSignIn} />}
             {tab === "chat" && <BracketChat user={user} isMobile={isMobile} />}
             {tab === "rules" && <ContestRules isMobile={isMobile} />}
           </>
