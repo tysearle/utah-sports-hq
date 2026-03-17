@@ -1551,7 +1551,7 @@ function ContestRules({ isMobile }) {
           <span style={labelStyle}>10. General.</span> By entering, participants agree to be bound by these Official Rules and the decisions of the Sponsor, which are final and binding. This Contest is governed by the laws of the State of Utah.
         </p>
         <p style={{ fontSize: 11, color: "#666", marginTop: 16, textAlign: "center" }}>
-          Last updated: March 16, 2026 &nbsp;|&nbsp; Questions? Contact t.m.searle@gmail.com
+          Last updated: March 16, 2026 &nbsp;|&nbsp; Questions? Contact saltcitysportsutah@gmail.com
         </p>
       </div>
     </div>

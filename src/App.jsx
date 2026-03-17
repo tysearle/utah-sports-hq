@@ -433,7 +433,7 @@ function AuthModal({ onClose, onLoginGoogle, onSignupEmail, onLoginEmail }) {
               <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>8. Affiliate Links.</strong> Some links on this site (such as ticket purchase links) are affiliate links. We may earn a small commission from purchases made through these links at no additional cost to you.</p>
               <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>9. Limitation of Liability.</strong> Salt City Sports is provided "as is" without warranties of any kind. We are not liable for any damages arising from your use of the site, including data loss, service interruptions, or inaccurate sports data.</p>
               <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>10. Changes.</strong> We may update these Terms at any time. Continued use of the site after changes constitutes acceptance. Material changes will be communicated via a notice on the site.</p>
-              <p style={{ marginBottom: 0, color: "#888" }}><strong style={{ color: "#aaa" }}>11. Governing Law.</strong> These Terms are governed by the laws of the State of Utah. Contact: t.m.searle@gmail.com</p>
+              <p style={{ marginBottom: 0, color: "#888" }}><strong style={{ color: "#aaa" }}>11. Governing Law.</strong> These Terms are governed by the laws of the State of Utah. Contact: saltcitysportsutah@gmail.com</p>
             </div>
           </div>
         </div>
@@ -459,7 +459,7 @@ function AuthModal({ onClose, onLoginGoogle, onSignupEmail, onLoginEmail }) {
               <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>Cookies.</strong> Essential cookies for authentication (Firebase Auth) and anonymous analytics (Google Analytics). No advertising cookies.</p>
               <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>Third Parties.</strong> Firebase (authentication/database), Google Analytics, and affiliate partners (SeatGeek via Impact.com).</p>
               <p style={{ marginBottom: 12 }}><strong style={{ color: "#fff" }}>Your Rights.</strong> You can request account and data deletion at any time. CCPA and GDPR rights apply where applicable.</p>
-              <p style={{ marginBottom: 0, color: "#888" }}><strong style={{ color: "#aaa" }}>Contact.</strong> t.m.searle@gmail.com &nbsp;|&nbsp; Full policy available in the site footer.</p>
+              <p style={{ marginBottom: 0, color: "#888" }}><strong style={{ color: "#aaa" }}>Contact.</strong> saltcitysportsutah@gmail.com &nbsp;|&nbsp; Full policy available in the site footer.</p>
             </div>
           </div>
         </div>
@@ -3988,7 +3988,7 @@ export default function App() {
                 <strong style={{ color: "#fff" }}>Changes.</strong> We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated "Last updated" date.
               </p>
               <p style={{ marginBottom: 0, color: "#888" }}>
-                <strong style={{ color: "#aaa" }}>Contact.</strong> For questions about this Privacy Policy or to request data deletion, email us at t.m.searle@gmail.com.
+                <strong style={{ color: "#aaa" }}>Contact.</strong> For questions about this Privacy Policy or to request data deletion, email us at saltcitysportsutah@gmail.com.
               </p>
             </div>
           </div>
@@ -4028,7 +4028,7 @@ export default function App() {
               <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>8. Affiliate Links.</strong> Some links on this site (such as ticket purchase links) are affiliate links. We may earn a small commission from purchases made through these links at no additional cost to you.</p>
               <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>9. Limitation of Liability.</strong> Salt City Sports is provided "as is" without warranties of any kind. We are not liable for any damages arising from your use of the site, including data loss, service interruptions, or inaccurate sports data.</p>
               <p style={{ marginBottom: 14 }}><strong style={{ color: "#fff" }}>10. Changes.</strong> We may update these Terms at any time. Continued use of the site after changes constitutes acceptance. Material changes will be communicated via a notice on the site.</p>
-              <p style={{ marginBottom: 0, color: "#888" }}><strong style={{ color: "#aaa" }}>11. Governing Law.</strong> These Terms are governed by the laws of the State of Utah. For questions, contact t.m.searle@gmail.com.</p>
+              <p style={{ marginBottom: 0, color: "#888" }}><strong style={{ color: "#aaa" }}>11. Governing Law.</strong> These Terms are governed by the laws of the State of Utah. For questions, contact saltcitysportsutah@gmail.com.</p>
             </div>
           </div>
         </div>
