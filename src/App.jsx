@@ -1696,7 +1696,14 @@ function useTeamData(team) {
         // -- Parse schedule--
         if (schedData.status === "fulfilled") {
           const raw = schedData.value;
-          let allEvents = raw?.events || raw?.requestedSeason?.events || [];
+          let allEventsRaw = raw?.events || raw?.requestedSeason?.events || [];
+          // Deduplicate events by ID at the source level
+          const seenIds = new Set();
+          let allEvents = allEventsRaw.filter((ev) => {
+            if (seenIds.has(ev.id)) return false;
+            seenIds.add(ev.id);
+            return true;
+          });
           // Merge postseason events (NCAA tournament) if available
           if (postData?.status === "fulfilled" && postData.value) {
             const postEvents = postData.value?.events || postData.value?.requestedSeason?.events || [];
@@ -1771,7 +1778,9 @@ function useTeamData(team) {
           // Deduplicate games by opponent + date (ESPN can return the same game from multiple sources)
           const seen = new Set();
           const deduped = parsed.filter((g) => {
-            const key = `${g.opponent}_${g.date?.substring(0, 10)}`;
+            // Use opponent + date for completed/upcoming, just opponent for live (can't play same team twice in a day)
+            const dateKey = g.date ? g.date.substring(0, 10) : "nodate";
+            const key = `${g.opponent}_${dateKey}`;
             if (seen.has(key)) return false;
             seen.add(key);
             return true;
