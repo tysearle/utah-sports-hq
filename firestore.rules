@@ -21,17 +21,20 @@ service cloud.firestore {
     }
 
     // ─── Brackets Collection ───
-    // Document IDs are formatted as: {uid}_{entryNum}
+    // Document IDs: Entry 1 = {uid}, Entry 2+ = {uid}_{entryNum}
     // Anyone authenticated can read all brackets (needed for leaderboard scoring)
     // Users can only create/update their own brackets; admins can delete any
+    function ownsBracket(bracketId) {
+      return bracketId == request.auth.uid
+        || bracketId.matches(request.auth.uid + '_.*');
+    }
+
     match /brackets/{bracketId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null
-        && bracketId.matches(request.auth.uid + '_.*');
-      allow update: if request.auth != null
-        && bracketId.matches(request.auth.uid + '_.*');
+      allow create: if request.auth != null && ownsBracket(bracketId);
+      allow update: if request.auth != null && ownsBracket(bracketId);
       allow delete: if request.auth != null
-        && (bracketId.matches(request.auth.uid + '_.*') || isAdmin());
+        && (ownsBracket(bracketId) || isAdmin());
     }
 
     // ─── Bracket Chat Collection ───
