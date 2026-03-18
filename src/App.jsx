@@ -1775,14 +1775,16 @@ function useTeamData(team) {
               liveScore,
             };
           });
-          // Deduplicate games by opponent + date (ESPN can return the same game from multiple sources)
+          // Deduplicate games (ESPN can return the same game from multiple sources)
           const seen = new Set();
           const deduped = parsed.filter((g) => {
-            // Use opponent + date for completed/upcoming, just opponent for live (can't play same team twice in a day)
-            const dateKey = g.date ? g.date.substring(0, 10) : "nodate";
-            const key = `${g.opponent}_${dateKey}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
+            // Key on opponent + date (YYYY-MM-DD). For robustness, also try just opponent + status.
+            const dateKey = g.date ? new Date(g.date).toISOString().substring(0, 10) : "nodate";
+            const key1 = `${g.opponent}_${dateKey}`;
+            const key2 = `${g.opponent}_${g.status}`; // catches live dupes even if dates differ
+            if (seen.has(key1) || (g.status === "live" && seen.has(key2))) return false;
+            seen.add(key1);
+            seen.add(key2);
             return true;
           });
           hasLiveRef.current = deduped.some((g) => g.status === "live");
