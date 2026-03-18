@@ -1768,8 +1768,16 @@ function useTeamData(team) {
               liveScore,
             };
           });
-          hasLiveRef.current = parsed.some((g) => g.status === "live");
-          setSchedule(parsed);
+          // Deduplicate games by opponent + date (ESPN can return the same game from multiple sources)
+          const seen = new Set();
+          const deduped = parsed.filter((g) => {
+            const key = `${g.opponent}_${g.date?.substring(0, 10)}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          hasLiveRef.current = deduped.some((g) => g.status === "live");
+          setSchedule(deduped);
         }
 
         // -- Parse standings--
