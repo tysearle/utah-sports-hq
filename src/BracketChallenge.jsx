@@ -790,10 +790,11 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact, 
       {!isFinal && !isLive && scoreInfo?.startTime && (
         <div style={{
           display: "flex", justifyContent: "space-between", padding: compact ? "2px 6px" : "3px 8px",
-          background: "#ffffff06", fontSize: compact ? 7 : 8, color: "#666",
+          background: "#ffffff10", fontSize: compact ? 8 : 9, color: "#888",
+          borderTop: "1px solid #2a2a3e",
         }}>
           <span>{new Date(scoreInfo.startTime).toLocaleDateString("en-US", { weekday: "short" })} {new Date(scoreInfo.startTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
-          {scoreInfo.broadcast && <span style={{ color: "#555" }}>{scoreInfo.broadcast}</span>}
+          {scoreInfo.broadcast && <span style={{ color: "#666" }}>{scoreInfo.broadcast}</span>}
         </div>
       )}
     </div>
