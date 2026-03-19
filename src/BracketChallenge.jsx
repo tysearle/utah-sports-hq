@@ -1932,9 +1932,9 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
         });
       }
     };
-    // Only poll after the bracket locks (tournament has started)
+    // Always fetch once for game times; poll every 2 min after brackets lock
+    doFetch();
     if (isBracketLocked()) {
-      doFetch();
       const interval = setInterval(doFetch, 120000); // every 2 minutes
       return () => { cancelled = true; clearInterval(interval); };
     }
