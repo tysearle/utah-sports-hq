@@ -627,7 +627,7 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact, 
   // Determine game state from scoreInfo
   const isFinal = scoreInfo?.status === "final";
   const isLive = scoreInfo?.status === "live";
-  const hasScore = scoreInfo && (scoreInfo.score1 != null || scoreInfo.score2 != null);
+  const hasScore = (isFinal || isLive) && scoreInfo && (scoreInfo.score1 != null || scoreInfo.score2 != null);
 
   // Determine if user's pick was correct/wrong
   const userPicked1 = isSelected1;
