@@ -685,7 +685,7 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact, 
   return (
     <div style={{
       background: "#12121f", border: `1px solid ${isLive ? "#FFD70044" : "#2a2a3e"}`, borderRadius: 6,
-      minWidth: compact ? 140 : 170, fontSize: 11, overflow: "hidden",
+      minWidth: compact ? 140 : 170, fontSize: 11, overflow: "hidden", flexShrink: 0,
     }}>
       {/* Team 1 */}
       <div
@@ -954,7 +954,7 @@ function RegionalBracketView({ region, picks, onPick, gameScores }) {
   const rounds = [1, 2, 3, 4];
   const matchupsPerRound = [8, 4, 2, 1];
   const spacingMultipliers = [1, 2, 4, 8];
-  const MATCHUP_HEIGHT = 76;
+  const MATCHUP_HEIGHT = 94;
   const VERTICAL_GAP = 8;
 
   return (
