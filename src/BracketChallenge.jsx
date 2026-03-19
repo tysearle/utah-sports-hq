@@ -319,13 +319,16 @@ function buildActualResults(games) {
   const liveGames = games.filter((g) => g.status === "live");
   const scheduled = games.filter((g) => g.status === "scheduled");
 
-  // First pass: map First Four results
-  for (const game of completed) {
+  // First pass: map First Four results + scores
+  for (const game of [...completed, ...liveGames]) {
     if (game.round === 0) {
       for (const ff of FIRST_FOUR) {
         const ids = ff.teams.map((t) => t.id);
-        if (ids.includes(game.winnerId)) {
-          results[ff.id] = game.winnerId;
+        const id1 = game.winnerId || game.team1Id;
+        const id2 = game.loserId || game.team2Id;
+        if (ids.includes(id1) || ids.includes(id2)) {
+          if (game.winnerId) results[ff.id] = game.winnerId;
+          storeScore(ff.id, game, ff.teams[0].id, ff.teams[1].id);
           break;
         }
       }
