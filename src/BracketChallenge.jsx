@@ -1241,7 +1241,7 @@ function FinalFourView({ picks, onPick, gameScores }) {
 
 // ===== READ-ONLY BRACKET VIEWER =====
 function BracketViewer({ entry, isMobile, gameScores, actualResults, onBack }) {
-  const entryName = entry.entryName || `Entry ${entry.entryNum || 1}`;
+  const entryName = entry.entryName || entry.displayName || `Entry ${entry.entryNum || 1}`;
   const champion = entry.picks?.["champ"] ? TEAM_MAP[entry.picks["champ"]]?.name : "—";
 
   const noop = () => {}; // picks are read-only
@@ -1403,11 +1403,11 @@ function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo
                       fontSize: isFirst ? 18 : 14, fontWeight: 700, color: "#CC0000",
                       margin: "0 auto 6px",
                     }}>
-                      {(entry.entryName || `E${entry.entryNum || 1}`)[0].toUpperCase()}
+                      {(entry.entryName || entry.displayName || "?")[0].toUpperCase()}
                     </div>
                   )}
                   <div style={{ fontSize: 12, fontWeight: 600, color: isMe ? "#fff" : "#ccc", marginBottom: 2 }}>
-                    {entry.entryName || `Entry ${entry.entryNum || 1}`}
+                    {entry.entryName || entry.displayName}
                     {isMe && <span style={{ fontSize: 8, color: "#CC0000" }}> (you)</span>}
                   </div>
                   <div style={{ fontSize: isFirst ? 24 : 20, fontWeight: 800, color }}>
@@ -1539,7 +1539,7 @@ function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 12, fontWeight: 700, color: "#CC0000", flexShrink: 0,
                     }}>
-                      {(entry.entryName || `E${entry.entryNum || 1}`)[0].toUpperCase()}
+                      {(entry.entryName || entry.displayName || "?")[0].toUpperCase()}
                     </div>
                   )
                 )}
@@ -1549,7 +1549,7 @@ function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo
                       fontSize: isMobile ? 11 : 13, fontWeight: isMe ? 700 : 500, color: isMe ? "#fff" : "#ccc",
                       whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                     }}>
-                      {entry.entryName || `Entry ${entry.entryNum || 1}`} {isMe && <span style={{ fontSize: 9, color: "#CC0000" }}>(you)</span>}
+                      {entry.entryName || entry.displayName} {isMe && <span style={{ fontSize: 9, color: "#CC0000" }}>(you)</span>}
                     </div>
                     {!isMobile && !isMe && <span style={{ fontSize: 9, color: "#444", flexShrink: 0 }}>👁</span>}
                   </div>
