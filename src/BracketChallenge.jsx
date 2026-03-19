@@ -309,12 +309,15 @@ function buildActualResults(games) {
       score1: s1, score2: s2,
       winnerId: game.winnerId, loserId: game.loserId,
       status: game.status, statusDetail: game.statusDetail || "",
+      startTime: game.startTime || null,
+      broadcast: game.broadcast || "",
     };
   }
 
-  // Get completed and live games
+  // Get completed, live, and scheduled games
   const completed = games.filter((g) => g.status === "final" && g.winnerId);
   const liveGames = games.filter((g) => g.status === "live");
+  const scheduled = games.filter((g) => g.status === "scheduled");
 
   // First pass: map First Four results
   for (const game of completed) {
@@ -329,8 +332,23 @@ function buildActualResults(games) {
     }
   }
 
-  // Second pass: map Round 1 (R64) results + scores
-  for (const game of [...completed, ...liveGames]) {
+  // Also store scheduled First Four game times
+  for (const game of scheduled) {
+    if (game.round === 0) {
+      for (const ff of FIRST_FOUR) {
+        const ids = ff.teams.map((t) => t.id);
+        if (ids.includes(game.team1Id) || ids.includes(game.team2Id)) {
+          if (!gameScores[ff.id]) {
+            gameScores[ff.id] = { status: "scheduled", startTime: game.startTime, broadcast: game.broadcast || "" };
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  // Second pass: map Round 1 (R64) results + scores + scheduled times
+  for (const game of [...completed, ...liveGames, ...scheduled]) {
     if (game.round === 1 || (!game.round && (game.winnerId || game.team1Id))) {
       const id1 = game.winnerId || game.team1Id;
       const id2 = game.loserId || game.team2Id;
@@ -762,6 +780,17 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact, 
           padding: "2px 4px", background: "#FFD70010", fontWeight: 600,
         }}>
           LIVE — {scoreInfo.statusDetail}
+        </div>
+      )}
+
+      {/* Scheduled game time bar */}
+      {!isFinal && !isLive && scoreInfo?.startTime && (
+        <div style={{
+          display: "flex", justifyContent: "space-between", padding: compact ? "2px 6px" : "3px 8px",
+          background: "#ffffff06", fontSize: compact ? 7 : 8, color: "#666",
+        }}>
+          <span>{new Date(scoreInfo.startTime).toLocaleDateString("en-US", { weekday: "short" })} {new Date(scoreInfo.startTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}</span>
+          {scoreInfo.broadcast && <span style={{ color: "#555" }}>{scoreInfo.broadcast}</span>}
         </div>
       )}
     </div>

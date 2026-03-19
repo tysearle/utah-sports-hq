@@ -179,6 +179,7 @@ function parseGame(event) {
       status: isComplete ? "final" : status === "STATUS_IN_PROGRESS" ? "live" : "scheduled",
       statusDetail,
       startTime: event.date,
+      broadcast: competition.broadcasts?.[0]?.names?.[0] || competition.geoBroadcasts?.[0]?.media?.shortName || "",
     };
   } catch (e) {
     return null;
