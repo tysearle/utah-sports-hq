@@ -1239,7 +1239,55 @@ function FinalFourView({ picks, onPick, gameScores }) {
 }
 
 
-function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo, onSwitchTab, user, onSignIn }) {
+// ===== READ-ONLY BRACKET VIEWER =====
+function BracketViewer({ entry, isMobile, gameScores, actualResults, onBack }) {
+  const entryName = entry.entryName || entry.displayName || "Bracket";
+  const champion = entry.picks?.["champ"] ? TEAM_MAP[entry.picks["champ"]]?.name : "—";
+
+  const noop = () => {}; // picks are read-only
+
+  return (
+    <div style={{ background: "#0a0a16", minHeight: "100%" }}>
+      {/* Header */}
+      <div style={{
+        background: "#12121f", borderBottom: "1px solid #2a2a3e",
+        padding: isMobile ? "10px 12px" : "12px 20px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 12,
+      }}>
+        <button onClick={onBack} style={{
+          background: "none", border: "1px solid #2a2a3e", color: "#888",
+          padding: isMobile ? "5px 10px" : "6px 14px", borderRadius: 6,
+          cursor: "pointer", fontSize: isMobile ? 11 : 12, whiteSpace: "nowrap", flexShrink: 0,
+        }}>← Leaderboard</button>
+        <div style={{ textAlign: "center", minWidth: 0 }}>
+          <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {entryName}
+          </div>
+          <div style={{ fontSize: isMobile ? 10 : 11, color: "#888", marginTop: 2 }}>
+            🏆 {champion} · Read-only
+          </div>
+        </div>
+        <div style={{ width: isMobile ? 60 : 80, flexShrink: 0 }} />
+      </div>
+
+      {/* Bracket content */}
+      <div style={{ padding: isMobile ? "10px 8px" : "16px 20px", maxWidth: 1400, margin: "0 auto" }}>
+        {isMobile
+          ? REGIONS.map((r) => (
+              <MobileRegionView key={r.id} region={r} picks={entry.picks || {}} onPick={noop} gameScores={gameScores} />
+            ))
+          : REGIONS.map((r) => (
+              <RegionalBracketView key={r.id} region={r} picks={entry.picks || {}} onPick={noop} gameScores={gameScores} />
+            ))
+        }
+      </div>
+    </div>
+  );
+}
+
+function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo, onSwitchTab, user, onSignIn, gameScores }) {
+  const [viewingEntry, setViewingEntry] = useState(null);
   // Score each entry against actual results
   const scored = entries.map((entry) => {
     const score = actualResults ? scoreBracket(entry.picks, actualResults) : { total: 0, breakdown: {}, correctPicks: 0, possiblePicks: 0 };
@@ -1263,6 +1311,11 @@ function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo
   const medalColors = ["#FFD700", "#C0C0C0", "#CD7F32"];
   const top3 = sorted.slice(0, 3);
   const rest = sorted.slice(3);
+
+  // ─── Viewing another entry's bracket ───
+  if (viewingEntry) {
+    return <BracketViewer entry={viewingEntry} isMobile={isMobile} gameScores={gameScores} actualResults={actualResults} onBack={() => setViewingEntry(null)} />;
+  }
 
   // ─── Empty State ───
   if (sorted.length === 0) {
@@ -1454,16 +1507,18 @@ function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo
           const pickCount = hasScoring ? correctPicks : countPicks(entry.picks);
           const pickMax = hasScoring ? possiblePicks : 67;
           const pickPct = pickMax > 0 ? (pickCount / pickMax) * 100 : 0;
+          const baseBg = isMe ? "#CC000012" : i % 2 === 0 ? "#0f0f1e" : "transparent";
           return (
             <div key={entry.docId} style={{
               display: "grid", gridTemplateColumns: gridCols,
               padding: isMobile ? "8px 10px" : "14px 16px", borderBottom: "1px solid #1a1a2e",
-              background: isMe ? "#CC000012" : i % 2 === 0 ? "#0f0f1e" : "transparent",
+              background: baseBg,
               borderLeft: isMe ? "3px solid #CC0000" : "3px solid transparent",
-              transition: "background 0.15s",
+              transition: "background 0.15s", cursor: "pointer",
             }}
-              onMouseEnter={(e) => { if (!isMe) e.currentTarget.style.background = i % 2 === 0 ? "#14142a" : "#0c0c1a"; }}
-              onMouseLeave={(e) => { if (!isMe) e.currentTarget.style.background = isMe ? "#CC000012" : i % 2 === 0 ? "#0f0f1e" : "transparent"; }}
+              onClick={() => setViewingEntry(entry)}
+              onMouseEnter={(e) => { e.currentTarget.style.background = isMe ? "#CC000020" : i % 2 === 0 ? "#14142a" : "#0c0c1a"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = baseBg; }}
             >
               <div style={{
                 fontWeight: 700, fontSize: isMobile ? 12 : 14, alignSelf: "center",
@@ -1488,12 +1543,15 @@ function Leaderboard({ entries, currentUid, isMobile, actualResults, resultsInfo
                     </div>
                   )
                 )}
-                <div style={{ minWidth: 0 }}>
-                  <div style={{
-                    fontSize: isMobile ? 11 : 13, fontWeight: isMe ? 700 : 500, color: isMe ? "#fff" : "#ccc",
-                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                  }}>
-                    {entry.entryName || entry.displayName} {isMe && <span style={{ fontSize: 9, color: "#CC0000" }}>(you)</span>}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{
+                      fontSize: isMobile ? 11 : 13, fontWeight: isMe ? 700 : 500, color: isMe ? "#fff" : "#ccc",
+                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    }}>
+                      {entry.entryName || "Entry"} {isMe && <span style={{ fontSize: 9, color: "#CC0000" }}>(you)</span>}
+                    </div>
+                    {!isMobile && !isMe && <span style={{ fontSize: 9, color: "#444", flexShrink: 0 }}>👁</span>}
                   </div>
                   {!isMobile && (
                     <div style={{ fontSize: 10, color: "#555", display: "flex", alignItems: "center", gap: 4 }}>
@@ -2287,7 +2345,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
             )}
             {tab === "first4" && <FirstFourView picks={picks} onPick={handlePick} gameScores={gameScores} />}
             {tab === "ff" && <FinalFourView picks={picks} onPick={handlePick} gameScores={gameScores} />}
-            {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} actualResults={actualResults} resultsInfo={resultsInfo} onSwitchTab={setTab} user={user} onSignIn={onSignIn} />}
+            {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} actualResults={actualResults} resultsInfo={resultsInfo} onSwitchTab={setTab} user={user} onSignIn={onSignIn} gameScores={gameScores} />}
             {tab === "chat" && <BracketChat user={user} isMobile={isMobile} />}
             {tab === "rules" && <ContestRules isMobile={isMobile} />}
           </>
