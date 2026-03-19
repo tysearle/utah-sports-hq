@@ -294,18 +294,31 @@ for (const region of REGIONS) {
 }
 
 // Build actual results from ESPN game data
-// Returns an object: { "east_1_0": "duke", "east_2_0": "duke", ... }
+// Returns { results: { gameKey: winningTeamId }, gameScores: { gameKey: { score1, score2, winnerId, ... } } }
 function buildActualResults(games) {
   const results = {};
-  if (!games || !games.length) return results;
+  const gameScores = {};
+  if (!games || !games.length) return { results, gameScores };
 
-  // Get only completed games with winners
+  // Helper to store score info for a game key
+  function storeScore(gameKey, game, team1Id, team2Id) {
+    // Figure out which score belongs to which team
+    const s1 = game.team1Id === team1Id ? game.score1 : game.team2Id === team1Id ? game.score2 : null;
+    const s2 = game.team1Id === team2Id ? game.score1 : game.team2Id === team2Id ? game.score2 : null;
+    gameScores[gameKey] = {
+      score1: s1, score2: s2,
+      winnerId: game.winnerId, loserId: game.loserId,
+      status: game.status, statusDetail: game.statusDetail || "",
+    };
+  }
+
+  // Get completed and live games
   const completed = games.filter((g) => g.status === "final" && g.winnerId);
+  const liveGames = games.filter((g) => g.status === "live");
 
   // First pass: map First Four results
   for (const game of completed) {
     if (game.round === 0) {
-      // First Four game - find which First Four slot this belongs to
       for (const ff of FIRST_FOUR) {
         const ids = ff.teams.map((t) => t.id);
         if (ids.includes(game.winnerId)) {
@@ -316,13 +329,23 @@ function buildActualResults(games) {
     }
   }
 
-  // Second pass: map Round 1 (R64) results
-  for (const game of completed) {
-    if (game.round === 1 || (!game.round && game.winnerId)) {
-      const winnerInfo = TEAM_TO_R1_GAME[game.winnerId];
-      const loserInfo = TEAM_TO_R1_GAME[game.loserId];
-      if (winnerInfo && loserInfo && winnerInfo.gameKey === loserInfo.gameKey) {
-        results[winnerInfo.gameKey] = game.winnerId;
+  // Second pass: map Round 1 (R64) results + scores
+  for (const game of [...completed, ...liveGames]) {
+    if (game.round === 1 || (!game.round && (game.winnerId || game.team1Id))) {
+      const id1 = game.winnerId || game.team1Id;
+      const id2 = game.loserId || game.team2Id;
+      const info1 = TEAM_TO_R1_GAME[id1];
+      const info2 = TEAM_TO_R1_GAME[id2];
+      if (info1 && info2 && info1.gameKey === info2.gameKey) {
+        if (game.winnerId) results[info1.gameKey] = game.winnerId;
+        // Get the actual bracket team IDs from the matchup
+        const region = REGIONS.find((r) => r.id === info1.region);
+        if (region) {
+          const [raw1, raw2] = region.matchups[info1.gameIndex];
+          const t1Id = raw1.isFirstFour ? (results[raw1.id] || raw1.id) : raw1.id;
+          const t2Id = raw2.isFirstFour ? (results[raw2.id] || raw2.id) : raw2.id;
+          storeScore(info1.gameKey, game, t1Id, t2Id);
+        }
       }
     }
   }
@@ -332,20 +355,28 @@ function buildActualResults(games) {
     for (let round = 2; round <= 4; round++) {
       const gamesInRound = 8 / Math.pow(2, round);
       for (let gi = 0; gi < gamesInRound; gi++) {
-        // The two feeder games
         const feeder1Key = `${region.id}_${round - 1}_${gi * 2}`;
         const feeder2Key = `${region.id}_${round - 1}_${gi * 2 + 1}`;
         const team1 = results[feeder1Key];
         const team2 = results[feeder2Key];
         if (!team1 || !team2) continue;
 
-        // Find if there's a completed game between these two teams
+        const gameKey = `${region.id}_${round}_${gi}`;
+        // Check completed games
         const match = completed.find(
           (g) => (g.winnerId === team1 || g.winnerId === team2) &&
                  (g.loserId === team1 || g.loserId === team2)
         );
         if (match) {
-          results[`${region.id}_${round}_${gi}`] = match.winnerId;
+          results[gameKey] = match.winnerId;
+          storeScore(gameKey, match, team1, team2);
+        } else {
+          // Check live games
+          const live = liveGames.find(
+            (g) => (g.team1Id === team1 || g.team1Id === team2) &&
+                   (g.team2Id === team1 || g.team2Id === team2)
+          );
+          if (live) storeScore(gameKey, live, team1, team2);
         }
       }
     }
@@ -354,15 +385,23 @@ function buildActualResults(games) {
   // Final Four
   for (let gi = 0; gi < 2; gi++) {
     const [r1, r2] = FF_PAIRS[gi];
-    const team1 = results[`${r1}_4_0`]; // region winner
+    const team1 = results[`${r1}_4_0`];
     const team2 = results[`${r2}_4_0`];
     if (!team1 || !team2) continue;
+    const gameKey = `ff_${gi}`;
     const match = completed.find(
       (g) => (g.winnerId === team1 || g.winnerId === team2) &&
              (g.loserId === team1 || g.loserId === team2)
     );
     if (match) {
-      results[`ff_${gi}`] = match.winnerId;
+      results[gameKey] = match.winnerId;
+      storeScore(gameKey, match, team1, team2);
+    } else {
+      const live = liveGames.find(
+        (g) => (g.team1Id === team1 || g.team1Id === team2) &&
+               (g.team2Id === team1 || g.team2Id === team2)
+      );
+      if (live) storeScore(gameKey, live, team1, team2);
     }
   }
 
@@ -376,10 +415,17 @@ function buildActualResults(games) {
     );
     if (match) {
       results["champ"] = match.winnerId;
+      storeScore("champ", match, ffWinner1, ffWinner2);
+    } else {
+      const live = liveGames.find(
+        (g) => (g.team1Id === ffWinner1 || g.team1Id === ffWinner2) &&
+               (g.team2Id === ffWinner1 || g.team2Id === ffWinner2)
+      );
+      if (live) storeScore("champ", live, ffWinner1, ffWinner2);
     }
   }
 
-  return results;
+  return { results, gameScores };
 }
 
 // Score a user's picks against actual results
@@ -546,22 +592,78 @@ export { loadUserEntries };
 
 // ===== COMPONENTS =====
 
-function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact }) {
+function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact, scoreInfo }) {
   const isSelected1 = picked === team1?.id;
   const isSelected2 = picked === team2?.id;
-  const pad = compact ? "6px 8px" : "6px 10px";
+  const pad = compact ? "5px 8px" : "6px 10px";
   const nameSize = compact ? 10 : 11;
   const seedSize = 9;
-  const radioSize = 12;
+  const radioSize = compact ? 10 : 12;
+  const scoreSize = compact ? 13 : 14;
 
   const handleClick = (teamId) => {
     if (disabled) return;
     onPick(teamId);
   };
 
+  // Determine game state from scoreInfo
+  const isFinal = scoreInfo?.status === "final";
+  const isLive = scoreInfo?.status === "live";
+  const hasScore = scoreInfo && (scoreInfo.score1 != null || scoreInfo.score2 != null);
+
+  // Determine if user's pick was correct/wrong
+  const userPicked1 = isSelected1;
+  const userPicked2 = isSelected2;
+  const team1Won = isFinal && scoreInfo?.winnerId === team1?.id;
+  const team2Won = isFinal && scoreInfo?.winnerId === team2?.id;
+  const correctPick1 = isFinal && userPicked1 && team1Won;
+  const wrongPick1 = isFinal && userPicked1 && !team1Won;
+  const correctPick2 = isFinal && userPicked2 && team2Won;
+  const wrongPick2 = isFinal && userPicked2 && !team2Won;
+  const team1Lost = isFinal && !team1Won;
+  const team2Lost = isFinal && !team2Won;
+
+  // Slot background logic
+  function slotBg(isSelected, isCorrect, isWrong, isLoser, teamExists) {
+    if (isLive) return "#FFD70008";
+    if (isCorrect) return "#4CAF5018";
+    if (isWrong) return "#CC000012";
+    if (isSelected) return "#CC000022";
+    return teamExists ? "#ffffff04" : "#1a1a2e";
+  }
+
+  // Left border for correct/wrong
+  function slotBorder(isCorrect, isWrong) {
+    if (isCorrect) return "3px solid #4CAF50";
+    if (isWrong) return "3px solid #CC0000";
+    return "3px solid transparent";
+  }
+
+  // Radio/indicator
+  function renderIndicator(isSelected, isCorrect, isWrong) {
+    if (isCorrect) return (
+      <div style={{ width: radioSize, height: radioSize, borderRadius: "50%", background: "#4CAF50", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <span style={{ fontSize: compact ? 6 : 7, color: "#fff", lineHeight: 1 }}>✓</span>
+      </div>
+    );
+    if (isWrong) return (
+      <div style={{ width: radioSize, height: radioSize, borderRadius: "50%", background: "#CC0000", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <span style={{ fontSize: compact ? 6 : 7, color: "#fff", lineHeight: 1 }}>✗</span>
+      </div>
+    );
+    return (
+      <div style={{
+        width: radioSize, height: radioSize, borderRadius: "50%",
+        border: isSelected ? "3px solid #CC0000" : "2px solid #444",
+        background: isSelected ? "#CC0000" : "transparent",
+        flexShrink: 0,
+      }} />
+    );
+  }
+
   return (
     <div style={{
-      background: "#12121f", border: "1px solid #2a2a3e", borderRadius: 6,
+      background: "#12121f", border: `1px solid ${isLive ? "#FFD70044" : "#2a2a3e"}`, borderRadius: 6,
       minWidth: compact ? 140 : 170, fontSize: 11, overflow: "hidden",
     }}>
       {/* Team 1 */}
@@ -570,35 +672,27 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact }
         style={{
           padding: pad, display: "flex", alignItems: "center", gap: 6,
           borderBottom: "1px solid #2a2a3e",
-          background: isSelected1 ? "#CC000022" : team1 ? "#ffffff04" : "#1a1a2e",
+          borderLeft: slotBorder(correctPick1, wrongPick1),
+          background: slotBg(isSelected1, correctPick1, wrongPick1, team1Lost, team1),
           cursor: !disabled && team1 ? "pointer" : "default",
           transition: "all 0.15s",
+          opacity: isFinal && team1Lost && !wrongPick1 ? 0.5 : 1,
         }}
-        onMouseEnter={(e) => {
-          if (!disabled && team1) e.currentTarget.style.background = "#CC000044";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = isSelected1 ? "#CC000022" : team1 ? "#ffffff04" : "#1a1a2e";
-        }}
+        onMouseEnter={(e) => { if (!disabled && team1 && !isFinal) e.currentTarget.style.background = "#CC000044"; }}
+        onMouseLeave={(e) => { if (!isFinal) e.currentTarget.style.background = slotBg(isSelected1, correctPick1, wrongPick1, team1Lost, team1); }}
       >
-        {/* Radio circle */}
-        <div style={{
-          width: radioSize, height: radioSize, borderRadius: "50%",
-          border: isSelected1 ? "3px solid #CC0000" : "2px solid #444",
-          background: isSelected1 ? "#CC0000" : "transparent",
-          flexShrink: 0,
-        }} />
+        {renderIndicator(isSelected1, correctPick1, wrongPick1)}
         <div style={{ flex: 1, minWidth: 0 }}>
           {team1 ? (
             <>
-              <div style={{ fontSize: seedSize, color: "#666", fontWeight: 700 }}>
-                {team1.seed}
-              </div>
+              <div style={{ fontSize: seedSize, color: "#666", fontWeight: 700 }}>{team1.seed}</div>
               <div style={{
-                fontSize: nameSize, fontWeight: isSelected1 ? 700 : 500,
-                color: isSelected1 ? "#fff" : team1.isCombo ? "#9a9aaa" : "#ccc",
+                fontSize: nameSize,
+                fontWeight: (isSelected1 || team1Won) ? 700 : 500,
+                color: wrongPick1 ? "#CC0000" : (isSelected1 || team1Won) ? "#fff" : team1.isCombo ? "#9a9aaa" : "#ccc",
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                 fontStyle: team1.isCombo ? "italic" : "normal",
+                textDecoration: wrongPick1 ? "line-through" : "none",
               }}>
                 {team1.name}
               </div>
@@ -607,6 +701,14 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact }
             <div style={{ fontSize: 9, color: "#333", fontStyle: "italic" }}>—</div>
           )}
         </div>
+        {hasScore && scoreInfo.score1 != null && (
+          <div style={{
+            fontSize: scoreSize, fontWeight: (isLive || team1Won) ? 800 : 700, flexShrink: 0,
+            color: isLive ? "#FFD700" : team1Won ? "#fff" : "#555",
+          }}>
+            {scoreInfo.score1}
+          </div>
+        )}
       </div>
 
       {/* Team 2 */}
@@ -614,35 +716,27 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact }
         onClick={() => handleClick(team2?.id)}
         style={{
           padding: pad, display: "flex", alignItems: "center", gap: 6,
-          background: isSelected2 ? "#CC000022" : team2 ? "#ffffff04" : "#1a1a2e",
+          borderLeft: slotBorder(correctPick2, wrongPick2),
+          background: slotBg(isSelected2, correctPick2, wrongPick2, team2Lost, team2),
           cursor: !disabled && team2 ? "pointer" : "default",
           transition: "all 0.15s",
+          opacity: isFinal && team2Lost && !wrongPick2 ? 0.5 : 1,
         }}
-        onMouseEnter={(e) => {
-          if (!disabled && team2) e.currentTarget.style.background = "#CC000044";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = isSelected2 ? "#CC000022" : team2 ? "#ffffff04" : "#1a1a2e";
-        }}
+        onMouseEnter={(e) => { if (!disabled && team2 && !isFinal) e.currentTarget.style.background = "#CC000044"; }}
+        onMouseLeave={(e) => { if (!isFinal) e.currentTarget.style.background = slotBg(isSelected2, correctPick2, wrongPick2, team2Lost, team2); }}
       >
-        {/* Radio circle */}
-        <div style={{
-          width: radioSize, height: radioSize, borderRadius: "50%",
-          border: isSelected2 ? "3px solid #CC0000" : "2px solid #444",
-          background: isSelected2 ? "#CC0000" : "transparent",
-          flexShrink: 0,
-        }} />
+        {renderIndicator(isSelected2, correctPick2, wrongPick2)}
         <div style={{ flex: 1, minWidth: 0 }}>
           {team2 ? (
             <>
-              <div style={{ fontSize: seedSize, color: "#666", fontWeight: 700 }}>
-                {team2.seed}
-              </div>
+              <div style={{ fontSize: seedSize, color: "#666", fontWeight: 700 }}>{team2.seed}</div>
               <div style={{
-                fontSize: nameSize, fontWeight: isSelected2 ? 700 : 500,
-                color: isSelected2 ? "#fff" : team2.isCombo ? "#9a9aaa" : "#ccc",
+                fontSize: nameSize,
+                fontWeight: (isSelected2 || team2Won) ? 700 : 500,
+                color: wrongPick2 ? "#CC0000" : (isSelected2 || team2Won) ? "#fff" : team2.isCombo ? "#9a9aaa" : "#ccc",
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                 fontStyle: team2.isCombo ? "italic" : "normal",
+                textDecoration: wrongPick2 ? "line-through" : "none",
               }}>
                 {team2.name}
               </div>
@@ -651,7 +745,25 @@ function MatchupBox({ team1, team2, picked, onPick, gameKey, disabled, compact }
             <div style={{ fontSize: 9, color: "#333", fontStyle: "italic" }}>—</div>
           )}
         </div>
+        {hasScore && scoreInfo.score2 != null && (
+          <div style={{
+            fontSize: scoreSize, fontWeight: (isLive || team2Won) ? 800 : 700, flexShrink: 0,
+            color: isLive ? "#FFD700" : team2Won ? "#fff" : "#555",
+          }}>
+            {scoreInfo.score2}
+          </div>
+        )}
       </div>
+
+      {/* Live game bar */}
+      {isLive && scoreInfo.statusDetail && (
+        <div style={{
+          textAlign: "center", fontSize: compact ? 7 : 8, color: "#FFD700",
+          padding: "2px 4px", background: "#FFD70010", fontWeight: 600,
+        }}>
+          LIVE — {scoreInfo.statusDetail}
+        </div>
+      )}
     </div>
   );
 }
@@ -668,7 +780,7 @@ function useIsMobile(breakpoint = 700) {
   return isMobile;
 }
 
-function MobileRegionView({ region, picks, onPick }) {
+function MobileRegionView({ region, picks, onPick, gameScores }) {
   const rounds = [1, 2, 3, 4];
   const matchupsPerRound = [8, 4, 2, 1];
   const roundLabels = { 1: "Round of 64", 2: "Round of 32", 3: "Sweet 16", 4: "Elite 8" };
@@ -784,6 +896,7 @@ function MobileRegionView({ region, picks, onPick }) {
               gameKey={gameKey}
               disabled={!t1 || !t2}
               compact
+              scoreInfo={gameScores?.[gameKey]}
             />
           );
         })}
@@ -804,7 +917,7 @@ function MobileRegionView({ region, picks, onPick }) {
   );
 }
 
-function RegionalBracketView({ region, picks, onPick }) {
+function RegionalBracketView({ region, picks, onPick, gameScores }) {
   const rounds = [1, 2, 3, 4];
   const matchupsPerRound = [8, 4, 2, 1];
   const spacingMultipliers = [1, 2, 4, 8];
@@ -882,6 +995,7 @@ function RegionalBracketView({ region, picks, onPick }) {
                       onPick={(teamId) => onPick(gameKey, teamId)}
                       gameKey={gameKey}
                       disabled={!t1 || !t2}
+                      scoreInfo={gameScores?.[gameKey]}
                     />
                   );
                 })}
@@ -931,7 +1045,7 @@ function RegionalBracketView({ region, picks, onPick }) {
   );
 }
 
-function FirstFourView({ picks, onPick }) {
+function FirstFourView({ picks, onPick, gameScores }) {
   return (
     <div style={{
       background: "#0a0a16", borderRadius: 12, border: "1px solid #2a2a3e",
@@ -969,6 +1083,7 @@ function FirstFourView({ picks, onPick }) {
                 onPick={(teamId) => onPick(ff.id, teamId)}
                 gameKey={ff.id}
                 disabled={false}
+                scoreInfo={gameScores?.[ff.id]}
               />
             </div>
           );
@@ -978,7 +1093,7 @@ function FirstFourView({ picks, onPick }) {
   );
 }
 
-function FinalFourView({ picks, onPick }) {
+function FinalFourView({ picks, onPick, gameScores }) {
   return (
     <div>
       {/* Final Four Semifinals */}
@@ -1020,6 +1135,7 @@ function FinalFourView({ picks, onPick }) {
                   onPick={(teamId) => onPick(`ff_${i}`, teamId)}
                   gameKey={`ff_${i}`}
                   disabled={!t1 || !t2}
+                  scoreInfo={gameScores?.[`ff_${i}`]}
                 />
               </div>
             );
@@ -1054,6 +1170,7 @@ function FinalFourView({ picks, onPick }) {
                 onPick={(teamId) => onPick("champ", teamId)}
                 gameKey="champ"
                 disabled={!t1 || !t2}
+                scoreInfo={gameScores?.["champ"]}
               />
             </div>
           );
@@ -1758,6 +1875,7 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
   const [locked, setLocked] = useState(isBracketLocked());
   const [countdown, setCountdown] = useState(getTimeUntilDeadline());
   const [actualResults, setActualResults] = useState(null);
+  const [gameScores, setGameScores] = useState({});
   const [resultsInfo, setResultsInfo] = useState(null);
 
   // Update lock state and countdown every 30 seconds
@@ -1775,8 +1893,9 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
     const doFetch = async () => {
       const data = await fetchTournamentResults();
       if (data && !cancelled) {
-        const results = buildActualResults(data.games || []);
+        const { results, gameScores: scores } = buildActualResults(data.games || []);
         setActualResults(results);
+        setGameScores(scores);
         setResultsInfo({
           completedGames: data.completedGames || 0,
           totalGames: data.totalGames || 0,
@@ -2125,16 +2244,16 @@ export default function BracketChallenge({ user, onBack, initialEntry, initialTa
                 )}
                 {isMobile
                   ? REGIONS.map((r) => (
-                      <MobileRegionView key={r.id} region={r} picks={picks} onPick={handlePick} />
+                      <MobileRegionView key={r.id} region={r} picks={picks} onPick={handlePick} gameScores={gameScores} />
                     ))
                   : REGIONS.map((r) => (
-                      <RegionalBracketView key={r.id} region={r} picks={picks} onPick={handlePick} />
+                      <RegionalBracketView key={r.id} region={r} picks={picks} onPick={handlePick} gameScores={gameScores} />
                     ))
                 }
               </div>
             )}
-            {tab === "first4" && <FirstFourView picks={picks} onPick={handlePick} />}
-            {tab === "ff" && <FinalFourView picks={picks} onPick={handlePick} />}
+            {tab === "first4" && <FirstFourView picks={picks} onPick={handlePick} gameScores={gameScores} />}
+            {tab === "ff" && <FinalFourView picks={picks} onPick={handlePick} gameScores={gameScores} />}
             {tab === "lb" && <Leaderboard entries={leaderboard} currentUid={user?.uid} isMobile={isMobile} actualResults={actualResults} resultsInfo={resultsInfo} onSwitchTab={setTab} user={user} onSignIn={onSignIn} />}
             {tab === "chat" && <BracketChat user={user} isMobile={isMobile} />}
             {tab === "rules" && <ContestRules isMobile={isMobile} />}
